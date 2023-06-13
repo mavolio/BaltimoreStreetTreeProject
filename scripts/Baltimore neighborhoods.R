@@ -4,22 +4,25 @@
 # load packages
 
 library(tidyverse)
-library(sf)
-library(mapview)
+library(sf) #simple features - vector GIS support
+library(mapview) #quick web maps 
+library(tidylog) #makes dplyr and tidyr verbose
 
 # get oriented
 # setwd("C:\\Users\\trini\\Documents\\Street Trees") # there is another way to do this I'll (DHL) show you
 getwd()
 list.files()
 list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
+list.files('../BaltimoreStreetTreeProject_Large_Data/',recursive = TRUE) # means "up one level"
 
 
 # read spatial data 
 street_tree <- 
   st_read("../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp"
-          , as_tibble = TRUE)
-# do we need to filter down to 'just' street trees?
+          , as_tibble = TRUE) %>% 
+  filter(LOC_TYPE == "Street") 
 
+#double check filter for street trees
 table(street_tree$LOC_TYPE)
 
 bmore_nb <- 
