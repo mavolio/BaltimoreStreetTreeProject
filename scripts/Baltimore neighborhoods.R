@@ -18,6 +18,9 @@ list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
 street_tree <- 
   st_read("../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp"
           , as_tibble = TRUE)
+# do we need to filter down to 'just' street trees?
+
+table(street_tree$LOC_TYPE)
 
 bmore_nb <- 
   st_read("../BaltimoreStreetTreeProject_Large_Data/Neighborhood/Neighborhood.shp") |> 
@@ -47,3 +50,5 @@ combined <-
 # did that joining work?
 combined
 combined |> glimpse()
+
+# st_write can be used to save out spatial layer of trees with their neighborhood attributes. 
