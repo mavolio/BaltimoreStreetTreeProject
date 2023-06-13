@@ -1,5 +1,25 @@
-#read in shapefile by bmore city with neighborhood delineations and combine with street tree data
-#started 6/12
+---
+title: "BaltimoreStreetTrees"
+author: "Trini et al"
+date:  "`r format(Sys.Date())`"
+output:
+  html_document:
+    fig_width: 8
+    fig_height: 5
+    fig_caption: true
+    toc: true
+    toc_float: true
+    self_contained: true
+---
+
+This file gets street trees summarized per neighborhood
+
+read in shapefile by bmore city with neighborhood delineations and combine with street tree data
+
+
+# 0 set up
+```{r}
+
 
 # load packages
 
@@ -13,10 +33,13 @@ library(tidylog) #makes dplyr and tidyr verbose
 getwd()
 list.files()
 list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
-list.files('../BaltimoreStreetTreeProject_Large_Data/',recursive = TRUE) # means "up one level"
+list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
+```
 
 
-# read spatial data 
+# 1 combine street trees and neighborhoods
+```{r eval=FALSE, include=FALSE}
+
 street_tree <- 
   st_read("../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp"
           , as_tibble = TRUE) %>% 
@@ -55,3 +78,21 @@ combined
 combined |> glimpse()
 
 # st_write can be used to save out spatial layer of trees with their neighborhood attributes. 
+# TODO cut attributes we don't actually need. 
+combined |> 
+  write_csv(paste0('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_', Sys.Date(), '.csv'))
+
+```
+
+## A read in street tree + neighborhood file
+```{r}
+
+combined <-
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv')
+
+# exploratory data analysis
+combined |> summary()
+combined |> glimpse()
+```
+
+# 2 make neighborhood-level summaries of tree characteristics
