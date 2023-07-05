@@ -27,6 +27,7 @@ library(tidyverse)
 library(sf) #simple features - vector GIS support
 library(mapview) #quick web maps 
 library(tidylog) #makes dplyr and tidyr verbose
+library(dplyr)
 
 # get oriented
 # setwd("C:\\Users\\trini\\Documents\\Street Trees") # there is another way to do this I'll (DHL) show you
@@ -93,6 +94,18 @@ combined <-
 # exploratory data analysis
 combined |> summary()
 combined |> glimpse()
+combined |> head()
+combined |> tail()
+```
+#clean combined data - get rid of unnecessary columns
+```{r}
+clean <- combined %>% 
+  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -OBJECTID.y) %>% 
+  rename(Neighborhood = Name)
+
 ```
 
-# 2 make neighborhood-level summaries of tree characteristics
+
+
+
+
