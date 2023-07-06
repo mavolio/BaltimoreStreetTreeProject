@@ -30,12 +30,12 @@ library(tidylog) #makes dplyr and tidyr verbose
 library(dplyr)
 
 # This code is broken, work with Dexter to fix.
-setwd<-("C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees") # there is another way to do this I'll (DHL) show you
+# setwd<-("C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees") # there is another way to do this I'll (DHL) show you
 
 getwd()
 list.files()
-list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
-# list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
+list.files('../../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
+list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
 ```
 
 
@@ -43,7 +43,7 @@ list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
 ```{r eval=FALSE, include=FALSE}
 
 street_tree <- 
-  st_read("C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp"
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp'
 , as_tibble = TRUE) %>% 
   filter(LOC_TYPE == "Street") 
 
@@ -51,7 +51,7 @@ street_tree <-
 table(street_tree$LOC_TYPE)
 
 bmore_nb <- 
-  st_read("C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data\\Neighborhood/Neighborhood.shp") |> 
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\Neighborhood/Neighborhood.shp') |> 
   st_make_valid() |> 
   st_transform(crs = st_crs(street_tree))
 
@@ -83,7 +83,7 @@ combined |> glimpse()
 # TODO cut attributes we don't actually need. 
 #need to fix this path
 combined |> 
-  write_csv(paste0('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_', Sys.Date(), '.csv'))
+  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_', Sys.Date(), '.csv'))
 
 ```
 
@@ -91,7 +91,7 @@ combined |>
 ```{r}
 
 combined <-
-  read_csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv')
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv')
 
 # exploratory data analysis
 combined |> summary()

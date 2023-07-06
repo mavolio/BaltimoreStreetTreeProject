@@ -33,10 +33,10 @@ library(ggplot2)
 
 #set wd
 # run baltimore neighborhoods to get clean file 
-# getwd()
-# list.files()
-# list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
-# list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
+getwd()
+list.files()
+list.files('../../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
+list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
 
 
 ```
@@ -46,9 +46,9 @@ library(ggplot2)
 #make clean
 ```{r}
 
-list.files('../../../BaltimoreStreetTreeProject_Large_Data')
+list.files('../../BaltimoreStreetTreeProject_Large_Data')
  clean <- 
-   read_csv('../../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv') %>%
+   read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv') %>%
   #
 select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -OBJECTID.y) %>% 
   rename(Neighborhood = Name)
@@ -321,7 +321,7 @@ plot(richevenL$PercentBlk, richevenL$richness)
 
 # neighborhood land coverage csv
 ```{r}
-neighs <- read.csv('C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data\\neighs.csv') %>% 
+neighs <- read.csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs.csv') %>% 
   rename(Number = X357459) %>% 
   rename (Neighborhood = Beechfield)
   
