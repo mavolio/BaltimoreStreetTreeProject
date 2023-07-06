@@ -17,6 +17,9 @@ This file gets street trees summarized per neighborhood
 read in shapefile by bmore city with neighborhood delineations and combine with street tree data
 
 
+# get neighborhood demographic info from here
+# https://vital-signs-bniajfi.hub.arcgis.com/search?tags=census
+
 # 0 set up
 ```{r}
 
