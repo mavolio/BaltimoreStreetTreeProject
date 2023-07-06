@@ -32,16 +32,23 @@ lc <-
 lc@data
 lc@data@attributes
 
+# bmore_nb <- 
+#   st_read("../BaltimoreStreetTreeProject_Large_Data/Neighborhood/Neighborhood.shp") |> 
+#   st_make_valid() |> 
+#   st_transform(crs = st_crs(lc))
+
 bmore_nb <- 
-  st_read("../BaltimoreStreetTreeProject_Large_Data/Neighborhood/Neighborhood.shp") |> 
-  st_make_valid() |> 
+  st_read("../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp") |> 
+  # st_make_valid() |> 
   st_transform(crs = st_crs(lc))
 
-tictoc::tic(); for(i in bmore_nb$Name){
+# tictoc::tic(); for(i in bmore_nb$Name){
+tictoc::tic(); for(i in bmore_nb$Community){
   print(i)
   
   vals <- 
-    terra::mask(terra::crop(lc, bmore_nb |> filter(Name == i)), bmore_nb |> filter(Name == i)) |> 
+    # terra::mask(terra::crop(lc, bmore_nb |> filter(Name == i)), bmore_nb |> filter(Name == i)) |> 
+    terra::mask(terra::crop(lc, bmore_nb |> filter(Community == i)), bmore_nb |> filter(Community == i)) |> 
     raster::getValues()
   
   vals |>
@@ -66,13 +73,15 @@ tictoc::tic(); for(i in bmore_nb$Name){
                  )
              ) |> 
     select(id, n, lc_class) |>  # names should be id, n, lc_class
-    readr::write_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs.csv' # TODO move to regular folder
+    # readr::write_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs.csv' # TODO move to regular folder
+    readr::write_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia.csv' # TODO move to regular folder
                        , append = TRUE)
     }; tictoc::tic()
 
 # read neighborhood land cover summaries in long-form
 (test <- 
-    read_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs.csv' # TODO and update here.
+    # read_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs.csv' # TODO and update here.
+    read_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia.csv' # TODO and update here.
              , col_names = c('id', 'n', 'lc_class')) |> 
     tidylog::filter(lc_class != 0) |> 
     tidylog::filter(!is.na(lc_class)) |> 
