@@ -3,13 +3,17 @@ title: "Analyses"
 author: "Trini et al"
 date: "`r format(Sys.Date())`"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     fig_width: 8
     fig_height: 5
-    fig_caption: true
-    toc: true
-    toc_float: true
-    self_contained: true
+    fig_caption: yes
+    toc: yes
+    toc_float: yes
+    self_contained: yes
+  word_document:
+    toc: yes
 ---
 
 This file will analyze street tree data at neighborhood level
@@ -28,10 +32,26 @@ library(codyn)
 library(ggplot2)
 
 #set wd
-getwd()
-list.files()
-list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
-list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
+# run baltimore neighborhoods to get clean file 
+# getwd()
+# list.files()
+# list.files('../BaltimoreStreetTreeProject_Large_Data/') # means "up one level"
+# list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # means "up one level"
+
+
+```
+
+
+
+#make clean
+```{r}
+
+list.files('../../../BaltimoreStreetTreeProject_Large_Data')
+ clean <- 
+   read_csv('../../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv') %>%
+  #
+select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -OBJECTID.y) %>% 
+  rename(Neighborhood = Name)
 ```
 
 #filter tree data for only present tree species, create NB demographics data frame
@@ -73,7 +93,7 @@ richeven <-community_structure(NBabund, abundance.var="abund", time.var= NULL, r
  left_join(NBdem)
 richeven |> head()
 ```
-#vacant sites
+#vacant tree sites
 ```{r}
 #filter for vacant sites by neighborhood
 
@@ -88,6 +108,7 @@ NBvacant <-Vacant %>%
   group_by(Neighborhood) %>% 
   summarize(vacant=sum(present))  
 ```
+
 # some quick correlation analyses
 ```{r}
 #percent white vs richness
@@ -95,20 +116,28 @@ cor.test(richeven$PercentWhite, richeven$richness)
 plot(richeven$PercentWhite, richeven$richness)
 
 #percent white vs evenness
-cor.test(richeven$Evar,richeven$PercentWhite)
+cor.test(richeven$PercentWhite, richeven$Evar)
 plot(richeven$PercentWhite, richeven$Evar)
 
-#percent black
+#percent black richness
 cor.test(richeven$PercentBlk, richeven$richness)
 plot(richeven$PercentBlk, richeven$richness)
 
-#percent native american and alaska native
-cor.test(richeven$PercentNtv, richeven$richness)
-plot(richeven$PercentNtv, richeven$richness)
+#percent black evenness
+cor.test(richeven$PercentBlk, richeven$Evar)
+plot(richeven$PercentBlk, richeven$Evar)
 
-#percent Latino and Hispanic
+# #percent native american and alaska native
+# cor.test(richeven$PercentNtv, richeven$richness)
+# plot(richeven$PercentNtv, richeven$richness)
+
+#percent Latino and Hispanic richness
 cor.test(richeven$PercentLat_Hisp, richeven$richness)
 plot(richeven$PercentLat_Hisp, richeven$richness)
+
+#percent Latino and Hispanic evenness
+cor.test(richeven$PercentLat_Hisp, richeven$Evar)
+plot(richeven$PercentLat_Hisp, richeven$Evar)
 
 #population vs richness
 cor.test(richeven$Population, richeven$richness)
@@ -153,6 +182,12 @@ plot(AvgDBHdem$PercentBlk,AvgDBHdem$AvgDBH)
 
 cor.test(AvgDBHdem$PercentWhite,AvgDBHdem$AvgDBH)
 plot(AvgDBHdem$PercentWhite,AvgDBHdem$AvgDBH)
+
+cor.test(AvgDBHdem$PercentLat_Hisp,AvgDBHdem$AvgDBH)
+plot(AvgDBHdem$PercentLat_Hisp,AvgDBHdem$AvgDBH)
+
+cor.test(AvgDBHdem$Population,AvgDBHdem$AvgDBH)
+plot(AvgDBHdem$Population,AvgDBHdem$AvgDBH)
 ```
 
 #coefficient of variation
@@ -162,9 +197,25 @@ NBdbhCV<- data %>%
   group_by(Neighborhood) %>% 
   summarise(mean = mean(DBH), 
             sd = sd(DBH)) %>% 
-  mutate(cv = sd/mean)
+  mutate(cv = sd/mean) %>% 
+  left_join(NBdem)
 
 ```
+```{r}
+cor.test(NBdbhCV$PercentBlk,NBdbhCV$cv)
+plot(NBdbhCV$PercentBlk,NBdbhCV$cv)
+
+
+cor.test(NBdbhCV$PercentWhite,NBdbhCV$cv)
+plot(NBdbhCV$PercentWhite,NBdbhCV$cv)
+
+cor.test(NBdbhCV$PercentLat_Hisp,NBdbhCV$cv)
+plot(NBdbhCV$PercentLat_Hisp,NBdbhCV$cv)
+
+cor.test(NBdbhCV$Population,NBdbhCV$cv)
+plot(NBdbhCV$Population,NBdbhCV$cv)
+```
+
 #Abundance, Richness, evenness for small trees
 ```{r}
 NBabundSM <-data %>% 
@@ -186,13 +237,27 @@ richevenSM<-community_structure(NBabundSM, abundance.var="abund", time.var= NULL
 cor.test(richevenSM$PercentWhite, richevenSM$richness)
 plot(richevenSM$PercentWhite, richevenSM$richness)
 
+#percent black
+cor.test(richevenSM$PercentBlk, richevenSM$richness)
+plot(richevenSM$PercentBlk, richevenSM$richness)
+
+#percent latino richness
+cor.test(richevenSM$PercentLat_Hisp, richevenSM$richness)
+plot(richevenSM$PercentLat_Hisp, richevenSM$richness)
+
 #percent white vs evenness
 cor.test(richevenSM$Evar,richevenSM$PercentWhite)
 plot(richevenSM$PercentWhite, richevenSM$Evar)
 
+
 #percent black
-cor.test(richevenSM$PercentBlk, richevenSM$richness)
-plot(richevenSM$PercentBlk, richevenSM$richness)
+cor.test(richevenSM$PercentBlk, richevenSM$Evar)
+plot(richevenSM$PercentBlk, richevenSM$Evar)
+
+
+#percent hispanic
+cor.test(richevenSM$PercentLat_Hisp, richevenSM$Evar)
+plot(richevenSM$PercentLat_Hisp, richevenSM$Evar)
 ```
 #Abundance, Richness, evenness for medium trees
 ```{r}
@@ -207,19 +272,22 @@ richevenM<-community_structure(NBabundM, abundance.var="abund", time.var= NULL, 
   left_join(NBdem) %>% 
   unique()
 ```
+
 #correlations for medium trees
 ```{r}
 #percent white vs richness
 cor.test(richevenM$PercentWhite, richevenM$richness)
 plot(richevenM$PercentWhite, richevenM$richness)
 
+#percent black richness
+cor.test(richevenM$PercentBlk, richevenM$richness)
+plot(richevenM$PercentBlk, richevenM$richness)
+
 #percent white vs evenness
 cor.test(richevenM$Evar,richevenM$PercentWhite)
 plot(richevenM$PercentWhite, richevenM$Evar)
 
-#percent black
-cor.test(richevenM$PercentBlk, richevenM$richness)
-plot(richevenM$PercentBlk, richevenM$richness)
+
 ```
 
 #Abundance, Richness, evenness for large trees
@@ -253,7 +321,7 @@ plot(richevenL$PercentBlk, richevenL$richness)
 
 # neighborhood land coverage csv
 ```{r}
-neighs <- read.csv('../BaltimoreStreetTreeProject_Large_Data/neighs.csv') %>% 
+neighs <- read.csv('C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data\\neighs.csv') %>% 
   rename(Number = X357459) %>% 
   rename (Neighborhood = Beechfield)
   
@@ -331,7 +399,7 @@ cor.test(NBland$PercentLat_Hisp, NBland$`Emergent Wetlands`)
 #data frame with total area in pixels
 ```{r}
 (test <- 
-    read_csv('../BaltimoreStreetTreeProject_Large_Data/neighs.csv'
+    read_csv('C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data/neighs.csv'
              , col_names = c('id', 'n', 'lc_class')) %>%  
     tidylog::filter(lc_class != 0) %>% 
     tidylog::filter(!is.na(lc_class)) %>%  
