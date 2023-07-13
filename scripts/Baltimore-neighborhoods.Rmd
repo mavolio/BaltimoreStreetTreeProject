@@ -50,18 +50,12 @@ street_tree <-
 #double check filter for street trees
 table(street_tree$LOC_TYPE)
 
-#old neighborhood boundaries
-# bmore_nb <- 
-#   st_read('../../BaltimoreStreetTreeProject_Large_Data\\Neighborhood/Neighborhood.shp') |> 
-#   st_make_valid() |> 
-#   st_transform(crs = st_crs(street_tree))
-
-#bnia neighborhood boundaries
-bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
-  st_make_valid() |>
+bmore_nb <- 
+ # st_read('../../BaltimoreStreetTreeProject_Large_Data\\Neighborhood/Neighborhood.shp') |> # old neighborhood groupings
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+  st_make_valid() |> 
   st_transform(crs = st_crs(street_tree))
 
-  
 
 # double checks
 street_tree |> glimpse()
@@ -69,19 +63,17 @@ street_tree |>
   sample_n(1000) |> # just grab 1000 random points to avoid over-plotting and sensory overload
   mapview(zcol = 'GENUS') # lets color the dots by genus, why not?
 
-# bmore_nb |> glimpse()
-# bmore_nb |> plot() # works
+bmore_nb |> glimpse()
+bmore_nb |> plot() # works
 # bmore_nb |> mapview() # fails, gdal errors (Geospatial Data Abstraction Library, https://gdal.org/, open source spatial library)
 # bmore_nb |> st_is_valid()
 # bmore_nb |> st_make_valid() |> mapview(zcol = 'Population') # seems to work now! updated read in step above
 
-bmore_bnia |> glimpse()
-bmore_bnia |> plot()
 
 # combining files
 combined <- 
   street_tree %>%
-  st_join(bmore_) %>%
+  st_join(bmore_nb) %>%
   st_drop_geometry()
 
 # did that joining work?

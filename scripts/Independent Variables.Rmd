@@ -1,0 +1,72 @@
+---
+title: "BNIA Demographic Data"
+author: "Trini et al"
+date: "`r format(Sys.Date())`"
+output: html_document
+---
+# set up
+```{r}
+# load packages
+
+library(tidyverse)
+library(sf) #simple features - vector GIS support
+library(mapview) #quick web maps 
+library(tidylog) #makes dplyr and tidyr verbose
+library(dplyr)
+
+#working directory
+getwd()
+list.files()
+list.files('../../BaltimoreStreetTreeProject_Large_Data/')
+list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+```
+
+#1 read in BNIA csv files with demographic data
+
+#BNIA CSA race demographics 
+```{r}
+
+PercentAsian <-  
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>% 
+  select(OBJECTID, CSA2010, pasi18) %>% 
+  rename(PercAsian = pasi18)
+PercentLatino <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Hispanic.csv') %>% 
+  select(OBJECTID, CSA2010, phisp18) %>% 
+  rename(PercLatino = phisp18)
+PercentBlk <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv')
+PercentWhite <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv')
+
+```
+
+#total population by CSA
+```{r}
+TotalPop <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv')
+```
+
+# percent residential properties that are vacant by CSA
+```{r}
+TotalPop <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv')
+```
+
+#BNIA median income
+```{r}
+Income <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv')
+```
+
+# BNIA percent below poverty line
+
+# BNIA education 
+
+# BNIA percent immigrants 
+
+# BNIA total NB area
+
+# BNIA population density
+
+

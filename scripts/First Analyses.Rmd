@@ -19,7 +19,7 @@ output:
 This file will analyze street tree data at neighborhood level
 
 # setup + loading packages
-```{r}
+```{r include=FALSE}
 # load packages
 
 library(tidyverse)
@@ -42,16 +42,12 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE) # m
 ```
 
 
-
 #make clean
-```{r}
+```{r include=FALSE}
 
-list.files('../../BaltimoreStreetTreeProject_Large_Data')
- clean <- 
-   read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-06-13.csv') %>%
-  #
-select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -OBJECTID.y) %>% 
-  rename(Neighborhood = Name)
+ clean <- combined %>% 
+select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -Link) %>% 
+  rename(Neighborhood = Community)
 ```
 
 #filter tree data for only present tree species, create NB demographics data frame
@@ -63,27 +59,30 @@ data<- clean %>%
   mutate(present=1) %>% #for each tree make a present column with 1
   filter(Species!= "unknown tree") 
 
-#neighborhood demographics data frame
-NBdem<- data%>%
-  mutate(PercentWhite = White/Population*100) %>% #converting race data into percentages
-  mutate(PercentBlk = Blk_AfAm/Population*100) %>%
-  mutate(PercentNtv = AmInd_AkNa/Population*100) %>%
-  mutate(PercentAsian = Asian/Population*100) %>%
-  mutate(PercentNatHaw_Pac = NatHaw_Pac/Population*100) %>%
-  mutate(PercentLat_Hisp = Hisp_Lat/Population*100) %>%
-  mutate(PercentOther_Race = Other_Race/Population*100) %>%
-  select(Neighborhood, Population, PercentWhite, PercentBlk, PercentNtv, PercentAsian, PercentNatHaw_Pac, PercentLat_Hisp, PercentOther_Race) %>% 
-  group_by(Neighborhood) %>%
-  unique() 
-NBdem |> head()
-```
+# OLD neighborhood demographics data frame
+# NBdem<- data%>%
+#   mutate(PercentWhite = White/Population*100) %>% #converting race data into percentages
+#   mutate(PercentBlk = Blk_AfAm/Population*100) %>%
+#   mutate(PercentNtv = AmInd_AkNa/Population*100) %>%
+#   mutate(PercentAsian = Asian/Population*100) %>%
+#   mutate(PercentNatHaw_Pac = NatHaw_Pac/Population*100) %>%
+#   mutate(PercentLat_Hisp = Hisp_Lat/Population*100) %>%
+#   mutate(PercentOther_Race = Other_Race/Population*100) %>%
+#   select(Neighborhood, Population, PercentWhite, PercentBlk, PercentNtv, PercentAsian, PercentNatHaw_Pac, PercentLat_Hisp, PercentOther_Race) %>% 
+#   group_by(Neighborhood) %>%
+#  unique() 
 #For each NB sum the number of trees by species (abundance)
+```
+
+
+
 ```{r}
 NBabund <-data %>% 
   group_by(Neighborhood, Species) %>% 
   summarize(abund=sum(present))
 
- 
+#NBabund|> 
+#  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/trees_per_neighborhood_', Sys.Date(), '.csv')) # file of trees per neighborhood for Meghan
 ```
 
 #calculate richness and evenness 
@@ -91,7 +90,6 @@ NBabund <-data %>%
 
 richeven <-community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "Neighborhood") %>%
  left_join(NBdem)
-richeven |> head()
 ```
 #vacant tree sites
 ```{r}
@@ -321,14 +319,17 @@ plot(richevenL$PercentBlk, richevenL$richness)
 
 # neighborhood land coverage csv
 ```{r}
-neighs <- read.csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs.csv') %>% 
-  rename(Number = X357459) %>% 
-  rename (Neighborhood = Beechfield)
-  
-
-#pivot column and join with NB demographics 
-NBland <- neighs %>%
-  pivot_wider(names_from = Tree.Canopy, values_from = Number) %>% 
+NBland <-
+  # read.csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs.csv') %>%
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
+           , col_names = c('id' # call 'community'?
+                           , 'n'
+                           , 'lc_class')) %>%
+  # rename(Number = X357459) %>% 
+  filter(lc_class != 0) %>% 
+  filter(!is.na(lc_class)) %>% 
+  pivot_wider(names_from = lc_class, values_from = n, values_fill = 0) %>% 
+  mutate(total_area_in_pixels = rowSums(.[,-1]))
   left_join(NBdem)
 head(NBland)
 ```
@@ -398,21 +399,21 @@ cor.test(NBland$PercentLat_Hisp, NBland$`Emergent Wetlands`)
 
 #data frame with total area in pixels
 ```{r}
-(test <- 
-    read_csv('C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data/neighs.csv'
-             , col_names = c('id', 'n', 'lc_class')) %>%  
-    tidylog::filter(lc_class != 0) %>% 
-    tidylog::filter(!is.na(lc_class)) %>%  
-    tidylog::pivot_wider(names_from = lc_class, values_from = n, values_fill = 0) %>% # need old pipe
-    tidylog::mutate(total_area_in_pixels = rowSums(.[,-1]))                           # for dot notation to work here
-  )
-
-NBarea <- test %>% 
-  rename(Area = total_area_in_pixels) %>%
-  rename(Neighborhood = id) %>% 
-  left_join(NBdem) %>% 
-  left_join(richeven) %>% 
-  mutate(PopDensity = Population/Area)
+# (test <- 
+#     read_csv('C:\\Users\\trini\\Documents\\Street Trees\\BaltimoreTrees\\BaltimoreStreetTreeProject_Large_Data/neighs.csv'
+#              , col_names = c('id', 'n', 'lc_class')) %>%  
+#     tidylog::filter(lc_class != 0) %>% 
+#     tidylog::filter(!is.na(lc_class)) %>%  
+#     tidylog::pivot_wider(names_from = lc_class, values_from = n, values_fill = 0) %>% # need old pipe
+#     tidylog::mutate(total_area_in_pixels = rowSums(.[,-1]))                           # for dot notation to work here
+#   )
+# 
+# NBarea <- test %>% 
+#   rename(Area = total_area_in_pixels) %>%
+#   rename(Neighborhood = id) %>% 
+#   left_join(NBdem) %>% 
+#   left_join(richeven) %>% 
+#   mutate(PopDensity = Population/Area)
 ```
 # area correlations
 ```{r}
