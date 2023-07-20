@@ -14,7 +14,7 @@ output:
 
 This file contains all dependent variable data for analysis
 
-# set up 
+# 0 set up 
 ```{r}
 # load packages
 library(tidyverse)
@@ -29,10 +29,40 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/')
 list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
+# 1 read in street tree data
+```{r}
+street_tree <- 
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp'
+, as_tibble = TRUE) %>% 
+  filter(LOC_TYPE == "Street") 
+```
+
+# 2 combine with BNIA neighborhood boundaries
+```{r}
+bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+  st_make_valid() |>
+  st_transform(crs = st_crs(street_tree))
+
+combined <-  
+  street_tree %>%
+  st_join(bmore_bnia) %>%
+  st_drop_geometry()
+
+combined |> 
+  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_', Sys.Date(), '.csv'))
+```
 
  
-#total number of trees
+#total number of trees - 
+```{r}
+
+```
+
 #richness
+```{r}
+
+```
+
 #evenness
 #DBH
 #CV of DBH
