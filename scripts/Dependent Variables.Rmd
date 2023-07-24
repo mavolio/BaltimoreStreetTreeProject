@@ -15,13 +15,15 @@ output:
 This file contains all dependent variable data for analysis
 
 # 0 set up 
-```{r}
+```{r include=FALSE}
 # load packages
 library(tidyverse)
 library(sf) 
 library(mapview)  
 library(tidylog) 
 library(dplyr)
+library(vegan)
+library(codyn)
 
 getwd()
 list.files()
@@ -30,7 +32,7 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
 # 1 read in street tree data
-```{r}
+```{r include=FALSE}
 street_tree <- 
   st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp'
 , as_tibble = TRUE) %>% 
@@ -38,7 +40,7 @@ street_tree <-
 ```
 
 # 2 combine with BNIA neighborhood boundaries
-```{r}
+```{r include=FALSE}
 bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
   st_make_valid() |>
   st_transform(crs = st_crs(street_tree))
@@ -52,25 +54,131 @@ combined |>
   write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_', Sys.Date(), '.csv'))
 ```
 
+#3 Read in street tree + neighborhood file
+```{r include=FALSE}
+combined <-
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-07-24.csv')
+```
+#4 Clean combined data
+```{r}
+clean <- combined %>% 
+  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -Link, -UniqueID, -UTILITIES, -Community, -Neigh) %>% 
+  rename(CSA2010 = CSA2020)
+```
+#5 Filter tree data for only present tree species
+```{r include=FALSE}
+data <- clean %>% 
+  mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
+  filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
+  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout")%>% 
+  mutate(present=1) %>% #for each tree make a present column with 1
+  filter(Species!= "unknown tree")
+```
+
  
-#total number of trees - 
+#6 Calculate Total Trees Present per CSA
 ```{r}
+NBTotal <-data %>% 
+  group_by(CSA2010) %>% 
+  summarize(total_trees =sum(present))
+
+#adjust for area and street length
+
+#ratio trees to street length
+Total_st <- NBTotal %>% 
+  left_join(NBRoads) %>% 
+  mutate(ratio = NBTotal$total_trees/NBRoads$sum_road_length_ft)
+
+```
+# Calculate Abundance
+```{r}
+NBabund <-data %>% 
+  group_by(CSA2010, Species) %>% 
+  summarize(abund=sum(present))
+```
+
+
+#7 Calculate richness and evenness
+```{r}
+richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+
+#richness - adjust for area, street length
+```
+
+#8 DBH Class(s/m/L)
+```{r}
+DBHclass <- data %>%
+  mutate(size_class=ifelse(DBH>=0&DBH<=5, "small", ifelse(DBH>5&DBH<20, "medium", ifelse(DBH>=20, "large", 999)))) %>% 
+  group_by(CSA2010, size_class) %>% 
+  summarize(n=length(DBH)) %>% 
+  pivot_wider(names_from = size_class, values_from = n, values_fill = 0)
 
 ```
 
-#richness
+#9 Average DBH by neighborhood
 ```{r}
+AvgDBH <- data %>% 
+  select(CSA2010,DBH)%>% 
+  group_by(CSA2010) %>% 
+  summarise(AvgDBH = mean(DBH), .groups = 'drop')
+```
+
+
+#10 Calculate CV of all DBH measurements by neighborhood
+```{r}
+CvDBH<- data %>% 
+  group_by(CSA2010) %>% 
+  summarise(mean = mean(DBH), 
+            sd = sd(DBH)) %>% 
+  mutate(cv = sd/mean)
+```
+
+#Abundance, Richness, evenness for small trees
+```{r}
+NBabundSM <-data %>% 
+  filter(DBH>=0&DBH<=5) %>% 
+  group_by(CSA2010, Species) %>% 
+  summarize(abund=sum(present)) 
+
+
+#calculate richness and eveness for small trees
+richevenSM <- community_structure(NBabundSM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+
+#adjust for area and street length
 
 ```
 
-#evenness
-#DBH
-#CV of DBH
-#% native
-#Small trees
+
 #Medium trees
-#Large trees
+```{r}
+NBabundM <-data %>% 
+  filter(DBH>5&DBH<20) %>% 
+  group_by(CSA2010, Species) %>% 
+  summarize(abund=sum(present)) 
 
+
+#calculate richness and eveness for medium trees
+richevenM <- community_structure(NBabundM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+
+```
+
+
+#Large trees
+```{r}
+NBabundL <-data %>% 
+  filter(DBH<=20) %>% 
+  group_by(CSA2010, Species) %>% 
+  summarize(abund=sum(present)) 
+
+
+#calculate richness and eveness for medium trees
+richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+```
+
+
+#% native
+
+#15 Combine all dependent variables
 ```{r}
 
 ```

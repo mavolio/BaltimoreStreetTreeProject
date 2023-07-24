@@ -31,8 +31,7 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```{r include=FALSE}
 
 PercentAsian <-  
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>% 
-  select(OBJECTID, CSA2010, pasi20) %>% 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(OBJECTID, CSA2010, pasi20) %>% 
   rename(PercAsian = pasi20)
 
 PercentLatino <- 
@@ -47,8 +46,8 @@ PercentBlk <-
 
 PercentWhite <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
-  select(OBJECTID, CSA2020, pwhite20) %>% 
-  rename(PercWhite = pwhite20)
+  select(OBJECTID, CSA2010, pwhite20) %>% 
+  rename(PercWhite = pwhite20) 
 
 ```
 
@@ -63,34 +62,31 @@ TotalPop <-
 ```{r}
 Vacant <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
-  select(OBJECTID, CSA2020, vacant20)
+  select(OBJECTID, CSA2010, vacant20)
 ```
 
 #BNIA median income
 ```{r}
 Income <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
-  select(OBJECTID, CSA2020, mhhi20)
+  select(OBJECTID, CSA2010, mhhi20) 
 ```
 
 # BNIA percent below poverty line
 ```{r}
 Poverty <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Family_Households_Living_Below_the_Poverty_Line.csv') %>% 
-  select(OBJECTID, CSA2010, hhpov21)
+  select(OBJECTID, CSA2010, hhpov21) 
 
 ```
 
-## percent of population 25 and over with a Bachelor's Degree or above
+# percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
-  select(OBJECTID, CSA2010, bahigher19)
+  select(OBJECTID, CSA2010, bahigher19) 
 
 ```
-
-
-# percent immigrants (NOT in BNIA - in the census) 
 
 # BNIA total NB area
 ```{r}
@@ -101,16 +97,17 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
   filter(lc_class != 0) %>% 
   filter(!is.na(lc_class)) %>% 
   pivot_wider(names_from = lc_class, values_from = n, values_fill = 0) %>% 
-  mutate(total_area_in_pixels = rowSums(.[,-1])) %>% 
-  left_join(TotalPop) %>% 
-  rename(Pop = tpop20)
+  mutate(total_area_in_pixels = rowSums(.[,-1]))
 ```
 
 
-# BNIA population density
+# Population density
 ```{r}
 PopDensity <- LandCover %>% 
-  mutate(PopDensity = Pop/total_area_in_pixels)
+  left_join(TotalPop) %>% 
+  rename(Pop = tpop20) %>% 
+  mutate(PopDensity = Pop/total_area_in_pixels) %>% 
+  select(CSA2010, PopDensity)
 ```
 
 
@@ -120,9 +117,8 @@ PopDensity <- LandCover %>%
 PercentLand <- LandCover %>% 
   mutate(Imperv = Structures + `Other Impervious`+ Roads + `Tree Canopy over Structures` + `Tree Canopy over Other Impervious` + `Tree Canopy over Roads` ) %>% 
   mutate(PercentImp = (Imperv/total_area_in_pixels)*100) %>% 
-  mutate(Pervious = Water + `Tree Canopy`+ 
- #          `Scrub\Shrub` #to fix = Error: '\S' is an unrecognized escape in character string 
-         + Herbaceous + Barren) %>% 
+  mutate(Pervious = Water + `Tree Canopy`+ `Scrub\\Shrub`  
+         + Herbaceous + Barren + `Emergent Wetlands`) %>% 
   mutate(PercPervious = (Pervious/total_area_in_pixels)*100)
 ```
 
@@ -132,9 +128,6 @@ PercentLand <- LandCover %>%
 PercentCanopy <- LandCover %>% 
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100)
 ```
-
-
-# temperature
 
 # total road length (not including highways)
 ```{r}
@@ -148,27 +141,42 @@ roads <-
    st_make_valid() |> 
    st_transform(crs = st_crs(bmore_bnia))
 
-NBRoads <- 
-  bmore_bnia %>%
-  st_join(roads) %>% 
-  st_make_valid()
+NBRoads <- bmore_bnia %>%
+  select(CSA2020, Community) %>% 
+  st_intersection(roads %>% mutate(road_length_ft = as.double(st_length(.)))) %>% 
+  st_drop_geometry() %>% 
+  group_by(CSA2020) %>% 
+  summarize(sum_road_length_ft = sum(road_length_ft)) %>% 
+  rename(CSA2010 = CSA2020)
+
+NBRoads %>% 
+  ggplot(aes(sum_road_length_ft) ) +
+  geom_histogram()
+
+NBRoads %>% 
+  arrange(desc(sum_road_length_ft))
+NBRoads %>% 
+  arrange(sum_road_length_ft)
+
 ```
 
+# temperature
+# percent immigrants (NOT in BNIA - in the census) 
 
 # 2 join all independent variables 
 ```{r}
 IndVar <- PercentAsian %>% 
-  left_join(PercentLatino) %>% 
-  left_join(PercentBlk) %>%
-  left_join(PercentWhite) %>% 
-  left_join(TotalPop) %>% 
-#  left_join(Income) %>%
-  left_join(Poverty) %>% 
-  left_join(Edu) %>% 
-  left_join(LandCover) %>% 
+  left_join(PercentLatino, by = "CSA2010") %>% 
+  left_join(PercentBlk, by = "CSA2010") %>%
+  left_join(PercentWhite, by = "CSA2010") %>% 
+  left_join(TotalPop, by = "CSA2010") %>% 
+  left_join(Income, by = "CSA2010") %>%
+  left_join(Poverty, by = "CSA2010") %>% 
+  left_join(Edu, by = "CSA2010") %>% 
   left_join(PopDensity) %>% 
-  left_join(PercentCanopy) %>% 
-  left_join(PercentLand)
+  left_join(PercentCanopy, by = "CSA2010") %>% 
+  left_join(PercentLand, by = "CSA2010") %>% 
+  left_join(NBRoads, by = "CSA2010")
   
   
 ```
