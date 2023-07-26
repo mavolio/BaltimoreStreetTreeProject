@@ -86,8 +86,11 @@ NBTotal <-data %>%
 
 #ratio trees to street length
 Total_st <- NBTotal %>% 
-  left_join(NBRoads) %>% 
-  mutate(ratio = NBTotal$total_trees/NBRoads$sum_road_length_ft)
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(total_st = total_trees/sum_road_length_ft)
+
+#ratio trees to area
+
 
 ```
 # Calculate Abundance
@@ -133,7 +136,7 @@ CvDBH<- data %>%
   mutate(cv = sd/mean)
 ```
 
-#Abundance, Richness, evenness for small trees
+#11 Abundance, Richness, evenness for small trees
 ```{r}
 NBabundSM <-data %>% 
   filter(DBH>=0&DBH<=5) %>% 
@@ -149,7 +152,7 @@ richevenSM <- community_structure(NBabundSM, abundance.var="abund", time.var= NU
 ```
 
 
-#Medium trees
+#12 Medium trees
 ```{r}
 NBabundM <-data %>% 
   filter(DBH>5&DBH<20) %>% 
@@ -163,7 +166,7 @@ richevenM <- community_structure(NBabundM, abundance.var="abund", time.var= NULL
 ```
 
 
-#Large trees
+#13 Large trees
 ```{r}
 NBabundL <-data %>% 
   filter(DBH<=20) %>% 
@@ -176,7 +179,13 @@ richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL
 ```
 
 
-#% native
+#14 % native, invasive, nonnative
+```{r}
+native <- data %>% 
+  select(Species) %>% 
+  unique()
+```
+
 
 #15 Combine all dependent variables
 ```{r}

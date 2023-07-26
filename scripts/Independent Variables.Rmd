@@ -88,7 +88,7 @@ Edu <-
 
 ```
 
-# BNIA total NB area
+# Land Cover BNIA total NB area
 ```{r}
 LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
            , col_names = c('CSA2010'
@@ -161,6 +161,11 @@ NBRoads %>%
 ```
 
 # temperature
+```{r}
+
+
+```
+
 # percent immigrants (NOT in BNIA - in the census) 
 
 # 2 join all independent variables 
