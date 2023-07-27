@@ -31,7 +31,7 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/')
 list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
-# 1 read in street tree data
+# 1 read in street tree data 
 ```{r include=FALSE}
 street_tree <- 
   st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp'
@@ -41,7 +41,7 @@ street_tree <-
 
 # 2 combine with BNIA neighborhood boundaries
 ```{r include=FALSE}
-bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
   st_make_valid() |>
   st_transform(crs = st_crs(street_tree))
 
@@ -57,13 +57,13 @@ combined |>
 #3 Read in street tree + neighborhood file
 ```{r include=FALSE}
 combined <-
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-07-24.csv')
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-07-27.csv')
 ```
 #4 Clean combined data
 ```{r}
 clean <- combined %>% 
-  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -Link, -UniqueID, -UTILITIES, -Community, -Neigh) %>% 
-  rename(CSA2010 = CSA2020)
+  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -Link, -UniqueID, -UTILITIES, -Neigh) %>% 
+  rename(CSA2010 = CSA2020) #doing this because the bnia boundaries only included from 2020 but all demographic data had 2010 boundaries, but they're the same I checked
 ```
 #5 Filter tree data for only present tree species
 ```{r include=FALSE}
@@ -179,17 +179,37 @@ richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL
 ```
 
 
-#14 % native, invasive, nonnative
+#14 % native or introduced 
 ```{r}
-native <- data %>% 
+
+species <- data %>% 
   select(Species) %>% 
-  unique()
+  unique() 
+
+n_vs_i <- #I'll come up with a more descriptive name, this is the file specifying whether a species is native or introduced
+  read.csv("../../BaltimoreStreetTreeProject_Large_Data/year-plot-species-abundance-addnotree.csv") %>% 
+  select(Native, Commonname, Species)
+
+#  mutate(Native = if statement? (Species == ), 'no') or maybe casewhen()?
+#^ native yes/no?
 ```
 
 
 #15 Combine all dependent variables
 ```{r}
-
+ DepVar <- NBTotal %>% 
+  left_join(NBabund, by = "CSA2010") %>% 
+  left_join(richeven, by = "CSA2010") %>%
+  left_join(DBHclass, by = "CSA2010") %>%
+  left_join(AvgDBH, by = "CSA2010") %>% 
+  left_join(CvDBH, by = "CSA2010") %>% 
+  left_join(NBabundSM, by = "CSA2010") %>% 
+  left_join(NBabundM, by = "CSA2010") %>% 
+  left_join(NBabundL, by = "CSA2010") %>% 
+  left_join(richevenSM, by = "CSA2010") %>% 
+  left_join(NBabundM, by = "CSA2010") %>% 
+  left_join(NBabundL, by = "CSA2010")
+  
 ```
 
 

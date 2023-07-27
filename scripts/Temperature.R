@@ -4,14 +4,12 @@ library(sf); library(tidyverse)
 
 #PM Baltimore temperature raster
 temperature <- 
-  # raster::raster('../../BaltimoreTrees/BaltimoreStreetTreeProject_Large_Data\\baltimore\\temperature surfaces\\bal_pm.tif') # please stop moving file hierarchy
   raster::raster('../BaltimoreStreetTreeProject_Large_Data/baltimore/temperature surfaces/bal_pm.tif')
 
  
 
 #BNIA Neighborhoods 
 bmore_nb <- 
-  # st_read("../../BaltimoreTrees/BaltimoreStreetTreeProject_Large_Data/Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp") |> # it is critical to keep the paths the same. Its cumbersome for us each to change this back and forth. Let me know if I (DHL) can help explain how this fits together and why. The intended system saves us all time.
   st_read("../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp") |> 
   st_transform(crs = st_crs(temperature))
 
@@ -31,7 +29,7 @@ tictoc::tic(); for(i in bmore_nb$Community){
    # values |> 
      # table() |> 
      # as_tibble() |>
-   tibble(  Neighborhood = i
+   tibble(  CSA2010 = i
           , ave_temp = mean(values, na.rm = TRUE) # add the degrees '_c' or '_f' for Celsius or Farh..
           , n_pixel = values |> as_tibble() |> tidylog::filter(!is.na(value)) |> nrow()
           ) |> 
@@ -46,11 +44,10 @@ tictoc::tic(); for(i in bmore_nb$Community){
 }; tictoc::tic()
 
 
-#pivot still a work in progress 
-# no pivot needed! 
+#read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
     read_csv('input_data/NB_pm_temp_2023-07-27.csv' 
-             , col_names = c('Neighborhood', 'avg_temp', 'n_pixel'))
+             , col_names = c('CSA2010', 'avg_temp', 'n_pixel'))
 )
 
 temperature_by_neigh |> glimpse() # NICE!

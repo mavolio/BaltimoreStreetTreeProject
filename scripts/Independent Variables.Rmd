@@ -51,28 +51,28 @@ PercentWhite <-
 
 ```
 
-#BNIA total population by CSA
+#Total Population
 ```{r}
 TotalPop <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% 
   select(OBJECTID, CSA2010, tpop20)
 ```
 
-#BNIA percent residential properties that are vacant by CSA
+#Vacant
 ```{r}
 Vacant <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
   select(OBJECTID, CSA2010, vacant20)
 ```
 
-#BNIA median income
+#Median income
 ```{r}
 Income <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
   select(OBJECTID, CSA2010, mhhi20) 
 ```
 
-# BNIA percent below poverty line
+# Poverty - BNIA percent below poverty line
 ```{r}
 Poverty <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Family_Households_Living_Below_the_Poverty_Line.csv') %>% 
@@ -80,7 +80,7 @@ Poverty <-
 
 ```
 
-# percent of population 25 and over with a Bachelor's Degree or above
+#Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
@@ -132,7 +132,7 @@ PercentCanopy <- LandCover %>%
 # total road length (not including highways)
 ```{r}
 
-bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
   st_make_valid()
 
 roads <- 
@@ -160,13 +160,13 @@ NBRoads %>%
 
 ```
 
-# temperature
+#Temperature
 ```{r}
 
-
+temperature_by_neigh |> glimpse()
 ```
 
-# percent immigrants (NOT in BNIA - in the census) 
+# TODO percent immigrants (NOT in BNIA - in the census) 
 
 # 2 join all independent variables 
 ```{r}
@@ -181,7 +181,8 @@ IndVar <- PercentAsian %>%
   left_join(PopDensity) %>% 
   left_join(PercentCanopy, by = "CSA2010") %>% 
   left_join(PercentLand, by = "CSA2010") %>% 
-  left_join(NBRoads, by = "CSA2010")
+  left_join(NBRoads, by = "CSA2010") %>% 
+  left_join(temperature_by_neigh, by = "CSA2010")
   
   
 ```

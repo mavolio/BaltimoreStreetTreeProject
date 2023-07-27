@@ -52,9 +52,9 @@ table(street_tree$LOC_TYPE)
 
 #old neighborhood boundaries
 # bmore_nb <- 
-#   st_read('../../BaltimoreStreetTreeProject_Large_Data\\Neighborhood/Neighborhood.shp') |> 
-#   st_make_valid() |> 
-#   st_transform(crs = st_crs(street_tree))
+#    st_read('../../BaltimoreStreetTreeProject_Large_Data\\Neighborhood/Neighborhood.shp') |> 
+#    st_make_valid() |> 
+#    st_transform(crs = st_crs(street_tree))
 
 #bnia neighborhood boundaries
 bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community Statistical Areas (BNIA neighborhoods)/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
