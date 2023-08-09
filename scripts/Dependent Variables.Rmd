@@ -102,8 +102,8 @@ Total_area <- NBTotal %>%
 NBabund <-data %>% 
   group_by(CSA2010, Species) %>% 
   summarize(abund=sum(present)) %>% 
-  select(CSA2010, Species, abund) %>% 
-  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
+  select(CSA2010, Species, abund) 
+#  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
 
 ```
@@ -206,8 +206,8 @@ cvDBH_SM<- data %>%
 NBabundSM <-data %>% 
   filter(DBH>=0&DBH<=5) %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) %>% 
-  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
+  summarize(abund=sum(present)) #%>% 
+#  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
 # #norm by area #not using anymore because of pivot
 # SMabund_area <- NBabundSM %>% 
@@ -244,8 +244,8 @@ sm_rich_tot <- richeven %>%
 NBabundM <-data %>% 
   filter(DBH>5&DBH<20) %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) %>%
-  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
+  summarize(abund=sum(present)) #%>%
+#  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
 
 #calculate richness and eveness for medium trees
@@ -295,8 +295,8 @@ L_tot_st <- Total_L %>%
 NBabundL <-data %>% 
   filter(DBH>=20) %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) %>% 
-  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
+  summarize(abund=sum(present)) #%>% 
+#  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
 # #norm abundance by area 
 # abund_area_L <- NBabundL %>% 
@@ -491,12 +491,12 @@ native <- species %>%
   left_join(cvDBH_L, by = "CSA2010") 
 #  left_join(native, by = "CSA2010")
 
- AbundanceVars <- NBabund %>% #dataset was too big without pivot
-   left_join(NBabundSM, by = "CSA2010") %>%
-   left_join(NBabundM, by = "CSA2010") %>% 
-   left_join(NBabundL, by = "CSA2010") 
+ # AbundanceVars <- NBabund %>% #dataset was too big without pivot
+ #   left_join(NBabundSM, by = "CSA2010") %>%
+ #   left_join(NBabundM, by = "CSA2010") %>% 
+ #   left_join(NBabundL, by = "CSA2010") 
   
-write_csv(DepVar,'../../BaltimoreStreetTreeProject/Dependent_variable.csv')  
+write_csv(DepVar,'../input_data/Dependent_variable.csv')  
 ```
 
 

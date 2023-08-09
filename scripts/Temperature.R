@@ -46,7 +46,7 @@ tictoc::tic(); for(i in bmore_nb$Community){
 
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
-    read_csv('input_data/NB_pm_temp_2023-07-27.csv' 
+    read_csv('input_data/NB_pm_temp_2023-08-09.csv' 
              , col_names = c('CSA2010', 'avg_temp', 'n_pixel'))
 )
 
