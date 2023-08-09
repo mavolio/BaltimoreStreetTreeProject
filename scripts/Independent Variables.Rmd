@@ -162,7 +162,9 @@ NBRoads %>%
 
 #Temperature
 ```{r}
-temperature_by_neigh |> glimpse()
+NBtemperature <- temperature_by_neigh %>% 
+  select(-n_pixel) %>% 
+  unique()
 ```
 
 # TODO percent immigrants (NOT in BNIA - in the census) 
@@ -181,9 +183,9 @@ IndVar <- PercentAsian %>%
   left_join(PercentCanopy, by = "CSA2010") %>% 
   left_join(PercentLand, by = "CSA2010") %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  left_join(temperature_by_neigh, by = "CSA2010")
+  left_join(NBtemperature, by = "CSA2010")
   
-  
+write_csv(IndVar,'../../BaltimoreStreetTreeProject/Independent_variable.csv')  
 ```
 
 

@@ -5,16 +5,13 @@ date: "`r format(Sys.Date())`"
 output: html_document
 
 ---
-# set up
+#0 set up
 ```{r}
 # load packages
 library(tidyverse)
 library(sf) 
 library(mapview)  
 library(tidylog) 
-library(dplyr)
-library(vegan)
-library(codyn)
 
 #working directory
 getwd()
@@ -27,10 +24,27 @@ This file will conduct correlational analyses on combined data of demographics a
 
 #combine and analyze data
 ```{r}
+Dependent <- read_csv('../../BaltimoreStreetTreeProject/Dependent_variable.csv')
+Independent<- read_csv('../../BaltimoreStreetTreeProject/Independent_variable.csv') 
 
-
+Combined <- Dependent %>% 
+  left_join(Independent, by = "CSA2010")
 ```
 
-#road length data 
-#relativize by road lengths
+#first pass
+```{r}
+
+cor.test(Combined$total_trees, Combined$mhhi20)
+cor.test(Combined$total_st, Combined$mhhi20)
+ggplot(data=Combined, aes(x=mhhi20, y =total_st) )+ geom_point()
+
+#richness
+cor.test(Combined$rich_st, Combined$mhhi20)
+cor.test(Combined$richness, Combined$mhhi20)
+
+Combined|> select(where(is.numeric)) |> drop_na() |> cor()
+
+cor.test(Combined$total_trees, Combined$PercWhite)
+cor.test(Combined$total_trees, Combined$PercBlk)
+```
 

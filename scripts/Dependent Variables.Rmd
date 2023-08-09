@@ -452,6 +452,7 @@ native <- species %>%
               COMMON=='cherry/plum, spp.'|COMMON=='crabapple, flowering'|COMMON=='hawthorn, spp.'|COMMON=='yew, spp.'  ~ 'N/I',
               #double check that all species were covered
               TRUE ~ 'not done yet'))
+#calculate %native - single value for each neighborhood
 ```
 
 
@@ -487,15 +488,15 @@ native <- species %>%
   left_join(L_rich_st, by = "CSA2010") %>%
   left_join(L_rich_tot, by = "CSA2010") %>%
   left_join(AvgDBH_L, by = "CSA2010") %>%
-  left_join(cvDBH_L, by = "CSA2010") %>%
-  left_join(native, by = "CSA2010")
+  left_join(cvDBH_L, by = "CSA2010") 
+#  left_join(native, by = "CSA2010")
 
  AbundanceVars <- NBabund %>% #dataset was too big without pivot
    left_join(NBabundSM, by = "CSA2010") %>%
    left_join(NBabundM, by = "CSA2010") %>% 
    left_join(NBabundL, by = "CSA2010") 
   
-  
+write_csv(DepVar,'../../BaltimoreStreetTreeProject/Dependent_variable.csv')  
 ```
 
 
