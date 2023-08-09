@@ -59,6 +59,7 @@ combined |>
 combined <-
   read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-07-27.csv')
 ```
+
 #4 Clean combined data
 ```{r}
 clean <- combined %>% 
@@ -76,39 +77,62 @@ data <- clean %>%
 ```
 
  
-#6 Calculate Total Trees Present per CSA
+#6 Total # Trees per Neighborhood
 ```{r}
 NBTotal <-data %>% 
   group_by(CSA2010) %>% 
-  summarize(total_trees =sum(present))
-
-#adjust for area and street length
+  summarize(total_trees =sum(present)) %>% 
+  select(total_trees, CSA2010)
 
 #ratio trees to street length
 Total_st <- NBTotal %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(total_st = total_trees/sum_road_length_ft)
+  mutate(total_st = total_trees/sum_road_length_ft) %>% 
+  select(total_st, CSA2010)
 
-#ratio trees to area
-
+#Ratio trees to area
+Total_area <- NBTotal %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(total_area = total_trees/total_area_in_pixels) %>% 
+  select(total_area, CSA2010)
 
 ```
-# Calculate Abundance
+#7 Total Abundance by neighborhood
 ```{r}
 NBabund <-data %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present))
+  summarize(abund=sum(present)) %>% 
+  select(CSA2010, Species, abund) %>% 
+  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
+
+
 ```
 
 
-#7 Calculate richness and evenness
+#8 Richness and evenness
 ```{r}
 richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
 
-#richness - adjust for area, street length
+#richness normalized by area
+rich_area <- richeven %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(rich_area = richness/total_area_in_pixels) %>% 
+  select(rich_area, CSA2010)
+
+#ratio trees to street length
+rich_st <- richeven %>% 
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(rich_st = richness/sum_road_length_ft) %>% 
+  select(rich_st, CSA2010)
+
+#norm by total trees
+rich_tot <- richeven %>% 
+  left_join(NBTotal, by = "CSA2010") %>% 
+  mutate(rich_tot = richness/total_trees)
+
 ```
 
-#8 DBH Class(s/m/L)
+#9 Classify DBH (s/m/L)
 ```{r}
 DBHclass <- data %>%
   mutate(size_class=ifelse(DBH>=0&DBH<=5, "small", ifelse(DBH>5&DBH<20, "medium", ifelse(DBH>=20, "large", 999)))) %>% 
@@ -118,7 +142,7 @@ DBHclass <- data %>%
 
 ```
 
-#9 Average DBH by neighborhood
+#10 Average DBH by neighborhood
 ```{r}
 AvgDBH <- data %>% 
   select(CSA2010,DBH)%>% 
@@ -127,88 +151,350 @@ AvgDBH <- data %>%
 ```
 
 
-#10 Calculate CV of all DBH measurements by neighborhood
+#11 CV of all DBH measurements by neighborhood
 ```{r}
 CvDBH<- data %>% 
   group_by(CSA2010) %>% 
   summarise(mean = mean(DBH), 
             sd = sd(DBH)) %>% 
-  mutate(cv = sd/mean)
+  mutate(cv = sd/mean) %>% 
+  select(cv, CSA2010)
 ```
 
-#11 Abundance, Richness, evenness for small trees
+#12 Total Small Trees
+```{r}
+Total_SM <- data %>% 
+  filter(DBH>=0&DBH<=5) %>% 
+  group_by(CSA2010) %>% 
+  summarize(total_sm_trees =sum(present))
+
+#normalized by area 
+SM_area <- Total_SM %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(sm_area = total_sm_trees/total_area_in_pixels) %>% 
+  select(sm_area, CSA2010)
+
+#norm by street length
+Tot_SM_st <- Total_SM %>% 
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(tot_SM_st = total_sm_trees/sum_road_length_ft) %>% 
+  select(tot_SM_st, CSA2010)
+
+```
+#13 Avg SM DBH 
+```{r}
+AvgDBH_SM <- data %>% 
+  select(CSA2010,DBH)%>% 
+  filter(DBH>=0&DBH<=5) %>% 
+  group_by(CSA2010) %>% 
+  summarise(Avg_SM_DBH = mean(DBH), .groups = 'drop')
+```
+#14 SM cv
+```{r}
+cvDBH_SM<- data %>% 
+  filter(DBH>=0&DBH<=5) %>%
+  group_by(CSA2010) %>% 
+  summarise(mean = mean(DBH), 
+            sd = sd(DBH)) %>% 
+  mutate(cv_SM = sd/mean) %>% 
+  select(cv_SM, CSA2010)
+```
+
+
+#15 SM Abund/Rich/evenness
 ```{r}
 NBabundSM <-data %>% 
   filter(DBH>=0&DBH<=5) %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) 
+  summarize(abund=sum(present)) %>% 
+  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
+# #norm by area #not using anymore because of pivot
+# SMabund_area <- NBabundSM %>% 
+#   left_join(LandCover, by = "CSA2010") %>% 
+#   mutate(SM_abund_area = abund/total_area_in_pixels) %>% 
+#   select(SM_abund_area, CSA2010)
 
 #calculate richness and eveness for small trees
 richevenSM <- community_structure(NBabundSM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
 
-#adjust for area and street length
+#norm richness by area
+SM_rich_area <- richeven %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(rich_area_SM = richness/total_area_in_pixels) %>% 
+  select(rich_area_SM, CSA2010)
+
+#ratio richness to street length
+SM_rich_st <- richeven %>% 
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(SM_rich_st = richness/sum_road_length_ft) %>% 
+  select(SM_rich_st, CSA2010)
+
+#norm total trees
+sm_rich_tot <- richeven %>% 
+  left_join(NBTotal, by = "CSA2010") %>% 
+  mutate(sm_rich_tot = richness/total_trees) %>% 
+  select(sm_rich_tot, CSA2010)
 
 ```
 
 
-#12 Medium trees
+#16 Medium trees
 ```{r}
 NBabundM <-data %>% 
   filter(DBH>5&DBH<20) %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) 
+  summarize(abund=sum(present)) %>%
+  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
 
 #calculate richness and eveness for medium trees
 richevenM <- community_structure(NBabundM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
 
+#norm richness by area
+M_rich_area <- richeven %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(rich_area_M = richness/total_area_in_pixels) %>% 
+  select(rich_area_M, CSA2010)
+
+#ratio richness to street length
+M_rich_st <- richeven %>% 
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(M_rich_st = richness/sum_road_length_ft) %>% 
+  select(M_rich_st, CSA2010)
+
+#norm total trees
+m_rich_tot <- richeven %>% 
+  left_join(NBTotal, by = "CSA2010") %>% 
+  mutate(m_rich_tot = richness/total_trees) %>% 
+  select(m_rich_tot, CSA2010)
 ```
 
+#17 Total Large Trees
+```{r}
+Total_L <- data %>% 
+  filter(DBH>20) %>% 
+  group_by(CSA2010) %>% 
+  summarize(total_L_trees =sum(present))
 
-#13 Large trees
+#normalized by area 
+L_tot_area <- Total_L %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(l_area = total_L_trees/total_area_in_pixels) %>% 
+  select(l_area, CSA2010)
+
+#norm by street length
+L_tot_st <- Total_L %>% 
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(L_rich_st = total_L_trees/sum_road_length_ft) %>% 
+  select(L_rich_st, CSA2010)
+```
+
+#18 L Abund/rich/even
 ```{r}
 NBabundL <-data %>% 
-  filter(DBH<=20) %>% 
+  filter(DBH>=20) %>% 
   group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) 
+  summarize(abund=sum(present)) %>% 
+  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
+# #norm abundance by area 
+# abund_area_L <- NBabundL %>% 
+#   left_join(LandCover, by = "CSA2010") %>% 
+#   mutate(abund_area_L = abund/total_area_in_pixels) %>% 
+#   select(abund_area_L)
 
-#calculate richness and eveness for medium trees
+#calculate richness and evenness for Large trees
 richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+
+#Richness norm by area
+rich_area_L <- richeven %>% 
+  left_join(LandCover, by = "CSA2010") %>% 
+  mutate(rich_area_L = richness/total_area_in_pixels) %>% 
+  select(rich_area_L, CSA2010)
+
+#Richness norm by street length
+L_rich_st <- richeven %>% 
+  left_join(NBRoads, by = "CSA2010") %>% 
+  mutate(L_rich_st = richness/sum_road_length_ft) %>% 
+  select(L_rich_st, CSA2010)
+
+#richness norm by total trees
+L_rich_tot <- richeven %>% 
+  left_join(NBTotal, by = "CSA2010") %>% 
+  mutate(L_rich_tot = richness/total_trees) %>% 
+  select(L_rich_tot, CSA2010)
+```
+#19 Avg L DBH
+```{r}
+AvgDBH_L <- data %>% 
+  select(CSA2010,DBH)%>% 
+  filter(DBH>=20) %>% 
+  group_by(CSA2010) %>% 
+  summarise(Avg_L_DBH = mean(DBH), .groups = 'drop')
+
+```
+#20 cv L
+```{r}
+cvDBH_L<- data %>% 
+  filter(DBH>=20) %>%
+  group_by(CSA2010) %>% 
+  summarise(mean = mean(DBH), 
+            sd = sd(DBH)) %>% 
+  mutate(cv_L = sd/mean) %>% 
+  select(cv_L, CSA2010)
 ```
 
 
-#14 % native or introduced 
+#21 Native or introduced 
 ```{r}
 
 species <- data %>% 
-  select(Species) %>% 
-  unique() 
+  select(CSA2010, COMMON, Species)
+
+common_name <- data %>% 
+  select(COMMON, Species) %>% 
+  unique()
 
 n_vs_i <- #I'll come up with a more descriptive name, this is the file specifying whether a species is native or introduced
   read.csv("../../BaltimoreStreetTreeProject_Large_Data/year-plot-species-abundance-addnotree.csv") %>% 
-  select(Native, Commonname, Species)
+  select(Native, Species, Commonname) %>% 
+  unique()
 
-#  mutate(Native = if statement? (Species == ), 'no') or maybe casewhen()?
-#^ native yes/no?
+#  mutate and casewhen()
+
+#adding column Nat = native, introduced, or N/I  
+native <- species %>% 
+    mutate(Nat = #DOUBLE CHECK: is a species considered introduced if outside of typical US range? paper birch,northern catalpa,southern catalpa,Caucasian linden(hybrid), linden (tilius americana),magnolia, sweetbay 
+             #prunus serrulata mislabeled common name hackberry
+#left off on 
+             case_when(
+               COMMON=='Acer truncatum'|COMMON=='Amur corktree'|COMMON=='Amur maackia'|
+                 COMMON=='apple,common'|COMMON=='apricot'|COMMON=='arborvitae, Oriental'|
+                 COMMON=='ash, black'|COMMON=='banana'|COMMON=='beech, European'|
+                 COMMON=='birch, Asian white'|COMMON=='birch, Asian white'|COMMON=='birch, European white'|
+                 COMMON=='birch, paper'|COMMON=='buckthorn, common'|COMMON=='Caucasian linden'|
+                 COMMON=='cedar, Atlas'|COMMON=='cedar, deodar'|COMMON=='chastetree'|COMMON=='cherry, Higan'|
+                 COMMON=='cherry, Japanese flowering'|COMMON=='cherry, Sargent'|COMMON=='cherry, sweet'|
+                 COMMON=='cherry, Taiwan'|COMMON=='cherry, Yoshino'|COMMON=='cherrylaurel, Carolina'|
+                 COMMON=='chestnut, Chinese'|COMMON=='crapemyrtle, common'|COMMON=="crapemyrtle, queen's"|
+                 COMMON=='cypress, Italian'|COMMON=='cypress, Leyland'|COMMON=='dawn redwood'|
+                 COMMON=='dogwood, corneliancherry'|COMMON=='dogwood, Kousa'|COMMON=='elm, Chinese'|
+                 COMMON=='elm, hybrid'|COMMON=='elm, rock'|COMMON=='elm, Siberian'|COMMON=='elm, slippery'|
+                 COMMON=='elm, winged'|COMMON=='euonymus, spp.'|COMMON=='falsecypress, Hinoki'|
+                 COMMON=='falsecypress, Japanese'|COMMON=='falsecypress, Lawson'|
+                 COMMON=='falsecypress, Nootka'|COMMON=='falsecypress, spp.'|COMMON=='fig, common'|
+                 COMMON=='filbert, Turkish'|COMMON=='fir, fraser'|COMMON=='fir, white'|
+                 COMMON=='Fraxinus angustifolia'|COMMON=='ginkgo'|COMMON=='goldenraintree'|
+                 COMMON=='hardy rubbertree'|COMMON=='hawthorn, Washington'|COMMON=='hickory, shellbark'|
+                 COMMON=='holly, Chinese'|COMMON=='holly, English'|COMMON=="holly, Foster's"|
+                 COMMON=='holly, Japanese'|COMMON=='holly, myrtle-leaf'|COMMON=='hornbeam, European'|
+                 COMMON=='horsechestnut'|COMMON=='horsechestnut, red'|COMMON=='Japanese cryptomeria'|
+                 COMMON=='Japanese pagodatree'|COMMON=='juniper, Chinese'|COMMON=='katsuratree'|
+                 COMMON=='Kentucky coffeetree'|COMMON=='larch, American'|COMMON=='larch, European'|
+                 COMMON=='lilac, Chinese tree'|COMMON=='lilac, common'|COMMON=='lilac, Japanese tree'|
+                 COMMON=='linden, littleleaf'|COMMON=='linden, silver'|COMMON=='Liquidambar formosana'|
+                 COMMON=='magnolia, saucer'|COMMON=='magnolia, southern'|COMMON=='magnolia, star'|
+                 COMMON=='maple, Amur'|COMMON=='maple, black'|COMMON=='maple, Freeman'|COMMON=='maple, hedge'|
+                 COMMON=='maple, Japanese'|COMMON=='maple, Miyabe'|COMMON=='maple, Norway'|
+                 COMMON=='maple, paperbark'|COMMON=='maple, sycamore'|COMMON=='maple, Tatarian'|
+                 COMMON=='maple, trident'|COMMON=='mimosa'|COMMON=='mountainash, European'|
+                 COMMON=='mulberry, paper'|COMMON=='mulberry, red'|COMMON=='mulberry, white'|
+                 COMMON=='oak, bur'|COMMON=='oak, English'|COMMON=='oak, live'|COMMON=='oak, northern pin'|
+                 COMMON=='oak, overcup'|COMMON=='oak, Shumard'|COMMON=='oak, swamp chestnut'|
+                 COMMON=='oak, Texas red'|COMMON=='oak, water'|COMMON=='oak, willow'|COMMON=='Oak, Willow'|
+                 COMMON=='oriental raisin tree'|COMMON=='osage-orange'|COMMON=='peach, common'|
+                 COMMON=='pear, callery'|COMMON=='pear, common'|COMMON=='pecan'|COMMON=='persian parrotia'|
+                 COMMON=='photinia, Chinese'|COMMON=='photinia, fraser'|COMMON=='pine, Austrian'|
+                 COMMON=='pine, Japanese black'|COMMON=='pine, Japanese white'|COMMON=='pine, mugo'|
+                 COMMON=='pine, longleaf'|COMMON=='pine, red'|COMMON=='pistache, Chinese'|
+                 COMMON=='planetree, London'|COMMON=='plum, cherry'|COMMON=='poplar, balsam'|
+                 COMMON=='poplar, Lombardy'|COMMON=='poplar, white'|COMMON=='privet, glossy'|
+                 COMMON=='rose-of-sharon'|COMMON=='royal paulownia'|COMMON=='smoketree, American'|
+                 COMMON=='snowbell, American'|COMMON=='snowbell, Japanese'|COMMON=='Sorbus alnifolia'|
+                 COMMON=='spruce, Colorado'|COMMON=='spruce, Norway'|COMMON=='spruce, Oriental'|
+                 COMMON=='spruce, Serbian'|COMMON=='spruce, white'|COMMON=='sugarberry'|
+                 COMMON=='sweet gum, Chinese'|COMMON=='sweetgum, Oriental'|COMMON=='Syringa pekinensis'|
+                 COMMON=='Tilia mongolica'|COMMON=='Tilia x euchlora'|COMMON=='tree of heaven'|
+                 COMMON=='viburnum, rusty blackhaw'|COMMON=='viburnum, spp.'|COMMON=='walnut, English'|
+                 COMMON=='waxmyrtle, Southern'|COMMON=='willow, corkscrew'|COMMON=='willow, pussy'|
+                 COMMON=='willow, weeping'|COMMON=='yellowwood'|COMMON=='zelkova, Chinese'|
+                 COMMON=='zelkova, Japanese'|COMMON=='linden, American'~'introduced',
+              #NATIVE
+              COMMON=='arborvitae spp.'|COMMON=='Aesculus parviflora'|COMMON=='arborvitae, eastern'|
+                COMMON=='ash, black'|COMMON=='ash, green'|COMMON=='ash, pumpkin'|
+                COMMON=='ash, white'|COMMON=='aspen, bigtooth'|COMMON=='beech, American'|
+                COMMON=='birch, gray'|COMMON=='birch, river'|COMMON=='blackgum'|COMMON=='Blackgum'|
+                COMMON=='boxelder'|COMMON=='buckeye, Ohio'|COMMON=='buckeye, red'|COMMON=='buckeye, yellow'|
+                COMMON=='butternut'|COMMON == 'cherry, black'|COMMON=='chestnut, American'|
+                COMMON=='chokecherry, common'|COMMON=='cottonwood, eastern'|COMMON=='crabapple, southern'|
+                COMMON=='cypress, Arizona'|COMMON=='dogwood, flowering'|COMMON=='elm, American'|
+                COMMON=='elm, smoothleaf'|COMMON=='filbert, American'|COMMON=='fringetree, white'|
+                COMMON=='hackberry, common'|COMMON=='hawthorn, cockspur'|COMMON=='hawthorn, green'|
+                COMMON=='hemlock, eastern'|COMMON=='hickory, bitternut'|COMMON=='hickory, mockernut'|
+                COMMON=='hickory, pignut'|COMMON=='hickory, shagbark'|COMMON=='honeylocust'|
+                COMMON=='honeylocust, thornless'|COMMON=='honeysuckle, spp.'|COMMON=='hophornbeam, American'|
+                COMMON=='hornbeam, American'|COMMON=='inkberry'|COMMON=='locust, black'|
+                COMMON=='magnolia, sweetbay'|COMMON=='maple, red'|COMMON=='maple, silver'|
+                COMMON=='maple, sugar'|COMMON=='nannyberry'|COMMON=='ninebark, common'|COMMON=='oak, black'|
+                COMMON=='Oak, Black'|COMMON=='oak, blackjack'|COMMON=='oak, chestnut'|
+                COMMON=='oak, chinkapin'|COMMON=='oak, northern red'|COMMON=='oak, pin'|COMMON=='oak, post'|
+                COMMON=='oak, sawtooth'|COMMON=='oak, scarlet'|COMMON=='oak, shingle'|
+                COMMON=='oak, southern red'|COMMON=='oak, swamp white'|COMMON=='Oak, swamp white'|
+                COMMON=='oak, white'|COMMON=='pawpaw, common'|COMMON=='pine, pond'|COMMON=='pine, shortleaf'|
+                COMMON=='pine, Virginia'|COMMON=='plum, American'|COMMON=='redbud, eastern'|
+                COMMON=='redcedar, eastern'|COMMON=='sassafras'|COMMON=='serviceberry, Allegheny'|
+                COMMON=='serviceberry, downy'|COMMON=='serviceberry, shadblow'|COMMON=='serviceberry, spp.'|
+                COMMON=='sumac, staghorn'|COMMON=='sweetgum, American'|COMMON=='sycamore, American'|
+                COMMON=='tuliptree'|COMMON=='walnut, black'|COMMON=='willow, black'|
+                COMMON=='witchhazel, common'~ 'native', 
+              #N/I = AT GENUS LEVEL (GENUS CONTAINS BOTH NATIVE AND INTRODUCED SPECIES)
+              COMMON=='cherry/plum, spp.'|COMMON=='crabapple, flowering'|COMMON=='hawthorn, spp.'|COMMON=='yew, spp.'  ~ 'N/I',
+              #double check that all species were covered
+              TRUE ~ 'not done yet'))
 ```
 
 
-#15 Combine all dependent variables
+#22 Combine all dependent variables
 ```{r}
  DepVar <- NBTotal %>% 
-  left_join(NBabund, by = "CSA2010") %>% 
+
+  left_join(Total_st, by = "CSA2010") %>% 
+  left_join(Total_area, by = "CSA2010") %>% 
   left_join(richeven, by = "CSA2010") %>%
+  left_join(rich_area, by = "CSA2010") %>% 
+  left_join(rich_st, by = "CSA2010") %>% 
   left_join(DBHclass, by = "CSA2010") %>%
   left_join(AvgDBH, by = "CSA2010") %>% 
-  left_join(CvDBH, by = "CSA2010") %>% 
-  left_join(NBabundSM, by = "CSA2010") %>% 
-  left_join(NBabundM, by = "CSA2010") %>% 
-  left_join(NBabundL, by = "CSA2010") %>% 
+  left_join(CvDBH, by = "CSA2010") %>%
+  left_join(Total_SM, by = "CSA2010") %>% 
+  left_join(Tot_SM_st, by = "CSA2010") %>% 
+  left_join(SM_area,by = "CSA2010") %>% 
+  left_join(AvgDBH_SM, by = "CSA2010") %>% 
+  left_join(cvDBH_SM, by = "CSA2010") %>% 
+  
   left_join(richevenSM, by = "CSA2010") %>% 
-  left_join(NBabundM, by = "CSA2010") %>% 
-  left_join(NBabundL, by = "CSA2010")
+  left_join(SM_rich_area, by = "CSA2010") %>% 
+  left_join(sm_rich_tot, by = "CSA2010") %>% 
+  left_join(SM_rich_st, by = "CSA2010") %>% 
+
+  left_join(Total_L, by = "CSA2010") %>% 
+  left_join(L_tot_area, by = "CSA2010") %>% 
+  left_join(L_tot_st, by = "CSA2010") %>% 
+  
+  left_join(richevenL, by = "CSA2010") %>%
+  left_join(rich_area_L, by = "CSA2010") %>%
+  left_join(L_rich_st, by = "CSA2010") %>%
+  left_join(L_rich_tot, by = "CSA2010") %>%
+  left_join(AvgDBH_L, by = "CSA2010") %>%
+  left_join(cvDBH_L, by = "CSA2010") %>%
+  left_join(native, by = "CSA2010")
+
+ AbundanceVars <- NBabund %>% #dataset was too big without pivot
+   left_join(NBabundSM, by = "CSA2010") %>%
+   left_join(NBabundM, by = "CSA2010") %>% 
+   left_join(NBabundL, by = "CSA2010") 
+  
   
 ```
 

@@ -51,28 +51,28 @@ PercentWhite <-
 
 ```
 
-#Total Population
+#2 Total Population
 ```{r}
 TotalPop <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% 
   select(OBJECTID, CSA2010, tpop20)
 ```
 
-#Vacant
+#3 Vacant
 ```{r}
 Vacant <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
   select(OBJECTID, CSA2010, vacant20)
 ```
 
-#Median income
+#4 Median income
 ```{r}
 Income <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
   select(OBJECTID, CSA2010, mhhi20) 
 ```
 
-# Poverty - BNIA percent below poverty line
+#5 Poverty - BNIA percent below poverty line
 ```{r}
 Poverty <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Family_Households_Living_Below_the_Poverty_Line.csv') %>% 
@@ -80,7 +80,7 @@ Poverty <-
 
 ```
 
-#Education - percent of population 25 and over with a Bachelor's Degree or above
+#6 Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
@@ -88,7 +88,7 @@ Edu <-
 
 ```
 
-# Land Cover BNIA total NB area
+#7 Land Cover BNIA total NB area
 ```{r}
 LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
            , col_names = c('CSA2010'
@@ -101,7 +101,7 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
 ```
 
 
-# Population density
+#8 Population density
 ```{r}
 PopDensity <- LandCover %>% 
   left_join(TotalPop) %>% 
@@ -112,7 +112,7 @@ PopDensity <- LandCover %>%
 
 
 
-# % impervious land cover
+#9 % impervious land cover
 ```{r}
 PercentLand <- LandCover %>% 
   mutate(Imperv = Structures + `Other Impervious`+ Roads + `Tree Canopy over Structures` + `Tree Canopy over Other Impervious` + `Tree Canopy over Roads` ) %>% 
@@ -123,13 +123,13 @@ PercentLand <- LandCover %>%
 ```
 
 
-# % canopy tree cover
+#10 % canopy tree cover
 ```{r}
 PercentCanopy <- LandCover %>% 
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100)
 ```
 
-# total road length (not including highways)
+#11 total road length (not including highways)
 ```{r}
 
 bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
@@ -162,7 +162,6 @@ NBRoads %>%
 
 #Temperature
 ```{r}
-
 temperature_by_neigh |> glimpse()
 ```
 

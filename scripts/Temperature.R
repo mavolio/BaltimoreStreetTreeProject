@@ -29,7 +29,7 @@ tictoc::tic(); for(i in bmore_nb$Community){
    # values |> 
      # table() |> 
      # as_tibble() |>
-   tibble(  CSA2010 = i
+   tibble(  CSA2010 = i #I changed this from Neighborhoods to match other data
           , ave_temp = mean(values, na.rm = TRUE) # add the degrees '_c' or '_f' for Celsius or Farh..
           , n_pixel = values |> as_tibble() |> tidylog::filter(!is.na(value)) |> nrow()
           ) |> 
