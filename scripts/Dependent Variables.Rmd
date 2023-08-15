@@ -209,31 +209,32 @@ NBabundSM <-data %>%
   summarize(abund=sum(present)) #%>% 
 #  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 
-# #norm by area #not using anymore because of pivot
-# SMabund_area <- NBabundSM %>% 
+#SMabund_area <- NBabundSM %>% 
 #   left_join(LandCover, by = "CSA2010") %>% 
 #   mutate(SM_abund_area = abund/total_area_in_pixels) %>% 
 #   select(SM_abund_area, CSA2010)
 
 #calculate richness and eveness for small trees
-richevenSM <- community_structure(NBabundSM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+richevenSM <- community_structure(NBabundSM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010") %>% 
+  rename(richness_SM = richness) %>% 
+  rename(Evar_SM = Evar)
 
 #norm richness by area
-SM_rich_area <- richeven %>% 
+SM_rich_area <- richevenSM %>% 
   left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area_SM = richness/total_area_in_pixels) %>% 
+  mutate(rich_area_SM = richness_SM/total_area_in_pixels) %>% 
   select(rich_area_SM, CSA2010)
 
 #ratio richness to street length
-SM_rich_st <- richeven %>% 
+SM_rich_st <- richevenSM %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(SM_rich_st = richness/sum_road_length_ft) %>% 
+  mutate(SM_rich_st = richness_SM/sum_road_length_ft) %>% 
   select(SM_rich_st, CSA2010)
 
 #norm total trees
-sm_rich_tot <- richeven %>% 
+sm_rich_tot <- richevenSM %>% 
   left_join(NBTotal, by = "CSA2010") %>% 
-  mutate(sm_rich_tot = richness/total_trees) %>% 
+  mutate(sm_rich_tot = richness_SM/total_trees) %>% 
   select(sm_rich_tot, CSA2010)
 
 ```
@@ -249,24 +250,26 @@ NBabundM <-data %>%
 
 
 #calculate richness and eveness for medium trees
-richevenM <- community_structure(NBabundM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+richevenM <- community_structure(NBabundM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010") %>% 
+  rename(richness_M = richness) %>% 
+  rename(Evar_M = Evar)
 
 #norm richness by area
-M_rich_area <- richeven %>% 
+M_rich_area <- richevenM %>% 
   left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area_M = richness/total_area_in_pixels) %>% 
+  mutate(rich_area_M = richness_M/total_area_in_pixels) %>% 
   select(rich_area_M, CSA2010)
 
 #ratio richness to street length
-M_rich_st <- richeven %>% 
+M_rich_st <- richevenM %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(M_rich_st = richness/sum_road_length_ft) %>% 
+  mutate(M_rich_st = richness_M/sum_road_length_ft) %>% 
   select(M_rich_st, CSA2010)
 
 #norm total trees
-m_rich_tot <- richeven %>% 
+m_rich_tot <- richevenM %>% 
   left_join(NBTotal, by = "CSA2010") %>% 
-  mutate(m_rich_tot = richness/total_trees) %>% 
+  mutate(m_rich_tot = richness_M/total_trees) %>% 
   select(m_rich_tot, CSA2010)
 ```
 
@@ -305,24 +308,26 @@ NBabundL <-data %>%
 #   select(abund_area_L)
 
 #calculate richness and evenness for Large trees
-richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
+richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010") %>% 
+  rename(richness_L = richness) %>% 
+  rename(Evar_L = Evar)
 
 #Richness norm by area
-rich_area_L <- richeven %>% 
+rich_area_L <- richevenL %>% 
   left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area_L = richness/total_area_in_pixels) %>% 
+  mutate(rich_area_L = richness_L/total_area_in_pixels) %>% 
   select(rich_area_L, CSA2010)
 
 #Richness norm by street length
-L_rich_st <- richeven %>% 
+L_rich_st <- richevenL %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(L_rich_st = richness/sum_road_length_ft) %>% 
+  mutate(L_rich_st = richness_L/sum_road_length_ft) %>% 
   select(L_rich_st, CSA2010)
 
 #richness norm by total trees
-L_rich_tot <- richeven %>% 
+L_rich_tot <- richevenL %>% 
   left_join(NBTotal, by = "CSA2010") %>% 
-  mutate(L_rich_tot = richness/total_trees) %>% 
+  mutate(L_rich_tot = richness_L/total_trees) %>% 
   select(L_rich_tot, CSA2010)
 ```
 #19 Avg L DBH
@@ -459,7 +464,6 @@ native <- species %>%
 #22 Combine all dependent variables
 ```{r}
  DepVar <- NBTotal %>% 
-
   left_join(Total_st, by = "CSA2010") %>% 
   left_join(Total_area, by = "CSA2010") %>% 
   left_join(richeven, by = "CSA2010") %>%
