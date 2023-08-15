@@ -22,21 +22,23 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 
 This file will conduct correlational analyses on combined data of demographics and street tree variables 
 
-#combine and analyze data
-```{r}
+#1 Combine dep+ind
+```{r include=FALSE}
 # Dependent <- read_csv('../../BaltimoreStreetTreeProject/Dependent_variable.csv')
 # Independent<- read_csv('../../BaltimoreStreetTreeProject/Independent_variable.csv') 
 
-Dependent <- read_csv('input_data/Dependent_variable.csv')
-Independent<- read_csv('input_data/Independent_variable.csv') 
+Dependent <- read_csv('../input_data/Dependent_variable.csv')
+Independent<- read_csv('../input_data/Independent_variable.csv')
 
 Combined <- Dependent %>% 
   left_join(Independent, by = "CSA2010")
 
+  
+
 Combined |> glimpse()
 ```
 
-#first pass
+#2 first pass
 ```{r}
 
 cor.test(Combined$total_trees, Combined$mhhi20)
@@ -54,7 +56,7 @@ cor.test(Combined$total_trees, Combined$PercBlk)
 ```
 
 
-# all of the correlations
+# 3 all correlations
 ```{r}
 
 (cors_tibble <- 
@@ -66,12 +68,9 @@ cor.test(Combined$total_trees, Combined$PercBlk)
   as_tibble() |> 
   pivot_longer(-var1, names_to = 'var2') |> # make long
   filter(var1 != var2) |>
-  arrange(desc(value)) # sort in decending order. So most correlated on top
+#  arrange(desc(value)) |> # sort in decending order. So most correlated on top
+  filter(abs(value) !=1) # drop perfect correlations
  ) 
-
-# drop perfect correlations
-cors_tibble |> 
-  filter(value !=1)
 
 cors_tibble |> View() # for interactivity
 
@@ -80,13 +79,55 @@ cors_tibble |>
   group_by(var1) |> 
   arrange(desc(value)) |> 
   slice(1:5) |> # top five most correlated
-  ungroup() #|> View()
+  ungroup() |> View()
 
 ```
 
-
-# scatter plots
+#4 Sort correlations
 ```{r}
+
+# filter for correlations higher than .9 (values higher than .89 not correlated with demographics)
+cor_0.9 <- cors_tibble %>% 
+  filter(value >= 0.9) %>%  
+  group_by(var1) 
+
+#filter for correlations r = 0.8-0.89
+cor_0.8 <- cors_tibble %>% 
+  filter(value >=0.8&value < .9) %>%  
+  group_by(var1)
+
+#filter for var1= predicted independent variables and var2 = dependent variables
+cor_cleaned <- cors_tibble %>% 
+  #filter var1 = independent variables
+  filter(var1 == 'PercAsian'|var1 == 'PercLatino'|var1 =='PercBlk'|var1 =='PercWhite'|var1 =='tpop20'|
+           var1=='mhhi20'|var1=='hhpov21'|var1=='bahigher19'|var1=='PopDensity'|var1=='PercCanopy'|
+           var1=='Imperv'|var1=='PercentImp'|var1=='Pervious'|var1=='PercPervious'|var1=='sum_road_length_ft'|
+           var1=='avg_temp')%>%
+  #filter var2 = dependent variables
+  filter(var2 == 'total_trees_st'|var2=='total_trees_area'|var2=='richness'|var2=='Evar'|var2=='rich_area'|
+           var2=='rich_st'|var2=='large'|var2=='medium'|var2=='small'|var2=='AvgDBH'|var2=='cv'|
+           var2=='total_sm_trees'|var2=='tot_SM-st'|var2=='sm_area'|var2=='Avg_SM_DBH'|var2=='cv_SM'|
+           var2=='richness_SM'|var2=='Evar_SM'|var2=='rich_area_SM'|var2=='sm_rich_tot'|var2=='SM_rich_st'|
+           var2=='total_L_trees'|var2=='l_area'|var2=='L_tot_st'|var2=='richness_L'|var2=='Evar_L'|
+           var2=='rich_area_L'|var2=='L_rich_st'|var2=='L_rich_tot'|var2=='Avg_L_DBH'|var2=='cv_L') %>%
+  filter(value>=0.3) %>% #filter for r>=0.3
+  group_by(var1)
+
+
+```
+
+# 5 select correlations
+```{r}
+
+cor.test(Combined$PopDensity, Combined$total_trees_area)
+ggplot(data=Combined, aes(x=PopDensity, y =total_trees_area) )+ geom_point() 
+model1 <- lm(formula = total_trees_area~PopDensity, data = Combined)
+summary(model1)
+```
+
+
+#6 First pass scatter plots
+```{r echo=FALSE}
 
 Combined |> glimpse()
 

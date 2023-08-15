@@ -31,22 +31,22 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```{r include=FALSE}
 
 PercentAsian <-  
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(OBJECTID, CSA2010, pasi20) %>% 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(CSA2010, pasi20) %>% 
   rename(PercAsian = pasi20)
 
 PercentLatino <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Hispanic.csv') %>% 
-  select(OBJECTID, CSA2010, phisp20) %>% 
+  select(CSA2010, phisp20) %>% 
   rename(PercLatino = phisp20)
 
 PercentBlk <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
-  select(OBJECTID, CSA2010, paa20) %>% 
+  select(CSA2010, paa20) %>% 
   rename(PercBlk = paa20)
 
 PercentWhite <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
-  select(OBJECTID, CSA2010, pwhite20) %>% 
+  select(CSA2010, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
 
 ```
@@ -55,28 +55,29 @@ PercentWhite <-
 ```{r}
 TotalPop <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% 
-  select(OBJECTID, CSA2010, tpop20)
+  select(CSA2010, tpop20)
 ```
 
-#3 Vacant
+#3 Vacant - not in final dataset
+
 ```{r}
 Vacant <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
-  select(OBJECTID, CSA2010, vacant20)
+  select(CSA2010, vacant20)
 ```
 
 #4 Median income
 ```{r}
 Income <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
-  select(OBJECTID, CSA2010, mhhi20) 
+  select(CSA2010, mhhi20) 
 ```
 
 #5 Poverty - BNIA percent below poverty line
 ```{r}
 Poverty <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Family_Households_Living_Below_the_Poverty_Line.csv') %>% 
-  select(OBJECTID, CSA2010, hhpov21) 
+  select(CSA2010, hhpov21) 
 
 ```
 
@@ -84,7 +85,7 @@ Poverty <-
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
-  select(OBJECTID, CSA2010, bahigher19) 
+  select(CSA2010, bahigher19) 
 
 ```
 
@@ -104,9 +105,8 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
 #8 Population density
 ```{r}
 PopDensity <- LandCover %>% 
-  left_join(TotalPop) %>% 
-  rename(Pop = tpop20) %>% 
-  mutate(PopDensity = Pop/total_area_in_pixels) %>% 
+  left_join(TotalPop) %>%  
+  mutate(PopDensity = tpop20/total_area_in_pixels) %>% 
   select(CSA2010, PopDensity)
 ```
 
@@ -119,14 +119,16 @@ PercentLand <- LandCover %>%
   mutate(PercentImp = (Imperv/total_area_in_pixels)*100) %>% 
   mutate(Pervious = Water + `Tree Canopy`+ `Scrub\\Shrub`  
          + Herbaceous + Barren + `Emergent Wetlands`) %>% 
-  mutate(PercPervious = (Pervious/total_area_in_pixels)*100)
+  mutate(PercPervious = (Pervious/total_area_in_pixels)*100) %>% 
+  select(CSA2010, Imperv, PercentImp, Pervious, PercPervious)
 ```
 
 
 #10 % canopy tree cover
 ```{r}
 PercentCanopy <- LandCover %>% 
-  mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100)
+  mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
+  select(CSA2010, PercCanopy)
 ```
 
 #11 total road length (not including highways)

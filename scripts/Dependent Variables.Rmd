@@ -87,14 +87,14 @@ NBTotal <-data %>%
 #ratio trees to street length
 Total_st <- NBTotal %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(total_st = total_trees/sum_road_length_ft) %>% 
-  select(total_st, CSA2010)
+  mutate(total_trees_st = total_trees/sum_road_length_ft) %>% 
+  select(total_trees_st, CSA2010)
 
 #Ratio trees to area
 Total_area <- NBTotal %>% 
   left_join(LandCover, by = "CSA2010") %>% 
-  mutate(total_area = total_trees/total_area_in_pixels) %>% 
-  select(total_area, CSA2010)
+  mutate(total_trees_area = total_trees/total_area_in_pixels) %>% 
+  select(total_trees_area, CSA2010)
 
 ```
 #7 Total Abundance by neighborhood
@@ -289,8 +289,8 @@ L_tot_area <- Total_L %>%
 #norm by street length
 L_tot_st <- Total_L %>% 
   left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(L_rich_st = total_L_trees/sum_road_length_ft) %>% 
-  select(L_rich_st, CSA2010)
+  mutate(L_tot_st = total_L_trees/sum_road_length_ft) %>% 
+  select(L_tot_st, CSA2010)
 ```
 
 #18 L Abund/rich/even
