@@ -118,7 +118,7 @@ PercentLand <- LandCover %>%
   mutate(Imperv = Structures + `Other Impervious`+ Roads + `Tree Canopy over Structures` + `Tree Canopy over Other Impervious` + `Tree Canopy over Roads` ) %>% 
   mutate(PercentImp = (Imperv/total_area_in_pixels)*100) %>% 
   mutate(Pervious = Water + `Tree Canopy`+ `Scrub\\Shrub`  
-         + Herbaceous + Barren + `Emergent Wetlands`) %>% 
+         + Herbaceous+ Barren + `Emergent Wetlands`) %>% 
   mutate(PercPervious = (Pervious/total_area_in_pixels)*100) %>% 
   select(CSA2010, Imperv, PercentImp, Pervious, PercPervious)
 ```
