@@ -1,12 +1,19 @@
 ---
 title: "Analysis"
-author: "Trini et al"
+author: "Street Tree"
 date: "`r format(Sys.Date())`"
-output: html_document
-
+output:
+  pdf_document: default
+  html_document:
+    fig_width: 8
+    fig_height: 5
+    fig_caption: true
+    toc: true
+    toc_float: true
+    self_contained: true
 ---
 #0 set up
-```{r}
+```{r include=FALSE}
 # load packages
 library(tidyverse)
 library(sf) 
@@ -39,7 +46,7 @@ Combined |> glimpse()
 ```
 
 #2 First pass correlations
-```{r}
+```{r include=FALSE}
 
 cor.test(Combined$total_trees, Combined$mhhi20)
 cor.test(Combined$total_trees_st, Combined$mhhi20)
@@ -55,9 +62,8 @@ Combined|> select(where(is.numeric)) |> drop_na() |> cor()
 
 ```
 
-
-# 3 All correlations
-```{r}
+#3 All correlations
+```{r include=FALSE}
 
 (cors_tibble <- 
   Combined |> 
@@ -81,8 +87,8 @@ cors_tibble |> View() # for interactivity
 
 ```
 
-#4 Sort correlations
-```{r}
+#4 Sort correlations for r>= |0.4|
+```{r include=FALSE}
 
 # filter for correlations higher than .9 (values higher than .89 not correlated with demographics)
 cor_0.9 <- cors_tibble %>% 
@@ -107,12 +113,13 @@ cor_filtered <- cors_tibble %>%
            var2=='total_sm_trees'|var2=='tot_SM-st'|var2=='sm_area'|var2=='Avg_SM_DBH'|var2=='cv_SM'|
            var2=='richness_SM'|var2=='Evar_SM'|var2=='rich_area_SM'|var2=='sm_rich_tot'|var2=='SM_rich_st'|
            var2=='total_L_trees'|var2=='l_area'|var2=='L_tot_st'|var2=='richness_L'|var2=='Evar_L'|
-           var2=='rich_area_L'|var2=='L_rich_st'|var2=='L_rich_tot'|var2=='Avg_L_DBH'|var2=='cv_L') %>%
-  filter(value>=0.4 | value<=-0.4)  #filter for r>=0.3, not sure if this is a good threshold 
+           var2=='rich_area_L'|var2=='L_rich_st'|var2=='L_rich_tot'|var2=='Avg_L_DBH'|var2=='cv_L'|
+           var2=='PercNat') %>%
+  filter(value>=0.4 | value<=-0.4)  
 ```
 
-#5 Scatter plots
-```{r echo=FALSE}
+#5 First pass scatter plots
+```{r include=FALSE}
 
 Combined |> glimpse()
 
@@ -159,7 +166,7 @@ Combined |>
   geom_smooth(method = 'lm') + # forces a linear model
   geom_smooth(col = 'pink') + 
   facet_wrap(~name, scales = 'free_x'
-             , ncol = 2
+             , ncol = 3
              ) +
   labs(title = 'Total Number of Trees'
        , subtitle = 'Normalized by Neighborhood Area'
@@ -167,14 +174,16 @@ Combined |>
        , x = 'predictor'
        , y = 'my outcome of interest (total street trees in this case)'
        ) + 
-  theme_bw(16) +
+  theme_bw(14) +
   NULL
 
 
 ```
 
-#6 Total Trees
-```{r}
+Scatter plots for correlations that met criteria r>=|0.4| for indep vs dep variables:
+
+# 6 Total Trees
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #Total Trees normalized by street lengths
 Combined |> 
   tidylog::select(
@@ -210,7 +219,7 @@ cor.test(Combined$mhhi20, Combined$total_trees_st)
 cor.test(Combined$PercentImp, Combined$total_trees_st)
 cor.test(Combined$bahigher19, Combined$total_trees_st)
 
-#Total Trees normalized by street lengths
+#Total Trees normalized by area
 Combined |> 
   tidylog::select(
                    total_trees_area  # depend
@@ -220,8 +229,8 @@ Combined |>
                   , avg_temp
                   , PopDensity
                   ) |> 
-  pivot_longer(-total_trees_st) |> 
-  ggplot(aes(value, total_trees_st)) + 
+  pivot_longer(-total_trees_area) |> 
+  ggplot(aes(value, total_trees_area)) + 
   geom_point() +
   geom_smooth(method = 'lm') + # forces a linear model
   facet_wrap(~name, scales = 'free_x'
@@ -244,10 +253,40 @@ cor.test(Combined$avg_temp, Combined$total_trees_area)
 
 ```
 
-#7 Evenness 
+# 7 Evenness  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Combined |> 
+  tidylog::select(
+                   Evar  # depend
+                  , PopDensity
+                  , PercAsian 
+                  , PercCanopy
+                  , PercentImp
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-Evar) |> 
+  ggplot(aes(value, Evar)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Evenness'
+       , x = 'Predictor'
+       , y = 'Richness'
+       ) + 
+  theme_bw(12) +
+  NULL
 
-#8 Richness
-```{r}
+cor.test(Combined$PercAsian, Combined$Evar)
+cor.test(Combined$PopDensity, Combined$Evar)
+cor.test(Combined$PercCanopy, Combined$Evar)
+cor.test(Combined$PercentImp, Combined$Evar)
+cor.test(Combined$avg_temp, Combined$Evar)
+```
+
+# 8 Richness
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 Combined |> 
   tidylog::select(
                    richness  # depend
@@ -262,7 +301,7 @@ Combined |>
   facet_wrap(~name, scales = 'free_x'
              , ncol = 3
              ) +
-  labs(title = 'Trees Richness'
+  labs(title = 'Species Richness'
        , x = 'Predictor'
        , y = 'Richness'
        ) + 
@@ -274,9 +313,8 @@ cor.test(Combined$tpop20, Combined$richness)
 cor.test(Combined$sum_road_length_ft, Combined$richness)
 ```
 
-
-#9 Richness Normalized
-```{r}
+# 9 Richness Normalized
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #Normalized by area
 Combined |> 
   tidylog::select(
@@ -305,11 +343,11 @@ cor.test(Combined$PercCanopy, Combined$rich_area)
 cor.test(Combined$PopDensity, Combined$rich_area)
 cor.test(Combined$PercentImp, Combined$rich_area)
 cor.test(Combined$avg_temp, Combined$rich_area)
+
 ```
 
-
-#10 Raw # Small Trees
-```{r}
+# 10 Raw # Small Trees
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 Combined |> 
   tidylog::select(
@@ -328,7 +366,7 @@ Combined |>
              , ncol = 3
              ) +
   labs(title = 'Number of Small Trees'
-       , subtitle = 'Normalized by Neighborhood Area'
+       , subtitle = ''
        , x = 'Predictor'
        , y = 'Total Street Trees'
        ) + 
@@ -342,8 +380,8 @@ cor.test(Combined$PercentImp, Combined$small)
 cor.test(Combined$avg_temp, Combined$small)
 ```
 
-#11 # Small Normalized
-```{r}
+# 11 # Small Normalized
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 #Normalized by total number of trees
 Combined |> 
@@ -362,7 +400,7 @@ Combined |>
              , ncol = 3
              ) +
   labs(title = 'Number of Small Trees'
-       , subtitle = 'Normalized by total  # trees'
+       , subtitle = 'Normalized by total # trees'
        , x = 'Predictor'
        , y = '# Small Trees'
        ) + 
@@ -390,8 +428,8 @@ Combined |>
   facet_wrap(~name, scales = 'free_x'
              , ncol = 3
              ) +
-  labs(title = 'Number ofSmall Trees'
-       , subtitle = 'Normalized by Total # Trees'
+  labs(title = 'Number of Small Trees'
+       , subtitle = 'Normalized by Neighborhood Area'
        , x = 'Predictor'
        , y = 'Total Street Trees'
        ) + 
@@ -405,8 +443,8 @@ cor.test(Combined$avg_temp, Combined$sm_area)
 
 ```
 
-#12 Richness SM
-```{r}
+# 12 Richness SM
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 Combined |> 
   tidylog::select(
@@ -419,17 +457,17 @@ Combined |>
                   , bahigher19
                   , sum_road_length_ft
                   ) |> 
-  pivot_longer(-sm_rich_tot) |> 
-  ggplot(aes(value, sm_rich_tot)) + 
+  pivot_longer(-richness_SM) |> 
+  ggplot(aes(value, richness_SM)) + 
   geom_point() +
   geom_smooth(method = 'lm') + # forces a linear model
   facet_wrap(~name, scales = 'free_x'
-             , ncol = 3
+             , ncol = 4
              ) +
-  labs(title = 'Small Richness of Trees'
-       , subtitle = 'Normalized by Total # Trees'
+  labs(title = 'Small Trees Richness'
+       , subtitle = ''
        , x = 'Predictor'
-       , y = 'Total Street Trees'
+       , y = 'SM Trees Richness'
        ) + 
   theme_bw(12) +
   NULL
@@ -443,8 +481,8 @@ cor.test(Combined$bahigher19, Combined$richness_SM)
 cor.test(Combined$sum_road_length_ft, Combined$richness_SM)
 ```
 
-#13 Richness SM Normalized
-```{r}
+# 13 Norm S Richness  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 #normalized by total number of trees
 Combined |> 
@@ -462,16 +500,16 @@ Combined |>
   facet_wrap(~name, scales = 'free_x'
              , ncol = 3
              ) +
-  labs(title = 'Small Richness of Trees'
+  labs(title = 'Small Trees Richness'
        , subtitle = 'Normalized by Total # Trees'
        , x = 'Predictor'
-       , y = 'Total Street Trees'
+       , y = 'Sm Trees Richness'
        ) + 
   theme_bw(12) +
   NULL
 
 cor.test(Combined$PopDensity, Combined$sm_rich_tot)
-cor.test(Combined$PercAsian, Combined$tsm_rich_tot)
+cor.test(Combined$PercAsian, Combined$sm_rich_tot)
 cor.test(Combined$PercCanopy, Combined$sm_rich_tot)
 cor.test(Combined$PercentImp, Combined$sm_rich_tot)
 cor.test(Combined$avg_temp, Combined$sm_rich_tot)
@@ -493,7 +531,7 @@ Combined |>
   labs(title = 'Small Richness of Trees'
        , subtitle = 'Normalized by Street Length'
        , x = 'Predictor'
-       , y = 'Total Street Trees'
+       , y = 'SM Trees Richness'
        ) + 
   theme_bw(12) +
   NULL
@@ -532,22 +570,106 @@ cor.test(Combined$PercentImp, Combined$rich_area_SM)
 cor.test(Combined$avg_temp, Combined$rich_area_SM)
 ```
 
-#14 SM Evenness
+# 14 SM Evenness
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Combined |> 
+  tidylog::select(
+                   Evar_SM  # depend
+                  , PopDensity
+                  , PercCanopy
+                  , PercentImp
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-Evar_SM) |> 
+  ggplot(aes(value, Evar_SM)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Small Trees Evenness'
+       , x = 'Predictor'
+       , y = 'Richness'
+       ) + 
+  theme_bw(12) +
+  NULL
 
+cor.test(Combined$PopDensity, Combined$Evar_SM)
+cor.test(Combined$PercCanopy, Combined$Evar_SM)
+cor.test(Combined$PercentImp, Combined$Evar_SM)
+cor.test(Combined$avg_temp, Combined$Evar_SM)
+```
 
-#15 Raw # Medium Trees
+# 15 Raw # Medium Trees
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Combined |> 
+  tidylog::select(
+                   medium  # depend
+                  , PercWhite
+                  , PercAsian 
+                  , PercBlk
+                  , tpop20
+                  , mhhi20
+                  , bahigher19
+                  ) |> 
+  pivot_longer(-medium) |> 
+  ggplot(aes(value, medium)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Number of Medium Trees'
+       , x = 'Predictor'
+       , y = '# M Trees'
+       ) + 
+  theme_bw(12) +
+  NULL
 
+cor.test(Combined$PercAsian, Combined$medium)
+cor.test(Combined$PercBlk, Combined$medium)
+cor.test(Combined$PercWhite, Combined$medium)
+cor.test(Combined$tpop20, Combined$medium)
+cor.test(Combined$mhhi20, Combined$medium)
+cor.test(Combined$bahigher19, Combined$medium)
+cor.test(Combined$sum_road_length_ft, Combined$medium)#do we care about this?
+```
 
-#16 Raw # Large Trees
+# 16 Raw # Large Trees
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Combined |> 
+  tidylog::select(
+                   large  # depend
+                  , PercCanopy
+                  , PercentImp 
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-large) |> 
+  ggplot(aes(value, large)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Number of Large Trees'
+       , x = 'Predictor'
+       , y = '# L Trees'
+       ) + 
+  theme_bw(12) +
+  NULL
 
+cor.test(Combined$PercCanopy, Combined$large)
+cor.test(Combined$PercentImp, Combined$large)
+cor.test(Combined$avg_temp, Combined$large)
+```
 
-#17 # L Normalized 
-```{r}
-
+# 17 # L Normalized 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#By total trees
 Combined |> 
   tidylog::select(
                    total_L_trees  # depend
-                  , PercCanopy 
+                  , PercCanopy
                   , PercentImp
                   , avg_temp
                   ) |> 
@@ -556,24 +678,76 @@ Combined |>
   geom_point() +
   geom_smooth(method = 'lm') + # forces a linear model
   facet_wrap(~name, scales = 'free_x'
-             , ncol = 3
+             , ncol = 2
              ) +
   labs(title = 'Number of Large Trees'
        , subtitle = 'Normalized by Total Trees'
        , x = 'Predictor'
        , y = 'Total Large Trees'
        ) + 
-  theme_bw(12) +
+  theme_bw(14) +
   NULL
 
 cor.test(Combined$PercCanopy, Combined$total_L_trees)
 cor.test(Combined$PercentImp, Combined$total_L_trees)
 cor.test(Combined$avg_temp, Combined$total_L_trees)
 cor.test(Combined$sum_road_length_ft, Combined$total_L_trees)
+
+#normalized by street
+Combined |> 
+  tidylog::select(
+                   L_tot_st  # depend
+                  , PercCanopy
+                  , PercentImp 
+                  , PopDensity
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-L_tot_st) |> 
+  ggplot(aes(value, L_tot_st)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2
+             ) +
+  labs(title = 'Number of Large Trees Normalized by Street Length'
+       , x = 'Predictor'
+       , y = '# L Trees'
+       ) + 
+  theme_bw(14) +
+  NULL
+
+cor.test(Combined$PercCanopy, Combined$L_tot_st)
+cor.test(Combined$PercentImp, Combined$L_tot_st)
+cor.test(Combined$PopDensity, Combined$L_tot_st)
+cor.test(Combined$avg_temp, Combined$L_tot_st)
+
+#Normalized by area
+Combined |> 
+  tidylog::select(
+                   l_area  # depend
+                  , PercentImp
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-l_area) |> 
+  ggplot(aes(value, l_area)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2
+             ) +
+  labs(title = 'Number of Large Trees normalized by Area'
+       , x = 'Predictor'
+       , y = '# L Trees'
+       ) + 
+  theme_bw(12) +
+  NULL
+
+cor.test(Combined$PercentImp, Combined$l_area)
+cor.test(Combined$avg_temp, Combined$l_area)
 ```
 
-#18 Richness L
-```{r}
+# 18 Richness L
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 Combined |> 
   tidylog::select(
                    richness_L  # depend
@@ -604,13 +778,14 @@ cor.test(Combined$avg_temp, Combined$richness_L)
 cor.test(Combined$sum_road_length_ft, Combined$richness_L)
 ```
 
-#19 Richness L Normalized
-```{r}
-
+# 19 Richness L Normalized
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#normalized by area
 Combined |> 
   tidylog::select(
                    rich_area_L  # depend
                   , PercLatino
+                  , Imperv
                   ) |> 
   pivot_longer(-rich_area_L) |> 
   ggplot(aes(value, rich_area_L)) + 
@@ -628,10 +803,177 @@ Combined |>
   NULL
 
 cor.test(Combined$PercLatino, Combined$rich_area_L)
+cor.test(Combined$Imperv, Combined$rich_area_L)
+
+#normalized by street length
+Combined |> 
+  tidylog::select(
+                   L_rich_st  # depend
+                  , PopDensity
+                  , PercCanopy
+                  , PercentImp
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-L_rich_st) |> 
+  ggplot(aes(value, L_rich_st)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Large Trees Richness'
+       , subtitle = 'Normalized by Street Length'
+       , x = 'Predictor'
+       , y = 'L Richness'
+       ) + 
+  theme_bw(12) +
+  NULL
+
+cor.test(Combined$PopDensity, Combined$L_rich_tot)
+cor.test(Combined$PercCanopy, Combined$L_rich_tot)
+cor.test(Combined$PercentImp, Combined$L_rich_tot)
+cor.test(Combined$avg_temp, Combined$L_rich_tot)
+
+#normalized by total number of trees
+Combined |> 
+  tidylog::select(
+                   L_rich_tot  # depend
+                  , PopDensity
+                  , PercCanopy
+                  , PercentImp
+                  , avg_temp
+                  
+                  ) |> 
+  pivot_longer(-L_rich_tot) |> 
+  ggplot(aes(value, L_rich_tot)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Large Trees Richness'
+       , subtitle = 'Normalized by Total Trees'
+       , x = 'Predictor'
+       , y = 'L Richness'
+       ) + 
+  theme_bw(12) +
+  NULL
+
+cor.test(Combined$PopDensity, Combined$L_rich_tot)
+cor.test(Combined$PercCanopy, Combined$L_rich_tot)
+cor.test(Combined$PercentImp, Combined$L_rich_tot)
+cor.test(Combined$avg_temp, Combined$L_rich_tot)
+
 ```
 
-#20 cv L 
+# 20 cv L DBH
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Combined |> 
+  tidylog::select(
+                   cv_L  # depend
+                  , PercCanopy
+                  , PercentImp 
+                  , avg_temp
+                  , PopDensity
+                  , PercLatino
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-cv_L) |> 
+  ggplot(aes(value, cv_L)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Large Trees cv'
+       , x = 'Predictor'
+       , y = 'cv of L Trees'
+       ) + 
+  theme_bw(12) +
+  NULL
 
-#21 Avg DBH
+cor.test(Combined$PercCanopy, Combined$cv_L)
+cor.test(Combined$PercentImp, Combined$cv_L)
+cor.test(Combined$avg_temp, Combined$cv_L)
+cor.test(Combined$PercLatino, Combined$cv_L)
+cor.test(Combined$PopDensity, Combined$cv_L)
+```
 
-#22 Avg L DBH
+# 21 Avg DBH
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+Combined |> 
+  tidylog::select(
+                   AvgDBH  # depend
+                  , PercCanopy
+                  , PercentImp
+                  , PopDensity
+                  , PercLatino
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-AvgDBH) |> 
+  ggplot(aes(value, AvgDBH)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Average DBH'
+       , x = 'Predictor'
+       , y = 'Avg DBH'
+       ) + 
+  theme_bw(12) +
+  NULL
+
+cor.test(Combined$PercCanopy, Combined$AvgDBH)
+cor.test(Combined$PercentImp, Combined$AvgDBH)
+cor.test(Combined$avg_temp, Combined$AvgDBH)
+cor.test(Combined$PercLatino, Combined$AvgDBH)
+cor.test(Combined$PopDensity, Combined$AvgDBH)
+
+```
+
+# 22 Avg L DBH
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+Combined |> 
+  tidylog::select(
+                  Avg_L_DBH  # depend
+                  , PercCanopy
+                  , PercentImp 
+                  , PopDensity
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-Avg_L_DBH) |> 
+  ggplot(aes(value, Avg_L_DBH)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 3
+             ) +
+  labs(title = 'Average Large Tree DBH'
+       , x = 'Predictor'
+       , y = 'Avg DBH L Trees'
+       ) + 
+  theme_bw(12) +
+  NULL
+
+cor.test(Combined$PercCanopy, Combined$Avg_L_DBH)
+cor.test(Combined$PercentImp, Combined$Avg_L_DBH)
+cor.test(Combined$avg_temp, Combined$Avg_L_DBH)
+cor.test(Combined$PopDensity, Combined$Avg_L_DBH)
+```
+
+#23 DBH Histogram top 20 species
+```{r include=FALSE}
+
+species_abund <- species %>%
+  group_by(CSA2010, Species) %>% 
+  summarize(n=length(Species)) %>%
+  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal)
+
+
+  
+```
+
+

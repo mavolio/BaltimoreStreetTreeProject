@@ -354,14 +354,15 @@ cvDBH_L<- data %>%
 #21 Native or introduced 
 ```{r}
 
-species <- data %>% 
-  select(CSA2010, COMMON, Species)
+species <- data %>%
+  group_by(CSA2010) %>% 
+  select(CSA2010, COMMON, Species) 
 
 common_name <- data %>% 
   select(COMMON, Species) %>% 
   unique()
 
-n_vs_i <- #I'll come up with a more descriptive name, this is the file specifying whether a species is native or introduced
+n_vs_i <- #this is the file specifying whether a species is native or introduced
   read.csv("../../BaltimoreStreetTreeProject_Large_Data/year-plot-species-abundance-addnotree.csv") %>% 
   select(Native, Species, Commonname) %>% 
   unique()
@@ -372,7 +373,6 @@ n_vs_i <- #I'll come up with a more descriptive name, this is the file specifyin
 native <- species %>% 
     mutate(Nat = #DOUBLE CHECK: is a species considered introduced if outside of typical US range? paper birch,northern catalpa,southern catalpa,Caucasian linden(hybrid), linden (tilius americana),magnolia, sweetbay 
              #prunus serrulata mislabeled common name hackberry
-#left off on 
              case_when(
                COMMON=='Acer truncatum'|COMMON=='Amur corktree'|COMMON=='Amur maackia'|
                  COMMON=='apple,common'|COMMON=='apricot'|COMMON=='arborvitae, Oriental'|
@@ -424,7 +424,13 @@ native <- species %>%
                  COMMON=='viburnum, rusty blackhaw'|COMMON=='viburnum, spp.'|COMMON=='walnut, English'|
                  COMMON=='waxmyrtle, Southern'|COMMON=='willow, corkscrew'|COMMON=='willow, pussy'|
                  COMMON=='willow, weeping'|COMMON=='yellowwood'|COMMON=='zelkova, Chinese'|
-                 COMMON=='zelkova, Japanese'|COMMON=='linden, American'~'introduced',
+                 COMMON=='zelkova, Japanese'|COMMON=='linden, American'|Species=='Poncirus trifoliata'|
+                 Species=='Malus pumila'|Species=='Pinus sylvestris'|Species=='Pseudotsuga menziesii'|
+                 Species=='Catalpa speciosa'|Species=='Catalpa bignon'|Species =='Fraxinus excelsior'|
+                 COMMON=='catalpa, southern'|COMMON=='baldcypress, common'|Species=='Syringa pekinensis'|
+                 Species=='Thuja plicata'|Species=='Picea abies'|Species=='Zelkova serrata'|
+                 Species=='Acer truncatum'|Species=='Tilia mongolica'|Species=='persimmon, Japanese'
+               ~'introduced',
               #NATIVE
               COMMON=='arborvitae spp.'|COMMON=='Aesculus parviflora'|COMMON=='arborvitae, eastern'|
                 COMMON=='ash, black'|COMMON=='ash, green'|COMMON=='ash, pumpkin'|
@@ -452,12 +458,28 @@ native <- species %>%
                 COMMON=='serviceberry, downy'|COMMON=='serviceberry, shadblow'|COMMON=='serviceberry, spp.'|
                 COMMON=='sumac, staghorn'|COMMON=='sweetgum, American'|COMMON=='sycamore, American'|
                 COMMON=='tuliptree'|COMMON=='walnut, black'|COMMON=='willow, black'|
-                COMMON=='witchhazel, common'~ 'native', 
+                COMMON=='witchhazel, common'|Species == 'Pinus strobus'|Species == 'Diospyros virginiana'|
+                Species=='Ilex opaca'|Species=='Crataegus mollis'|COMMON=='pine, loblolly'|
+                Species=='Magnolia acuminata'|Species=='Ulmus americana'|Species=='Acer saccharum'
+              ~'native',
               #N/I = AT GENUS LEVEL (GENUS CONTAINS BOTH NATIVE AND INTRODUCED SPECIES)
-              COMMON=='cherry/plum, spp.'|COMMON=='crabapple, flowering'|COMMON=='hawthorn, spp.'|COMMON=='yew, spp.'  ~ 'N/I',
+              COMMON=='cherry/plum, spp.'|COMMON=='crabapple, flowering'|COMMON=='hawthorn, spp.'|COMMON=='yew, spp.'|Species=='Prunus spp.'  ~ 'N/I',
               #double check that all species were covered
               TRUE ~ 'not done yet'))
 #calculate %native - single value for each neighborhood
+
+#Trying to calculate percent native
+# PercNative <- native %>% 
+#   left_join(NBTotal) %>% 
+#   mutate(present_native=ifelse(Nat == 'native', 1, 0)) %>% 
+  
+PercNative <- native %>%
+  group_by(CSA2010, Nat) %>% 
+  summarize(n=length(Nat)) %>%
+  pivot_wider(names_from = Nat, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal) %>% 
+  mutate(PercNat = (native/total_trees)*100)
+
 ```
 
 
@@ -492,8 +514,8 @@ native <- species %>%
   left_join(L_rich_st, by = "CSA2010") %>%
   left_join(L_rich_tot, by = "CSA2010") %>%
   left_join(AvgDBH_L, by = "CSA2010") %>%
-  left_join(cvDBH_L, by = "CSA2010") 
-#  left_join(native, by = "CSA2010")
+  left_join(cvDBH_L, by = "CSA2010") %>%  
+  left_join(PercNative, by = "CSA2010")
 
  # AbundanceVars <- NBabund %>% #dataset was too big without pivot
  #   left_join(NBabundSM, by = "CSA2010") %>%
