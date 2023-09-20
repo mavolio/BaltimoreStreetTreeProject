@@ -963,14 +963,13 @@ cor.test(Combined$avg_temp, Combined$Avg_L_DBH)
 cor.test(Combined$PopDensity, Combined$Avg_L_DBH)
 ```
 
-#23 DBH Histogram top 20 species
+#23 Species
 ```{r include=FALSE}
 
-species_abund <- species %>%
-  group_by(CSA2010, Species) %>% 
-  summarize(n=length(Species)) %>%
-  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
-  left_join(NBTotal)
+
+
+
+
 
 
   
