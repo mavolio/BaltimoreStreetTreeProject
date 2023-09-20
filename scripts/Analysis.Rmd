@@ -962,17 +962,3 @@ cor.test(Combined$PercentImp, Combined$Avg_L_DBH)
 cor.test(Combined$avg_temp, Combined$Avg_L_DBH)
 cor.test(Combined$PopDensity, Combined$Avg_L_DBH)
 ```
-
-#23 Species
-```{r include=FALSE}
-
-
-
-
-
-
-
-  
-```
-
-

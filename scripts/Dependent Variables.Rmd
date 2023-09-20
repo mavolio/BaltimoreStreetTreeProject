@@ -481,6 +481,14 @@ PercNative <- native %>%
   mutate(PercNat = (native/total_trees)*100)
 
 ```
+#23 Species
+```{r}
+species_abund <- species %>%
+  group_by(CSA2010, Species) %>% 
+  summarize(n=length(Species)) %>%
+  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal)
+```
 
 
 #22 Combine all dependent variables
