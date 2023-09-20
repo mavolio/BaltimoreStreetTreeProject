@@ -22,6 +22,8 @@ getwd()
 list.files()
 list.files('../../BaltimoreStreetTreeProject_Large_Data/')
 list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+
+`%nin%` <- Negate(in)
 ```
 
 
@@ -58,7 +60,7 @@ TotalPop <-
   select(CSA2010, tpop20)
 ```
 
-#3 Vacant - not in final dataset
+NO #3 Vacant - not in final dataset
 
 ```{r}
 Vacant <- 
@@ -102,7 +104,7 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
 ```
 
 
-#8 Population density
+NO #8 Population density
 ```{r}
 PopDensity <- LandCover %>% 
   left_join(TotalPop) %>%  
@@ -131,17 +133,28 @@ PercentCanopy <- LandCover %>%
   select(CSA2010, PercCanopy)
 ```
 
-#11 total road length (not including highways)
+NO #11 total road length (not including highways)
 ```{r}
 
 bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
   st_make_valid()
+
 
 roads <- 
   st_read('../../BaltimoreStreetTreeProject_Large_Data\\Baltimore Roads/MDOT_Know_Your_Roads.shp'
 , as_tibble = TRUE) %>% 
    st_make_valid() |> 
    st_transform(crs = st_crs(bmore_bnia))
+
+# 
+# roads %>% filter(MUNICIPALI == 'N/A') %>% View()
+# 
+# roads_to_exclude <- 
+#   c(PUT JONES FALLS, ETC in here)
+# 
+# road <- 
+#   roads %>% 
+#   filter(road %nin% roads_to_exclude)
 
 NBRoads <- bmore_bnia %>%
   select(CSA2020, Community) %>% 
