@@ -74,6 +74,10 @@ data <- clean %>%
   filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout")%>% 
   mutate(present=1) %>% #for each tree make a present column with 1
   filter(Species!= "unknown tree")
+
+#what's diff between vacant site and vacant potential
+?
+#existing trees column
 ```
 
  
@@ -95,6 +99,10 @@ Total_area <- NBTotal %>%
   left_join(LandCover, by = "CSA2010") %>% 
   mutate(total_trees_area = total_trees/total_area_in_pixels) %>% 
   select(total_trees_area, CSA2010)
+
+NBTotal %>% 
+  ggplot(aes(total_trees)) +
+  geom_histogram()
 
 ```
 #7 Total Abundance by neighborhood
@@ -373,6 +381,7 @@ n_vs_i <- #this is the file specifying whether a species is native or introduced
 native <- species %>% 
     mutate(Nat = #DOUBLE CHECK: is a species considered introduced if outside of typical US range? paper birch,northern catalpa,southern catalpa,Caucasian linden(hybrid), linden (tilius americana),magnolia, sweetbay 
              #prunus serrulata mislabeled common name hackberry
+             #INTRODUCED
              case_when(
                COMMON=='Acer truncatum'|COMMON=='Amur corktree'|COMMON=='Amur maackia'|
                  COMMON=='apple,common'|COMMON=='apricot'|COMMON=='arborvitae, Oriental'|
@@ -385,7 +394,7 @@ native <- species %>%
                  COMMON=='chestnut, Chinese'|COMMON=='crapemyrtle, common'|COMMON=="crapemyrtle, queen's"|
                  COMMON=='cypress, Italian'|COMMON=='cypress, Leyland'|COMMON=='dawn redwood'|
                  COMMON=='dogwood, corneliancherry'|COMMON=='dogwood, Kousa'|COMMON=='elm, Chinese'|
-                 COMMON=='elm, hybrid'|COMMON=='elm, rock'|COMMON=='elm, Siberian'|COMMON=='elm, slippery'|
+                 COMMON=='elm, rock'|COMMON=='elm, Siberian'|COMMON=='elm, slippery'|
                  COMMON=='elm, winged'|COMMON=='euonymus, spp.'|COMMON=='falsecypress, Hinoki'|
                  COMMON=='falsecypress, Japanese'|COMMON=='falsecypress, Lawson'|
                  COMMON=='falsecypress, Nootka'|COMMON=='falsecypress, spp.'|COMMON=='fig, common'|
@@ -460,7 +469,8 @@ native <- species %>%
                 COMMON=='tuliptree'|COMMON=='walnut, black'|COMMON=='willow, black'|
                 COMMON=='witchhazel, common'|Species == 'Pinus strobus'|Species == 'Diospyros virginiana'|
                 Species=='Ilex opaca'|Species=='Crataegus mollis'|COMMON=='pine, loblolly'|
-                Species=='Magnolia acuminata'|Species=='Ulmus americana'|Species=='Acer saccharum'
+                Species=='Magnolia acuminata'|Species=='Ulmus americana'|Species=='Acer saccharum'|
+                COMMON=='elm, hybrid'
               ~'native',
               #N/I = AT GENUS LEVEL (GENUS CONTAINS BOTH NATIVE AND INTRODUCED SPECIES)
               COMMON=='cherry/plum, spp.'|COMMON=='crabapple, flowering'|COMMON=='hawthorn, spp.'|COMMON=='yew, spp.'|Species=='Prunus spp.'  ~ 'N/I',
@@ -481,6 +491,7 @@ PercNative <- native %>%
   mutate(PercNat = (native/total_trees)*100)
 
 ```
+
 #23 Species
 ```{r}
 species_abund <- species %>%
