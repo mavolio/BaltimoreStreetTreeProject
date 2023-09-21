@@ -60,6 +60,8 @@ cor.test(Combined$total_trees, Combined$PercBlk)
 
 Combined|> select(where(is.numeric)) |> drop_na() |> cor()
 
+
+
 ```
 
 #3 All correlations
@@ -184,6 +186,7 @@ Scatter plots for correlations that met criteria r>=|0.4| for indep vs dep varia
 
 # 6 Total Trees
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#NORMALIZE BY TOTAL SITES
 #Total Trees normalized by street lengths
 Combined |> 
   tidylog::select(
@@ -962,18 +965,3 @@ cor.test(Combined$PercentImp, Combined$Avg_L_DBH)
 cor.test(Combined$avg_temp, Combined$Avg_L_DBH)
 cor.test(Combined$PopDensity, Combined$Avg_L_DBH)
 ```
-
-#23 DBH Histogram top 20 species
-```{r include=FALSE}
-
-species_abund <- species %>%
-  group_by(CSA2010, Species) %>% 
-  summarize(n=length(Species)) %>%
-  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
-  left_join(NBTotal)
-
-
-  
-```
-
-
