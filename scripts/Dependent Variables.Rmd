@@ -63,22 +63,21 @@ combined <-
 #4 Clean combined data
 ```{r}
 clean <- combined %>% 
-  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -LOC_TYPE, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -Link, -UniqueID, -UTILITIES, -Neigh) %>% 
+  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -Link, -UniqueID, -UTILITIES, -Neigh) %>% 
   rename(CSA2010 = CSA2020) #doing this because the bnia boundaries only included from 2020 but all demographic data had 2010 boundaries, but they're the same I checked
 ```
+
 #5 Filter tree data for only present tree species
 ```{r include=FALSE}
 no_vacant <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
   filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
-  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout")%>% 
+  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout"&CONDITION!="Absent")%>% 
   mutate(present=1) #for each tree make a present column with 1
 
-#what's diff between vacant site and vacant potential
-#existing trees column
 ```
 
-#Total Potential Sites
+#6 Total Potential Sites
 ```{r}
 vacant_potential <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
@@ -91,8 +90,7 @@ vacant_potential <- clean %>%
   
 ```
 
- 
-#6 Total # Trees per Neighborhood - how filled is a neighborhood
+#7 Total # Trees per Neighborhood - how filled is a neighborhood
 ```{r}
 NBTotal <-no_vacant %>% 
   group_by(CSA2010) %>% 
@@ -113,28 +111,13 @@ total_sites %>% summary()
 total_sites %>% 
   ggplot(aes(total_trees, percent_filled)) +
   geom_point() +
-  # geom_smooth() +
   NULL
 
 #normalize by total sites  
-#ratio trees to street length
-Total_st <- NBTotal %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(total_trees_st = total_trees/sum_road_length_ft) %>% 
-  select(total_trees_st, CSA2010)
-
-#Ratio trees to area
-Total_area <- NBTotal %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(total_trees_area = total_trees/total_area_in_pixels) %>% 
-  select(total_trees_area, CSA2010)
-
-NBTotal %>% 
-  ggplot(aes(total_trees)) +
-  geom_histogram()
 
 ```
-#7 Total Abundance by neighborhood
+
+#8 Total Abundance by neighborhood
 ```{r}
 #need to exclude unknown trees
 NBabund <-no_vacant %>% 
@@ -147,22 +130,10 @@ NBabund <-no_vacant %>%
 
 ```
 
-
-#8 Richness and evenness
+#9 Richness and evenness
 ```{r}
 richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010")
 
-#richness normalized by area
-rich_area <- richeven %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area = richness/total_area_in_pixels) %>% 
-  select(rich_area, CSA2010)
-
-#ratio trees to street length
-rich_st <- richeven %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(rich_st = richness/sum_road_length_ft) %>% 
-  select(rich_st, CSA2010)
 
 #norm by total trees
 rich_tot <- richeven %>% 
@@ -173,7 +144,7 @@ rich_tot <- richeven %>%
 
 ```
 
-#9 Classify DBH (s/m/L)
+#10 Classify DBH (s/m/L)
 ```{r}
 DBHclass <- no_vacant %>%
   mutate(size_class=ifelse(DBH>=0&DBH<=5, "small", ifelse(DBH>5&DBH<20, "medium", ifelse(DBH>=20, "large", 999)))) %>% 
@@ -183,7 +154,7 @@ DBHclass <- no_vacant %>%
 
 ```
 
-#10 Average DBH by neighborhood
+#11 Average DBH by neighborhood
 ```{r}
 AvgDBH <- no_vacant %>% 
   select(CSA2010,DBH)%>% 
@@ -191,8 +162,7 @@ AvgDBH <- no_vacant %>%
   summarise(AvgDBH = mean(DBH), .groups = 'drop')
 ```
 
-
-#11 CV of all DBH measurements by neighborhood
+#12 CV of all DBH measurements by neighborhood
 ```{r}
 CvDBH<- no_vacant %>% 
   group_by(CSA2010) %>% 
@@ -202,47 +172,16 @@ CvDBH<- no_vacant %>%
   select(cv, CSA2010)
 ```
 
-#12 Total Small Trees
+#13 Total Small Trees
 ```{r}
 Total_SM <- no_vacant %>% 
   filter(DBH>=0&DBH<=5) %>% 
   group_by(CSA2010) %>% 
   summarize(total_sm_trees =sum(present))
 
-#normalized by area 
-SM_area <- Total_SM %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(sm_area = total_sm_trees/total_area_in_pixels) %>% 
-  select(sm_area, CSA2010)
-
-#norm by street length
-Tot_SM_st <- Total_SM %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(tot_SM_st = total_sm_trees/sum_road_length_ft) %>% 
-  select(tot_SM_st, CSA2010)
-
-```
-#13 Avg SM DBH 
-```{r}
-AvgDBH_SM <- no_vacant %>% 
-  select(CSA2010,DBH)%>% 
-  filter(DBH>=0&DBH<=5) %>% 
-  group_by(CSA2010) %>% 
-  summarise(Avg_SM_DBH = mean(DBH), .groups = 'drop')
-```
-#14 SM cv
-```{r}
-cvDBH_SM<- no_vacant %>% 
-  filter(DBH>=0&DBH<=5) %>%
-  group_by(CSA2010) %>% 
-  summarise(mean = mean(DBH), 
-            sd = sd(DBH)) %>% 
-  mutate(cv_SM = sd/mean) %>% 
-  select(cv_SM, CSA2010)
 ```
 
-
-#15 SM Abund/Rich/evenness
+#14 SM Abund/Rich/evenness
 ```{r}
 NBabundSM <-no_vacant %>% 
   filter(DBH>=0&DBH<=5) %>% 
@@ -260,17 +199,6 @@ richevenSM <- community_structure(NBabundSM, abundance.var="abund", time.var= NU
   rename(richness_SM = richness) %>% 
   rename(Evar_SM = Evar)
 
-#norm richness by area
-SM_rich_area <- richevenSM %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area_SM = richness_SM/total_area_in_pixels) %>% 
-  select(rich_area_SM, CSA2010)
-
-#ratio richness to street length
-SM_rich_st <- richevenSM %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(SM_rich_st = richness_SM/sum_road_length_ft) %>% 
-  select(SM_rich_st, CSA2010)
 
 #norm total trees
 sm_rich_tot <- richevenSM %>% 
@@ -280,61 +208,16 @@ sm_rich_tot <- richevenSM %>%
 
 ```
 
-
-#16 Medium trees
-```{r}
-NBabundM <-no_vacant %>% 
-  filter(DBH>5&DBH<20) %>% 
-  group_by(CSA2010, Species) %>% 
-  summarize(abund=sum(present)) #%>%
-#  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
-
-
-#calculate richness and eveness for medium trees
-richevenM <- community_structure(NBabundM, abundance.var="abund", time.var= NULL, replicate.var = "CSA2010") %>% 
-  rename(richness_M = richness) %>% 
-  rename(Evar_M = Evar)
-
-#norm richness by area
-M_rich_area <- richevenM %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area_M = richness_M/total_area_in_pixels) %>% 
-  select(rich_area_M, CSA2010)
-
-#ratio richness to street length
-M_rich_st <- richevenM %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(M_rich_st = richness_M/sum_road_length_ft) %>% 
-  select(M_rich_st, CSA2010)
-
-#norm total trees
-m_rich_tot <- richevenM %>% 
-  left_join(NBTotal, by = "CSA2010") %>% 
-  mutate(m_rich_tot = richness_M/total_trees) %>% 
-  select(m_rich_tot, CSA2010)
-```
-
-#17 Total Large Trees
+#16 Total Large Trees
 ```{r}
 Total_L <- no_vacant %>% 
   filter(DBH>20) %>% 
   group_by(CSA2010) %>% 
   summarize(total_L_trees =sum(present))
 
-#normalized by area 
-L_tot_area <- Total_L %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(l_area = total_L_trees/total_area_in_pixels) %>% 
-  select(l_area, CSA2010)
-
-#norm by street length
-L_tot_st <- Total_L %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(L_tot_st = total_L_trees/sum_road_length_ft) %>% 
-  select(L_tot_st, CSA2010)
 ```
 
-#18 L Abund/rich/even
+#17 L Abund/rich/even
 ```{r}
 NBabundL <-no_vacant %>% 
   filter(DBH>=20) %>% 
@@ -353,17 +236,8 @@ richevenL <- community_structure(NBabundL, abundance.var="abund", time.var= NULL
   rename(richness_L = richness) %>% 
   rename(Evar_L = Evar)
 
-#Richness norm by area
-rich_area_L <- richevenL %>% 
-  left_join(LandCover, by = "CSA2010") %>% 
-  mutate(rich_area_L = richness_L/total_area_in_pixels) %>% 
-  select(rich_area_L, CSA2010)
 
-#Richness norm by street length
-L_rich_st <- richevenL %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
-  mutate(L_rich_st = richness_L/sum_road_length_ft) %>% 
-  select(L_rich_st, CSA2010)
+
 
 #richness norm by total trees
 L_rich_tot <- richevenL %>% 
@@ -371,28 +245,8 @@ L_rich_tot <- richevenL %>%
   mutate(L_rich_tot = richness_L/total_trees) %>% 
   select(L_rich_tot, CSA2010)
 ```
-#19 Avg L DBH
-```{r}
-AvgDBH_L <- no_vacant %>% 
-  select(CSA2010,DBH)%>% 
-  filter(DBH>=20) %>% 
-  group_by(CSA2010) %>% 
-  summarise(Avg_L_DBH = mean(DBH), .groups = 'drop')
 
-```
-#20 cv L
-```{r}
-cvDBH_L<- no_vacant %>% 
-  filter(DBH>=20) %>%
-  group_by(CSA2010) %>% 
-  summarise(mean = mean(DBH), 
-            sd = sd(DBH)) %>% 
-  mutate(cv_L = sd/mean) %>% 
-  select(cv_L, CSA2010)
-```
-
-
-#21 Native or introduced 
+#18 Native or introduced 
 ```{r}
 
 species <- no_vacant %>%
@@ -402,17 +256,10 @@ species <- no_vacant %>%
 common_name <- no_vacant %>% 
   select(COMMON, Species) %>% 
   unique()
-# 
-# n_vs_i <- #this is the file specifying whether a species is native or introduced
-#   read.csv("../../BaltimoreStreetTreeProject_Large_no_vacant/year-plot-species-abundance-addnotree.csv") %>% 
-#   select(Native, Species, Commonname) %>% 
-#   unique()
-
-#  mutate and casewhen()
 
 #adding column Nat = native, introduced, or N/I  
 native <- species %>% 
-    mutate(Nat = #DOUBLE CHECK: is a species considered introduced if outside of typical US range? paper birch,northern catalpa,southern catalpa,Caucasian linden(hybrid), linden (tilius americana),magnolia, sweetbay 
+    mutate(Nat = 
              #prunus serrulata mislabeled common name hackberry
              #INTRODUCED
              case_when(
@@ -509,12 +356,8 @@ native <- species %>%
               COMMON=='cherry/plum, spp.'|COMMON=='crabapple, flowering'|COMMON=='hawthorn, spp.'|COMMON=='yew, spp.'|Species=='Prunus spp.'  ~ 'N/I',
               #double check that all species were covered
               TRUE ~ 'not done yet'))
-#calculate %native - single value for each neighborhood
 
-#Trying to calculate percent native
-# PercNative <- native %>% 
-#   left_join(NBTotal) %>% 
-#   mutate(present_native=ifelse(Nat == 'native', 1, 0)) %>% 
+#calculate %native - single value for each neighborhood
   
 PercNative <- native %>%
   group_by(CSA2010, Nat) %>% 
@@ -525,7 +368,7 @@ PercNative <- native %>%
 
 ```
 
-#23 Species
+#19 Species Abundance per NB
 ```{r}
 species_abund <- species %>%
   group_by(CSA2010, Species) %>% 
@@ -534,44 +377,49 @@ species_abund <- species %>%
   left_join(NBTotal)
 ```
 
+#20 Pit size
+```{r}
+pit_size <- clean %>% 
+  mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
+         , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
+         , area   = length*width
+         ) %>% 
+  select(CSA2010, area)
+
+```
+
+#21 Tree Condition
+```{r}
+#sum for each condition in a neighborhood
+#pivot
+
+condition <- no_vacant %>%
+  group_by(CSA2010, CONDITION) %>% 
+  summarize(n=length(CONDITION)) %>% 
+  pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0)
+```
 
 #22 Combine all dependent variables
 ```{r}
  DepVar <- total_sites %>% 
-#  NBTotal %>% 
-  # left_join(Total_st, by = "CSA2010") %>% 
-  # left_join(Total_area, by = "CSA2010") %>% 
-  left_join(richeven, by = "CSA2010") %>%
-  left_join(rich_area, by = "CSA2010") %>% 
-  left_join(rich_st, by = "CSA2010") %>% 
+  left_join(richeven, by = "CSA2010") %>% 
   left_join(AvgDBH, by = "CSA2010") %>% 
-  left_join(CvDBH, by = "CSA2010") %>%
-  left_join(Total_SM, by = "CSA2010") %>% 
-  left_join(Tot_SM_st, by = "CSA2010") %>% 
-  left_join(SM_area,by = "CSA2010") %>% 
-  left_join(AvgDBH_SM, by = "CSA2010") %>% 
-  left_join(cvDBH_SM, by = "CSA2010") %>% 
+  left_join(CvDBH, by = "CSA2010") %>% 
   
   left_join(richevenSM, by = "CSA2010") %>% 
-  left_join(SM_rich_area, by = "CSA2010") %>% 
   left_join(sm_rich_tot, by = "CSA2010") %>% 
-  left_join(SM_rich_st, by = "CSA2010") %>% 
-
-  left_join(Total_L, by = "CSA2010") %>% 
-  left_join(L_tot_area, by = "CSA2010") %>% 
-  left_join(L_tot_st, by = "CSA2010") %>% 
   
   left_join(richevenL, by = "CSA2010") %>%
-  left_join(rich_area_L, by = "CSA2010") %>%
-  left_join(L_rich_st, by = "CSA2010") %>%
-  left_join(L_rich_tot, by = "CSA2010") %>%
-  left_join(AvgDBH_L, by = "CSA2010") %>%
-  left_join(cvDBH_L, by = "CSA2010") 
+  left_join(L_rich_tot, by = "CSA2010") %>% 
+  
+  left_join(vacant_potential, by = "CSA2010") %>%  
+  
+  
+  left_join(PercNative, by = "CSA2010") %>% 
+  left_join(vacant_potential, by = "CSA2010")  
 
- # AbundanceVars <- NBabund %>% #dataset was too big without pivot
- #   left_join(NBabundSM, by = "CSA2010") %>%
- #   left_join(NBabundM, by = "CSA2010") %>% 
- #   left_join(NBabundL, by = "CSA2010") 
+
+
   
 write_csv(DepVar,'../input_data/Dependent_variable.csv')  
 ```

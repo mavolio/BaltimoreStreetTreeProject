@@ -23,23 +23,24 @@ list.files()
 list.files('../../BaltimoreStreetTreeProject_Large_Data/')
 list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 
-`%nin%` <- Negate(in)
+#`%nin%` <- Negate(in)
 ```
 
 
-#1 read in BNIA csv files with demographic data
+Read in BNIA csv files with demographic data
 
-#BNIA CSA race demographics ## use 2020
+#2 BNIA CSA race demographics ## use 2020
 ```{r include=FALSE}
 
-PercentAsian <-  
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(CSA2010, pasi20) %>% 
-  rename(PercAsian = pasi20)
+# PercentAsian <-  
+#   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(CSA2010, pasi20) %>% 
+#   rename(PercAsian = pasi20)
+# 
+# PercentLatino <- 
+#   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Hispanic.csv') %>% 
+#   select(CSA2010, phisp20) %>% 
+#   rename(PercLatino = phisp20)
 
-PercentLatino <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Hispanic.csv') %>% 
-  select(CSA2010, phisp20) %>% 
-  rename(PercLatino = phisp20)
 
 PercentBlk <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
@@ -51,21 +52,14 @@ PercentWhite <-
   select(CSA2010, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
 
+
 ```
 
-#2 Total Population
+#3 Total Population
 ```{r}
 TotalPop <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% 
   select(CSA2010, tpop20)
-```
-
-NO #3 Vacant - not in final dataset
-
-```{r}
-Vacant <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
-  select(CSA2010, vacant20)
 ```
 
 #4 Median income
@@ -75,15 +69,7 @@ Income <-
   select(CSA2010, mhhi20) 
 ```
 
-#5 Poverty - BNIA percent below poverty line
-```{r}
-Poverty <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Family_Households_Living_Below_the_Poverty_Line.csv') %>% 
-  select(CSA2010, hhpov21) 
-
-```
-
-#6 Education - percent of population 25 and over with a Bachelor's Degree or above
+#5 Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
@@ -91,91 +77,7 @@ Edu <-
 
 ```
 
-#7 Land Cover BNIA total NB area
-```{r}
-LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
-           , col_names = c('CSA2010'
-                           , 'n'
-                           , 'lc_class')) %>%
-  filter(lc_class != 0) %>% 
-  filter(!is.na(lc_class)) %>% 
-  pivot_wider(names_from = lc_class, values_from = n, values_fill = 0) %>% 
-  mutate(total_area_in_pixels = rowSums(.[,-1]))
-```
-
-
-NO #8 Population density
-```{r}
-PopDensity <- LandCover %>% 
-  left_join(TotalPop) %>%  
-  mutate(PopDensity = tpop20/total_area_in_pixels) %>% 
-  select(CSA2010, PopDensity)
-```
-
-
-
-#9 % impervious land cover
-```{r}
-PercentLand <- LandCover %>% 
-  mutate(Imperv = Structures + `Other Impervious`+ Roads + `Tree Canopy over Structures` + `Tree Canopy over Other Impervious` + `Tree Canopy over Roads` ) %>% 
-  mutate(PercentImp = (Imperv/total_area_in_pixels)*100) %>% 
-  mutate(Pervious = Water + `Tree Canopy`+ `Scrub\\Shrub`  
-         + Herbaceous+ Barren + `Emergent Wetlands`) %>% 
-  mutate(PercPervious = (Pervious/total_area_in_pixels)*100) %>% 
-  select(CSA2010, Imperv, PercentImp, Pervious, PercPervious)
-```
-
-
-#10 % canopy tree cover
-```{r}
-PercentCanopy <- LandCover %>% 
-  mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
-  select(CSA2010, PercCanopy)
-```
-
-NO #11 total road length (not including highways)
-```{r}
-
-bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
-  st_make_valid()
-
-
-roads <- 
-  st_read('../../BaltimoreStreetTreeProject_Large_Data\\Baltimore Roads/MDOT_Know_Your_Roads.shp'
-, as_tibble = TRUE) %>% 
-   st_make_valid() |> 
-   st_transform(crs = st_crs(bmore_bnia))
-
-# 
-# roads %>% filter(MUNICIPALI == 'N/A') %>% View()
-# 
-# roads_to_exclude <- 
-#   c(PUT JONES FALLS, ETC in here)
-# 
-# road <- 
-#   roads %>% 
-#   filter(road %nin% roads_to_exclude)
-
-NBRoads <- bmore_bnia %>%
-  select(CSA2020, Community) %>% 
-  st_intersection(roads %>% mutate(road_length_ft = as.double(st_length(.)))) %>% 
-  st_drop_geometry() %>% 
-  group_by(CSA2020) %>% 
-  summarize(sum_road_length_ft = sum(road_length_ft)) %>% 
-  rename(CSA2010 = CSA2020)
-
-NBRoads %>% 
-  ggplot(aes(sum_road_length_ft) ) +
-  geom_histogram()
-
-NBRoads %>% 
-  arrange(desc(sum_road_length_ft))
-NBRoads %>% 
-  arrange(sum_road_length_ft)
-
-```
-
-#Temperature
+#6 Temperature
 ```{r}
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
@@ -187,22 +89,12 @@ NBtemperature <- temperature_by_neigh %>%
   select(-n_pixel)
 ```
 
-# TODO percent immigrants (NOT in BNIA - in the census) 
-
-# 2 join all independent variables 
+#7 join all independent variables 
 ```{r}
-IndVar <- PercentAsian %>% 
-  left_join(PercentLatino, by = "CSA2010") %>% 
-  left_join(PercentBlk, by = "CSA2010") %>%
-  left_join(PercentWhite, by = "CSA2010") %>% 
-  left_join(TotalPop, by = "CSA2010") %>% 
+IndVar <- PercentBlk %>% 
+  left_join(PercentWhite, by = "CSA2010") %>%
   left_join(Income, by = "CSA2010") %>%
-  left_join(Poverty, by = "CSA2010") %>% 
-  left_join(Edu, by = "CSA2010") %>% 
-  left_join(PopDensity) %>% 
-  left_join(PercentCanopy, by = "CSA2010") %>% 
-  left_join(PercentLand, by = "CSA2010") %>% 
-  left_join(NBRoads, by = "CSA2010") %>% 
+  left_join(Edu, by = "CSA2010") %>%  
   left_join(NBtemperature, by = "CSA2010")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  
