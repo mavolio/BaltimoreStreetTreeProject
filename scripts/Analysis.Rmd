@@ -38,8 +38,7 @@ Dependent <- read_csv('../input_data/Dependent_variable.csv')
 Independent<- read_csv('../input_data/Independent_variable.csv')
 
 Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2010") #%>% 
-  # filter(CSA2010 != "Dickeyville/Franklintown")
+  left_join(Independent, by = "CSA2020") 
 
   
 
@@ -109,7 +108,7 @@ Combined |> glimpse()
 
 #richness norm by total trees
 Combined |> 
-  tidylog::select(#CSA2010 # ID
+  tidylog::select(#CSA2020 # ID
                    richness_SM # depend
                   , mhhi20 # independents, income
                   , PercWhite # race
@@ -578,7 +577,7 @@ Combined |>
 # no outlier
 filled_richness <- Combined %>% 
   filter(sm_rich_tot < 0.1) %>% 
-  select(sm_rich_tot,CSA2010,percent_filled)
+  select(sm_rich_tot,CSA2020,percent_filled)
 
 
 ggplot(filled_richness, aes(percent_filled, sm_rich_tot)) + 
@@ -651,4 +650,5 @@ ggplot(filled_richness, aes(percent_filled, sm_rich_tot)) +
   
 (cor.test(Combined$PercCanopy, Combined$avg_temp))
 ```
+
 

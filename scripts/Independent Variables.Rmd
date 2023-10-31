@@ -29,7 +29,7 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 
 Read in BNIA csv files with demographic data
 
-#2 BNIA CSA race demographics ## use 2020
+#1 BNIA CSA race demographics ## use 2020
 ```{r include=FALSE}
 
 # PercentAsian <-  
@@ -44,36 +44,29 @@ Read in BNIA csv files with demographic data
 
 PercentBlk <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
-  select(CSA2010, paa20) %>% 
+  select(CSA2020, paa20) %>% 
   rename(PercBlk = paa20)
 
 PercentWhite <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
-  select(CSA2010, pwhite20) %>% 
+  select(CSA2020, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
 
 
 ```
 
-#3 Total Population
-```{r}
-TotalPop <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% 
-  select(CSA2010, tpop20)
-```
-
-#4 Median income
+#2 Median income
 ```{r}
 Income <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
-  select(CSA2010, mhhi20) 
+  select(CSA2020, mhhi20) 
 ```
 
-#5 Education - percent of population 25 and over with a Bachelor's Degree or above
+#4 Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
-  select(CSA2010, bahigher19) 
+  select(CSA2020, bahigher19) 
 
 ```
 
@@ -82,7 +75,7 @@ Edu <-
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
     read_csv('../input_data/NB_pm_temp_2023-08-09.csv' 
-             , col_names = c('CSA2010', 'avg_temp', 'n_pixel'))
+             , col_names = c('CSA2020', 'avg_temp', 'n_pixel'))
 )
 
 NBtemperature <- temperature_by_neigh %>% 
@@ -92,7 +85,7 @@ NBtemperature <- temperature_by_neigh %>%
 # Land Cover BNIA total NB area
 ```{r}
 LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
-           , col_names = c('CSA2010'
+           , col_names = c('CSA2020'
                            , 'n'
                            , 'lc_class')) %>%
   filter(lc_class != 0) %>% 
@@ -106,17 +99,17 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
 ```{r}
 PercentCanopy <- LandCover %>% 
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
-  select(CSA2010, PercCanopy)
+  select(CSA2020, PercCanopy)
 ```
 
 #7 join all independent variables 
 ```{r}
 IndVar <- PercentBlk %>% 
-  left_join(PercentWhite, by = "CSA2010") %>%
-  left_join(Income, by = "CSA2010") %>%
-  left_join(Edu, by = "CSA2010") %>%  
-  left_join(NBtemperature, by = "CSA2010") %>% 
-  left_join(PercentCanopy, by = "CSA2010")
+  left_join(PercentWhite, by = "CSA2020") %>%
+  left_join(Income, by = "CSA2020") %>%
+  left_join(Edu, by = "CSA2020") %>%  
+  left_join(NBtemperature, by = "CSA2020") %>% 
+  left_join(PercentCanopy, by = "CSA2020")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  
 ```
