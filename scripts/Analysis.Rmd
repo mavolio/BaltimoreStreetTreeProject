@@ -173,7 +173,7 @@ evenness <- Combined %>%
        , y = 'Evenness' 
        ) + theme_bw() +
   theme(panel.grid=element_blank(),
-        text=element_text(size=20))
+        text=element_text(size=20)) +
   NULL
 
 cor.test(evenness$avg_temp, evenness$Evar)
@@ -208,7 +208,7 @@ Combined |>
   
   theme_bw() +
   theme(panel.grid=element_blank(),
-        text=element_text(size=20))
+        text=element_text(size=20)) +
   NULL
 
 cor.test(Combined$PercBlk, Combined$richness_SM)
