@@ -89,13 +89,34 @@ NBtemperature <- temperature_by_neigh %>%
   select(-n_pixel)
 ```
 
+# Land Cover BNIA total NB area
+```{r}
+LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
+           , col_names = c('CSA2010'
+                           , 'n'
+                           , 'lc_class')) %>%
+  filter(lc_class != 0) %>% 
+  filter(!is.na(lc_class)) %>% 
+  pivot_wider(names_from = lc_class, values_from = n, values_fill = 0) %>% 
+  mutate(total_area_in_pixels = rowSums(.[,-1]))
+```
+
+
+# % canopy tree cover
+```{r}
+PercentCanopy <- LandCover %>% 
+  mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
+  select(CSA2010, PercCanopy)
+```
+
 #7 join all independent variables 
 ```{r}
 IndVar <- PercentBlk %>% 
   left_join(PercentWhite, by = "CSA2010") %>%
   left_join(Income, by = "CSA2010") %>%
   left_join(Edu, by = "CSA2010") %>%  
-  left_join(NBtemperature, by = "CSA2010")
+  left_join(NBtemperature, by = "CSA2010") %>% 
+  left_join(PercentCanopy, by = "CSA2010")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  
 ```

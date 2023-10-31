@@ -72,7 +72,7 @@ clean <- combined %>%
 no_vacant <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
   filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
-  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout"&CONDITION!="Absent")%>% 
+  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Absent")%>% 
   mutate(present=1) #for each tree make a present column with 1
 
 ```
@@ -100,7 +100,8 @@ NBTotal <-no_vacant %>%
 total_sites <- vacant_potential %>% 
   left_join(NBTotal, by = "CSA2010") %>% 
   mutate(all_sites = sum_vacant_present + total_trees, 
-         percent_filled = 100*(total_trees/all_sites))
+         percent_filled = 100*(total_trees/all_sites)) %>% 
+  select(CSA2010, all_sites, percent_filled)
 
 total_sites %>% 
   ggplot(aes(percent_filled) ) +
@@ -150,8 +151,18 @@ DBHclass <- no_vacant %>%
   mutate(size_class=ifelse(DBH>=0&DBH<=5, "small", ifelse(DBH>5&DBH<20, "medium", ifelse(DBH>=20, "large", 999)))) %>% 
   group_by(CSA2010, size_class) %>% 
   summarize(n=length(DBH)) %>% 
-  pivot_wider(names_from = size_class, values_from = n, values_fill = 0)
+  pivot_wider(names_from = size_class, values_from = n, values_fill = 0) 
 
+```
+
+# % size
+```{r}
+PercSize <- DBHclass %>% 
+  left_join(NBTotal, by = "CSA2010") %>% 
+  mutate(PercSmall = small/total_trees *100) %>% 
+  mutate(PercMedium = medium/total_trees*100) %>% 
+  mutate(PercLarge = large/total_trees*100) %>% 
+  select(CSA2010,PercSmall, PercMedium, PercLarge)
 ```
 
 #11 Average DBH by neighborhood
@@ -160,6 +171,8 @@ AvgDBH <- no_vacant %>%
   select(CSA2010,DBH)%>% 
   group_by(CSA2010) %>% 
   summarise(AvgDBH = mean(DBH), .groups = 'drop')
+
+#convert conditions to numeric 
 ```
 
 #12 CV of all DBH measurements by neighborhood
@@ -373,33 +386,157 @@ PercNative <- native %>%
 species_abund <- species %>%
   group_by(CSA2010, Species) %>% 
   summarize(n=length(Species)) %>%
-  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
-  left_join(NBTotal)
+  pivot_wider(names_from = Species, values_from = n, values_fill = 0) 
+
+write_csv(species_abund,'../input_data/Species_Abund.csv')
 ```
 
 #20 Pit size
 ```{r}
+#pit size
 pit_size <- clean %>% 
   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
-         , area   = length*width
+         , pit_area   = length*width
          ) %>% 
-  select(CSA2010, area)
+  select(CSA2010, pit_area)
 
+ggplot(pit_size, aes(x=pit_area)) + geom_histogram()
+
+#average pit size by nb
+AvgPit <- pit_size %>%  
+  group_by(CSA2010) %>% 
+  summarise(AvgPit = mean(pit_area), .groups = 'drop')
+
+#avg pit size only filled pits
+no_vacant_pit <- no_vacant %>% 
+  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") %>%
+  mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
+         , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
+         , pit_area   = length*width
+         ) %>% 
+  select(CSA2010, pit_area)
 ```
 
 #21 Tree Condition
 ```{r}
 #sum for each condition in a neighborhood
 #pivot
-
 condition <- no_vacant %>%
   group_by(CSA2010, CONDITION) %>% 
   summarize(n=length(CONDITION)) %>% 
   pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0)
+
+# numeric condition
+condition_grade <- no_vacant %>% 
+  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") %>% 
+  mutate(grade = 
+  case_when(
+    CONDITION == "Poor" ~ 1,
+    CONDITION == "Fair" ~ 2,
+    CONDITION == "Good" ~ 3,
+    )) %>% 
+  select(CSA2010,grade) %>% 
+  group_by(CSA2010)
+
+#Condition vs pit size
+cor.test(no_vacant_pit$pit_area, condition_grade$grade)
+
+plot(no_vacant_pit$pit_area, condition_grade$grade)
 ```
 
-#22 Combine all dependent variables
+#22 % good/poor trees
+```{r}
+perc_condition <- NBTotal %>% 
+  left_join(condition, by = "CSA2010") %>% 
+  mutate(PercGood = 100*(Good/total_trees)) %>% 
+  mutate(PercPoor = 100*(Poor/total_trees)) %>% 
+  select(CSA2010, PercPoor, PercGood)
+```
+
+# Small Trees Species Abundance
+```{r}
+small_trees <- no_vacant %>%
+  filter(DBH>=0&DBH<=5) %>% 
+  group_by(CSA2010)
+
+small_species_abund <- small_trees %>%
+  group_by(CSA2010, Species) %>% 
+  summarize(n=length(Species)) %>%
+  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
+  left_join(NBtemperature, by = "CSA2010") %>% 
+  filter(avg_temp>31.6) %>%
+  arrange(desc(avg_temp)) %>% 
+  select(-avg_temp)
+
+species_long <- small_species_abund %>% 
+  gather(key = "TreeSpecies", value = "Count", -CSA2010)
+
+most_common_species <- species_long %>% 
+  group_by(CSA2010) %>% 
+  slice_max(order_by = Count, n=1) 
+
+#top species for each NB
+ggplot( most_common_species, aes(x = TreeSpecies, y = Count, fill = CSA2010)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Most Common Species in Neighborhoods hotter than 31.6 Celsius") +
+  theme_minimal() 
+
+#top species for one NB
+madison_filtered <- small_species_abund %>% 
+  filter(CSA2010 == "Madison/East End") 
+
+madison_long <- madison_filtered %>% 
+  gather(key = "TreeSpecies", value = "Count", -CSA2010)
+
+madison_top_species <- madison_long %>%
+  slice_max(order_by = Count, n = 5)
+
+ggplot(madison_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste("Top Tree Species in", "Madison/East End"), x = "TreeSpecies", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set1") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#Patterson Park
+patterson_filtered <- small_species_abund %>% 
+  filter(CSA2010 == "Patterson Park North & East") 
+
+patterson_long <- patterson_filtered %>% 
+  gather(key = "TreeSpecies", value = "Count", -CSA2010)
+
+patterson_top_species <- patterson_long %>%
+  slice_max(order_by = Count, n = 5)
+
+ggplot(patterson_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste("Top Tree Species in", "Patterson Park North & East"), x = "TreeSpecies", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set1") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# oldtown
+
+oldtown_filtered <- small_species_abund %>% 
+  filter(CSA2010 == "Oldtown/Middle East") 
+
+oldtown_long <- patterson_filtered %>% 
+  gather(key = "TreeSpecies", value = "Count", -CSA2010)
+
+oldtown_top_species <- oldtown_long %>%
+  slice_max(order_by = Count, n = 5)
+
+ggplot(oldtown_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste("Top Tree Species in", "Oldtown/Middle East"), x = "TreeSpecies", y = "Count") +
+
+  scale_fill_brewer(palette = "Set1") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+#23 Combine all dependent variables
 ```{r}
  DepVar <- total_sites %>% 
   left_join(richeven, by = "CSA2010") %>% 
@@ -416,8 +553,9 @@ condition <- no_vacant %>%
   
   
   left_join(PercNative, by = "CSA2010") %>% 
-  left_join(vacant_potential, by = "CSA2010")  
-
+  
+  left_join(perc_condition, by = "CSA2010") %>%
+  left_join(PercSize, by = "CSA2010") 
 
 
   

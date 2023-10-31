@@ -38,7 +38,8 @@ Dependent <- read_csv('../input_data/Dependent_variable.csv')
 Independent<- read_csv('../input_data/Independent_variable.csv')
 
 Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2010")
+  left_join(Independent, by = "CSA2010") #%>% 
+  # filter(CSA2010 != "Dickeyville/Franklintown")
 
   
 
@@ -94,7 +95,8 @@ cor_filtered <- cors_tibble %>%
   filter(var2=='richness'|var2=='Evar'|var2=='AvgDBH'|var2=='cv'|
            var2=='richness_SM'|var2=='Evar_SM'|var2=='sm_rich_tot'|
            var2=='richness_L'|var2=='Evar_L'|var2=='L_rich_tot'|
-           var2=='PercNat'|var2 =='avg_temp'|var2 =='percent_filled'|var2 == 'all_sites') %>%
+           var2=='PercNat'|var2=='avg_temp'|var2=='percent_filled'|var2== 'all_sites'|
+           var2== 'PercGood'|var2== 'PercPoor'|var2 == 'PercSmall'|var2 == 'PercMedium'|var2 == 'PercLarge') %>%
   filter(value>=0.4 | value<=-0.4)  
 ```
 
@@ -145,19 +147,37 @@ Combined |>
                   , avg_temp
                   ) |> 
   pivot_longer(-Evar) |> 
-  ggplot(aes(value, Evar)) + 
+  ggplot(aes(value, Evar)) +
   geom_point() +
   geom_smooth(method = 'lm') + # forces a linear model
   labs(x = 'Average Temperature'
-       , y = 'Evenness'
-       ) +   theme_bw() +
+       , y = 'Evenness' 
+       ) + theme_bw() +
   theme(panel.grid=element_blank(),
         text=element_text(size=20))
   NULL
 
 cor.test(Combined$avg_temp, Combined$Evar)
-```
 
+#dataset with no outliers
+
+evenness <- Combined %>% 
+  filter(Evar < 0.6) %>% 
+  select(Evar  # depend
+                  , avg_temp)
+
+  ggplot(evenness, aes(avg_temp, Evar)) +
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  labs(x = 'Average Temperature'
+       , y = 'Evenness' 
+       ) + theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+
+cor.test(evenness$avg_temp, evenness$Evar)
+```
 
 # 7 Richness SM
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -197,7 +217,6 @@ cor.test(Combined$mhhi20, Combined$richness_SM)
 cor.test(Combined$bahigher19, Combined$richness_SM)
 ```
 
-
 # 8 Norm S Richness  
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -206,7 +225,7 @@ Combined |>
   tidylog::select(
                     sm_rich_tot  # depend
                   , avg_temp
-                  ) |> 
+                  ) |>
   pivot_longer(-sm_rich_tot) |> 
   ggplot(aes(value, sm_rich_tot)) + 
   geom_point() +
@@ -222,10 +241,28 @@ Combined |>
         text=element_text(size=20))+
   NULL
 
+#dataset with no outliers
 
-cor.test(Combined$avg_temp, Combined$sm_rich_tot)
+norm_rich_SM <- Combined %>% 
+  filter(sm_rich_tot< 0.1) %>% 
+  select(sm_rich_tot  # depend
+                  , avg_temp)
 
+ggplot(norm_rich_SM, aes(avg_temp, sm_rich_tot)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  # facet_wrap(~name, scales = 'free_x'
+  #            , ncol = 3
+  #            ) +
+  labs(
+        x = 'Average Temperature'
+       , y = 'SM Trees Richness'
+       ) +   theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))+
+  NULL
 
+cor.test(norm_rich_SM$avg_temp, norm_rich_SM$sm_rich_tot)
 ```
 
 # 9 SM Evenness
@@ -366,7 +403,7 @@ Combined |>
 
 cor.test(Combined$percent_filled, Combined$PercBlk)
 cor.test(Combined$percent_filled, Combined$PercWhite)
-cor.test(Combined$percent_filled, Combined$avg_temp)
+cor.test(Combined$percent_filled, Combined$bahigher19)
 ```
 
 # 14 % Plantable Sites with Small Trees
@@ -405,4 +442,213 @@ cor.test(Combined$avg_temp, Combined$PercNat)
 
 ```
 
+# 17 all sites 
+```{r}
+var_names <- as_labeller(
+     c(`PercBlk` = "% Black", `PercWhite` = "% White",`mhhi20` = "Median Household Income", 
+       `bahigher19` = "Bachelor's or higher"))
+
+Combined |> 
+  tidylog::select(
+                    all_sites  # depend 
+                  , PercBlk
+                  , PercWhite
+                  , mhhi20
+                  , bahigher19
+                  ) |> 
+  pivot_longer(-all_sites) |> 
+  ggplot(aes(value, all_sites)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2, labeller = var_names
+             ) +
+  labs(
+        x = 'Predictor'
+       , y = 'Potential Tree Sites'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+
+cor.test(Combined$PercBlk, Combined$all_sites)
+cor.test(Combined$PercWhite, Combined$all_sites)
+cor.test(Combined$mhhi20, Combined$all_sites)
+cor.test(Combined$bahigher19, Combined$all_sites)  
+```
+
+# 18 Percent Condition
+```{r}
+var_names <- as_labeller(
+     c(`PercBlk` = "% Black", `PercWhite` = "% White",`mhhi20` = "Median Household Income", 
+       `bahigher19` = "Bachelor's or higher"))
+
+Combined |> 
+  tidylog::select(
+                    PercGood  # depend 
+                  , PercBlk
+                  , PercWhite
+                  , mhhi20
+                  , bahigher19
+                  ) |> 
+  pivot_longer(-PercGood) |> 
+  ggplot(aes(value, PercGood)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2, labeller = var_names
+             ) +
+  labs(
+        x = 'Predictor'
+       , y = 'Percent Trees in Good Condition'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+  
+cor.test(Combined$PercBlk, Combined$PercGood)
+cor.test(Combined$PercWhite, Combined$PercGood)
+cor.test(Combined$mhhi20, Combined$PercGood)
+cor.test(Combined$bahigher19, Combined$PercGood)
+
+
+Combined |> 
+  tidylog::select(
+                    PercPoor  # depend 
+                  , PercBlk
+                  , PercWhite
+                  , mhhi20
+                  , bahigher19
+                  ) |> 
+  pivot_longer(-PercPoor) |> 
+  ggplot(aes(value, PercPoor)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2, labeller = var_names
+             ) +
+  labs(
+        x = 'Predictor'
+       , y = 'Percent Trees in Good Condition'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+
+cor.test(Combined$PercBlk, Combined$PercPoor)
+cor.test(Combined$PercWhite, Combined$PercPoor)
+cor.test(Combined$mhhi20, Combined$PercPoor)
+cor.test(Combined$bahigher19, Combined$PercPoor)
+```
+
+
+# 20 Perc Filled vs Richness 
+```{r}
+#SM Richness
+Combined |> 
+  tidylog::select(
+                    sm_rich_tot  # depend 
+                  , percent_filled
+                  ) |> 
+  pivot_longer(-sm_rich_tot) |> 
+  ggplot(aes(value, sm_rich_tot)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2
+             ) +
+  labs(
+        x = 'Percent Filled'
+       , y = 'SM Trees Richness'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+  
+  (cor.test(Combined$percent_filled, Combined$sm_rich_tot))
+  
+# no outlier
+filled_richness <- Combined %>% 
+  filter(sm_rich_tot < 0.1) %>% 
+  select(sm_rich_tot,CSA2010,percent_filled)
+
+
+ggplot(filled_richness, aes(percent_filled, sm_rich_tot)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  labs(
+        x = 'Percent Filled'
+       , y = 'SM Trees Richness'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+
+(cor.test(filled_richness$percent_filled, filled_richness$sm_rich_tot))
+
+  NULL
+```
+  
+# 21 Perc Filled vs Norm SM Richness
+```{r}
+  Combined |> 
+  tidylog::select(
+                    richness_SM  # depend 
+                  , percent_filled
+                  ) |> 
+  pivot_longer(-richness_SM) |> 
+  ggplot(aes(value, richness_SM)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2
+             ) +
+  labs(
+        x = 'Percent Filled'
+       , y = 'SM Trees Richness'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+  
+(cor.test(Combined$percent_filled, Combined$richness_SM))
+```
+
+# 22 Perc Canopy vs Temperature
+```{r}
+  Combined |> 
+  tidylog::select(
+                    avg_temp  # depend 
+                  , PercCanopy
+                  ) |> 
+  pivot_longer(-avg_temp) |> 
+  ggplot(aes(value, avg_temp)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2
+             ) +
+  labs(
+        x = 'Percent Canopy Coverage'
+       , y = 'Average Temperature'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20))
+  NULL
+  
+(cor.test(Combined$PercCanopy, Combined$avg_temp))
+```
 
