@@ -259,7 +259,7 @@ mods |>
 ```
 
 
-# bivariate regression - fixme: move (nbs, wts??), st_lag lag to pre-pivot
+# bivariate regression
 ```{r}
 
 mods_bi$data[[1]]
@@ -328,6 +328,117 @@ mods_bi |>
   # facet_wrap(~group, scales = 'free') +
   facet_grid(dep~ind, scales = 'free') +
   theme_bw(16) +
+  NULL
+
+
+```
+
+# bivariate (spatial) regression - make weights *before* nesting
+```{r}
+
+mods_bi_slag$data[[1]]
+
+
+mods_bi_slag <- 
+  neighs |> 
+  select(  CSA2020
+         # , all_sites
+         , percent_filled, richness, Evar, sm_rich_tot, L_rich_tot, PercGood # dep vars
+         , PercBlk, PercWhite, mhhi20, bahigher19, avg_temp # ind vars
+         ) |> 
+  mutate(
+    # spatial neighbors, etc., lagged outcome variable
+      nbs = st_contiguity(geometry)
+    , wts = st_weights(nbs) # , allow_zero = TRUE)
+    # , list_w = map2(nbs, wts, recreate_listw)
+    , fill_lag = st_lag(percent_filled, nbs, wts)
+    , rich_lag = st_lag(richness      , nbs, wts)
+    , evar_lag = st_lag(Evar          , nbs, wts)
+    , srch_lag = st_lag(sm_rich_tot   , nbs, wts)
+    , lrch_lag = st_lag(L_rich_tot    , nbs, wts)
+    , pgood_lag= st_lag(PercGood      , nbs, wts)
+    ) |> 
+  st_drop_geometry() |> 
+  select(CSA2020          # id
+         , percent_filled # dep
+         , richness
+         , Evar
+         , sm_rich_tot
+         , L_rich_tot
+         , PercGood
+         , fill_lag # lagged deps
+         , rich_lag
+         , evar_lag
+         , srch_lag
+         , lrch_lag
+         , pgood_lag
+         , PercBlk, PercWhite, mhhi20, bahigher19, avg_temp # ind vars
+         ) |> 
+  pivot_longer(cols = PercBlk : avg_temp, names_to = 'ind', values_to = 'ind_value') |> 
+   pivot_longer(cols = fill_lag : pgood_lag, names_to = 'lag', values_to = 'lag_value') |> 
+  pivot_longer(cols = percent_filled : PercGood, names_to = 'dep', values_to = 'dep_value') |> 
+  select(CSA2020, dep, dep_value, ind, ind_value, lag, lag_value) |> # just moving geom col to end, reorder
+  filter(
+    (dep == 'percent_filled' & lag == 'fill_lag') |
+    (dep == 'richness'       & lag == 'rich_lag') |
+    (dep == 'Evar'           & lag == 'evar_lag') |
+    (dep == 'sm_rich_tot'    & lag == 'srch_lag') |
+    (dep == 'L_rich_tot'     & lag == 'lrch_lag') |
+    (dep == 'PercGood'       & lag == 'pgood_lag')
+    ) |> 
+  group_by(ind, dep) |> 
+  nest() |> 
+  mutate(
+    # baseline ols
+    ols = map(data, ~lm(dep_value ~ ind_value, .x))
+    
+    # summary
+    , ols_smry = map(ols, summary)
+      
+    # # residuals
+    # , ols_resid = map(ols, residuals)
+    # 
+    # # test residuals for spatial autocorrelation
+    # , ols_resid_mi = pmap(list(ols_resid, nbs, wts), global_moran_perm)
+    
+    # predictions
+    , ols_preds = map(ols, ggeffects::ggpredict)
+    
+    # 'manual' spatial lag model
+    , sp_lag = map(data, ~lm(dep_value ~ lag_value + ind_value, .x))
+    
+    # spatial lag predictions
+    , sp_lag_preds = map(sp_lag, ggeffects::ggpredict)
+    ) |> 
+  ungroup()
+
+# # extract p-values for autocorrelation
+# mods_bi |> 
+#   select(ends_with('mi')) |> 
+#   mutate(mi_test = map(ols_resid_mi, broom::tidy)) |> 
+#   unnest(mi_test) |> 
+#   mutate(sig = ifelse(p.value > 0.05, 'not sig', 'sig')) |> 
+#   janitor::tabyl(sig)
+
+
+# mods$ols_all_sites_smry
+# mods$ols_percent_filled_smry
+# mods$ols_sm_rich_tot_smry
+# mods$ols_L_rich_tot_smry
+# mods$ols_PercGood_smry
+
+mods_bi_slag |>
+  select(dep, ind, sp_lag_preds) |> 
+  unnest(sp_lag_preds) |> 
+  unnest(sp_lag_preds) |> 
+  filter(group != 'lag_value') |> # cut preds from neighbors
+  ggplot(aes(x, predicted)) + 
+  geom_line() + 
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.5) + 
+  # facet_wrap(~group, scales = 'free') +
+  facet_grid(dep~ind, scales = 'free') +
+  theme_bw(16) +
+  labs(title = 'WITH Spatial lag') + 
   NULL
 
 
