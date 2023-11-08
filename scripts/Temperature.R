@@ -10,15 +10,15 @@ temperature <-
 
 #BNIA Neighborhoods 
 bmore_nb <- 
-  st_read("../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp") |> 
+  st_read("../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas(2020)/Community_Statistical_Areas__2020_.shp") |> 
   st_transform(crs = st_crs(temperature))
 
 #loop
-tictoc::tic(); for(i in bmore_nb$Community){
+tictoc::tic();for(i in bmore_nb$CSA2020){
   print(i)
 
    values <- 
-     terra::mask(terra::crop(temperature, bmore_nb |> filter(Community == i)), bmore_nb |> filter(Community == i)) |> 
+     terra::mask(terra::crop(temperature, bmore_nb |> filter(CSA2020 == i)), bmore_nb |> filter(CSA2020 == i)) |> 
      raster::getValues()
    
 #TO FIX lines 23-32 - I used a slightly different approach than what we discussed I think, is there a better way to do this?
@@ -29,15 +29,11 @@ tictoc::tic(); for(i in bmore_nb$Community){
    # values |> 
      # table() |> 
      # as_tibble() |>
-   tibble(  CSA2010 = i #I changed this from Neighborhoods to match other data
+   tibble(  CSA2020 = i
           , ave_temp = mean(values, na.rm = TRUE) # add the degrees '_c' or '_f' for Celsius or Farh..
           , n_pixel = values |> as_tibble() |> tidylog::filter(!is.na(value)) |> nrow()
           ) |> 
-     # mutate(Neighborhood = i, 
-     #        avg_temp = mean(values, na.rm = TRUE)) |>
-     # select(Neighborhood, n, avg_temp) #|>
-# readr::write_csv(paste0('../../BaltimoreTrees/BaltimoreStreetTreeProject_Large_Data/baltimore/temperature surfaces/NB_pm_temp_test', Sys.Date(), '.csv') # I have this commented out until I'm sure about the loop system
-#                    , append = TRUE)
+     
    readr::write_csv(paste0('input_data/NB_pm_temp_', Sys.Date(), '.csv') # moved to input (not Large_Data)
                     , append = TRUE)
   
@@ -46,7 +42,7 @@ tictoc::tic(); for(i in bmore_nb$Community){
 
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
-    read_csv('input_data/NB_pm_temp_2023-08-09.csv' 
+    read_csv('input_data/NB_pm_temp_2023-11-08.csv' 
              , col_names = c('CSA2010', 'avg_temp', 'n_pixel'))
 )
 

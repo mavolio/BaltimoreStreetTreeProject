@@ -60,7 +60,8 @@ bnia_street_tree <-
 #4 Clean combined data
 ```{r}
 clean <- bnia_street_tree %>% 
-  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES)
+  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
 ```
 
 #5 Filter tree data for only present tree species
@@ -73,7 +74,7 @@ no_vacant <- clean %>%
 
 ```
 
-#6 Total Sites
+#6 Vacant Sites
 ```{r}
 vacant_potential <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
@@ -82,15 +83,19 @@ vacant_potential <- clean %>%
   group_by(CSA2020) %>% 
   summarize(sum_vacant_present =sum(vacant_present)) 
 
-  
+
 ```
 
-#7 Total # Trees per Neighborhood - how filled is a neighborhood
+#6 Total Trees
 ```{r}
 NBTotal <-no_vacant %>% 
   group_by(CSA2020) %>% 
   summarize(total_trees =sum(present)) %>% 
   select(total_trees, CSA2020)
+```
+
+#7 Total Sites 
+```{r}
 
 total_sites <- vacant_potential %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
@@ -104,12 +109,9 @@ total_sites %>%
 
 total_sites %>% summary()
 
-# total_sites %>% 
-#   ggplot(aes(total_trees, percent_filled)) +
-#   geom_point() +
-#   NULL
-
-#normalize by total sites  
+#histogram
+ggplot(total_sites, aes(all_sites)) +
+  geom_histogram()
 
 ```
 
@@ -386,9 +388,9 @@ species_abund <- species %>%
 write_csv(species_abund,'../input_data/Species_Abund.csv')
 ```
 
-#20 Pit size
+#20 Calculate Pit Area 
 ```{r}
-#pit size
+
 pit_size <- clean %>% 
   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
@@ -398,19 +400,11 @@ pit_size <- clean %>%
 
 ggplot(pit_size, aes(x=pit_area)) + geom_histogram()
 
-#average pit size by nb
-AvgPit <- pit_size %>%  
-  group_by(CSA2020) %>% 
-  summarise(AvgPit = mean(pit_area), .groups = 'drop')
+# average pit size by nb
+# AvgPit <- pit_size %>%  
+#   group_by(CSA2020) %>% 
+#   summarise(AvgPit = mean(pit_area), .groups = 'drop')
 
-#pit size only filled pits
-no_vacant_pit <- no_vacant %>% 
-  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") %>%
-  mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
-         , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
-         , pit_area   = length*width
-         ) %>% 
-  select(CSA2020, pit_area)
 ```
 
 #21 Tree Condition
@@ -439,7 +433,7 @@ condition_grade <- no_vacant %>%
   # left_join(no_vacant_pit, by = "CSA2020")
 ```
 
-#condition pt 2
+#22 Condition and Pit Area
 ```{r}
 
 no_vacant |> 
@@ -453,7 +447,7 @@ no_vacant |>
   
 ```
 
-#22 % good/poor trees
+#23 % good/poor trees
 ```{r}
 perc_condition <- NBTotal %>% 
   left_join(condition, by = "CSA2020") %>% 
@@ -462,43 +456,24 @@ perc_condition <- NBTotal %>%
   select(CSA2020, PercPoor, PercGood)
 ```
 
-# Small Trees Species Abundance
+#24 Top 5 Species 5 Hottest NB
 ```{r}
-small_trees <- no_vacant %>%
-  filter(DBH>=0&DBH<=5) %>% 
-  group_by(CSA2020)
-
-small_species_abund <- small_trees %>%
+small_trees_abund <- no_vacant %>%
+  filter(DBH>=0&DBH<=5) %>%  
   group_by(CSA2020, Species) %>% 
   summarize(n=length(Species)) %>%
-  pivot_wider(names_from = Species, values_from = n, values_fill = 0) %>% 
-  left_join(NBtemperature, by = "CSA2020") %>% 
-  filter(avg_temp>31.6) %>%
+  pivot_wider(names_from = Species, values_from = n, values_fill = 0)
+
+small_abund_temp <- NBtemperature %>%
+  left_join(small_trees_abund, by = "CSA2020") %>% 
   arrange(desc(avg_temp)) %>% 
   select(-avg_temp)
 
-species_long <- small_species_abund %>% 
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)
-
-most_common_species <- species_long %>% 
-  group_by(CSA2020) %>% 
-  slice_max(order_by = Count, n=1) 
-
-#top species for each NB
-ggplot( most_common_species, aes(x = TreeSpecies, y = Count, fill = CSA2020)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Most Common Species in Neighborhoods hotter than 31.6 Celsius") +
-  theme_minimal() 
-
-#top species for one NB
-madison_filtered <- small_species_abund %>% 
-  filter(CSA2020 == "Madison/East End") 
-
-madison_long <- madison_filtered %>% 
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)
-
-madison_top_species <- madison_long %>%
-  slice_max(order_by = Count, n = 5)
+#top species for Madison
+madison_top_species <- small_species_abund %>% 
+  filter(CSA2020 == "Madison/East End") %>% #filter for neighborhood
+  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
+  slice_max(order_by = Count, n = 5) #slice top 5 species
 
 ggplot(madison_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
   geom_bar(stat = "identity") +
@@ -508,12 +483,6 @@ ggplot(madison_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies))
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #Patterson Park
-patterson_filtered <- small_species_abund %>% 
-  filter(CSA2020 == "Patterson Park North & East") 
-
-patterson_long <- patterson_filtered %>% 
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)
-
 patterson_top_species <- patterson_long %>%
   slice_max(order_by = Count, n = 5)
 
@@ -544,7 +513,7 @@ ggplot(oldtown_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies))
 
 ```
 
-#23 Combine all dependent variables
+#25 Combine all dependent variables
 ```{r}
  DepVar <- total_sites %>% 
   left_join(richeven, by = "CSA2020") %>% 
@@ -563,7 +532,9 @@ ggplot(oldtown_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies))
   left_join(PercNative, by = "CSA2020") %>% 
   
   left_join(perc_condition, by = "CSA2020") %>%
-  left_join(PercSize, by = "CSA2020") 
+  left_join(PercSize, by = "CSA2020") %>% 
+  
+  left_join(NBTotal, by = "CSA2020")
 
 
   

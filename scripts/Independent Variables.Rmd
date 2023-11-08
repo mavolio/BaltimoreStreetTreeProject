@@ -33,12 +33,12 @@ Read in BNIA csv files with demographic data
 ```{r include=FALSE}
 
 # PercentAsian <-  
-#   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(CSA2010, pasi20) %>% 
+#   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Asian_(Non-Hispanic).csv') %>%   select(CSA2020, pasi20) %>% 
 #   rename(PercAsian = pasi20)
 # 
 # PercentLatino <- 
 #   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Hispanic.csv') %>% 
-#   select(CSA2010, phisp20) %>% 
+#   select(CSA2020, phisp20) %>% 
 #   rename(PercLatino = phisp20)
 
 
@@ -70,11 +70,11 @@ Edu <-
 
 ```
 
-#6 Temperature
+#5 Temperature
 ```{r}
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
-    read_csv('../input_data/NB_pm_temp_2023-08-09.csv' 
+    read_csv('../input_data/NB_pm_temp_2023-11-08.csv' 
              , col_names = c('CSA2020', 'avg_temp', 'n_pixel'))
 )
 
@@ -82,7 +82,7 @@ NBtemperature <- temperature_by_neigh %>%
   select(-n_pixel)
 ```
 
-# Land Cover BNIA total NB area
+#6 Land Cover BNIA total NB area
 ```{r}
 LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
            , col_names = c('CSA2020'
@@ -95,21 +95,22 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
 ```
 
 
-# % canopy tree cover
+#7 % canopy tree cover
 ```{r}
 PercentCanopy <- LandCover %>% 
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
   select(CSA2020, PercCanopy)
 ```
 
-#7 join all independent variables 
+#8 join all independent variables 
 ```{r}
 IndVar <- PercentBlk %>% 
   left_join(PercentWhite, by = "CSA2020") %>%
   left_join(Income, by = "CSA2020") %>%
   left_join(Edu, by = "CSA2020") %>%  
   left_join(NBtemperature, by = "CSA2020") %>% 
-  left_join(PercentCanopy, by = "CSA2020")
+  left_join(PercentCanopy, by = "CSA2020") %>% 
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  
 ```
