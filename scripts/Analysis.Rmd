@@ -35,6 +35,9 @@ This file will conduct correlational analyses on combined data of demographics a
 # Dependent <- read_csv('../../BaltimoreStreetTreeProject/Dependent_variable.csv')
 # Independent<- read_csv('../../BaltimoreStreetTreeProject/Independent_variable.csv') 
 
+# Dependent <- read_csv('input_data/Dependent_variable.csv')
+# Independent<- read_csv('input_data/Independent_variable.csv')
+
 Dependent <- read_csv('../input_data/Dependent_variable.csv')
 Independent<- read_csv('../input_data/Independent_variable.csv')
 
@@ -652,6 +655,17 @@ for (i in 1:(length(variables) - 1)) {
 print(cor_results)
 
 
+# another approach
+# https://easystats.github.io/correlation/
+install.packages('correlation')
+
+# like this
+correlation::correlation(Vars)
+
+# or like this,
+ Combined |> 
+   select(where(is.numeric)) |> 
+   correlation::correlation() |> # tibble() # can add this if you'd likek.
 
 ```
 
