@@ -109,7 +109,6 @@ IndVar <- PercentBlk %>%
   left_join(Income, by = "CSA2020") %>%
   left_join(Edu, by = "CSA2020") %>%  
   left_join(NBtemperature, by = "CSA2020") %>% 
-  left_join(PercentCanopy, by = "CSA2020") %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  

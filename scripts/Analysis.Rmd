@@ -20,6 +20,7 @@ library(sf)
 library(mapview)  
 library(tidylog) 
 library(purrr)
+library('correlation')
 
 #working directory
 getwd()
@@ -104,7 +105,7 @@ cor_filtered <- cors_tibble %>%
 ```
 
 #4 First pass scatter plots
-```{r echo=FALSE}
+```{r include=FALSE}
 
 Combined |> glimpse()
 
@@ -140,7 +141,7 @@ Combined |>
 
 ```
 
-Scatter plots for correlations that met criteria r>=|0.4| for indep vs dep variables:
+Scatter plots for correlations that met criteria p<0.05 for indep vs dep variables:
 
 # 5 Evenness  
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -164,20 +165,20 @@ cor.test(Combined$avg_temp, Combined$Evar)
 
 #dataset with no outliers
 
-evenness <- Combined %>% 
-  filter(Evar < 0.6) %>% 
-  select(Evar  # depend
-                  , avg_temp)
-
-  ggplot(evenness, aes(avg_temp, Evar)) +
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  labs(x = 'Average Temperature'
-       , y = 'Evenness' 
-       ) + theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
+# evenness <- Combined %>% 
+#   filter(Evar < 0.6) %>% 
+#   select(Evar  # depend
+#                   , avg_temp)
+# 
+#   ggplot(evenness, aes(avg_temp, Evar)) +
+#   geom_point() +
+#   geom_smooth(method = 'lm') + # forces a linear model
+#   labs(x = 'Average Temperature'
+#        , y = 'Evenness' 
+#        ) + theme_bw() +
+#   theme(panel.grid=element_blank(),
+#         text=element_text(size=20)) +
+#   NULL
 
 cor.test(evenness$avg_temp, evenness$Evar)
 ```
@@ -411,15 +412,6 @@ cor.test(Combined$percent_filled, Combined$bahigher19)
 cor.test(Combined$percent_filled, Combined$mhhi20)
 ```
 
-# 13 % Filled Sites with Small Trees
-```{r}
-
-```
-
-# 14 % filled Sites with Large Trees
-```{r}
-
-```
 
 # 15 Percent Nativity
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -552,32 +544,6 @@ cor.test(Combined$mhhi20, Combined$PercPoor)
 cor.test(Combined$bahigher19, Combined$PercPoor)
 ```
 
-# 18 SM Richness no outlier
-```{r}
-# no outlier
-filled_richness <- Combined %>% 
-  filter(sm_rich_tot < 0.1) %>% 
-  select(sm_rich_tot,CSA2020,percent_filled)
-
-
-ggplot(filled_richness, aes(percent_filled, sm_rich_tot)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  labs(
-        x = 'Percent Filled'
-       , y = 'SM Trees Richness'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20))
- NULL
-
-(cor.test(filled_richness$percent_filled, filled_richness$sm_rich_tot))
-
- 
-```
-
 # 19 Percent Canopy (as dependent)
 ```{r}
   Combined |> 
@@ -609,80 +575,3 @@ ggplot(filled_richness, aes(percent_filled, sm_rich_tot)) +
 (cor.test(Combined$all_sites, Combined$PercCanopy))
 (cor.test(Combined$avg_temp, Combined$PercCanopy))
 ```
-
-#20 all p values and correlations
-```{r}
- 
-#empty df to store results
-cor_results <- data.frame()
-
-# Get names of all variables in df
-
-Vars <- Combined %>% 
-  select(where(is.numeric))
-
-variables <- names(Vars)
-
-# Loop through all combinations of variables
-for (i in 1:(length(variables) - 1)) {
-  for (j in (i + 1):length(variables)) {
-    
-    # Extract the two variables for the current combination
-    var1 <- Vars[[variables[i]]]
-    var2 <- Vars[[variables[j]]]
-    
-    # Run correlation test
-    cor_test_result <- cor.test(var1, var2)
-    
-    # Extract correlation coefficient and p-value
-    correlation_coefficient <- cor_test_result$estimate
-    p_value <- cor_test_result$p.value
-    
-    # Create a row for the results dataframe
-    result_row <- data.frame(
-      Variable1 = variables[i],
-      Variable2 = variables[j],
-      CorrelationCoefficient = correlation_coefficient,
-      PValue = p_value
-    )
-    
-    # Bind row to results df
-    cor_results <- rbind(cor_results, result_row)
-  }
-}
-
-# View the resulting dataframe
-print(cor_results)
-
-
-# another approach
-# https://easystats.github.io/correlation/
-install.packages('correlation')
-
-# like this
-correlation::correlation(Vars)
-
-# or like this,
- Combined |> 
-   select(where(is.numeric)) |> 
-   correlation::correlation() |> # tibble() # can add this if you'd likek.
-
-```
-
-#21 sort p < 0.05
-```{r}
-
-p_filtered <- p_values %>% 
-   #filter Variable1 = independent variables
-  filter(Variable1 =='PercBlk'|Variable1 =='PercWhite'|
-           Variable1=='mhhi20'|Variable1=='bahigher19'|
-           Variable1=='avg_temp')%>%
-  #filter Variable2 = dependent variables
-  filter(Variable2=='richness'|Variable2=='Evar'|Variable2=='AvgDBH'|Variable2=='cv'|
-           Variable2=='richness_SM'|Variable2=='Evar_SM'|Variable2=='sm_rich_tot'|
-           Variable2=='richness_L'|Variable2=='Evar_L'|Variable2=='L_rich_tot'|
-           Variable2=='PercNat'|Variable2=='avg_temp'|Variable2=='percent_filled'|Variable2== 'all_sites'|
-           Variable2== 'PercGood'|Variable2== 'PercPoor'|Variable2 == 'PercSmall'|Variable2 == 'PercMedium'|Variable2 == 'PercLarge') %>%
-  filter(PValue>0.05)
-```
-

@@ -99,9 +99,12 @@ NBTotal <-no_vacant %>%
 
 total_sites <- vacant_potential %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
-  mutate(all_sites = sum_vacant_present + total_trees, 
-         percent_filled = 100*(total_trees/all_sites)) %>% 
-  select(CSA2020, all_sites, percent_filled)
+  mutate(all_sites = sum_vacant_present + total_trees) %>% 
+  select(CSA2020, all_sites)
+
+percfilled <- total_sites %>% 
+  mutate(percent_filled = 100*(total_trees/all_sites)) %>% 
+  select(CSA2020, percent_filled)
 
 total_sites %>% 
   ggplot(aes(percent_filled) ) +
@@ -115,14 +118,6 @@ ggplot(total_sites, aes(all_sites)) +
 
 ```
 
-#9 % Filled with Large Trees
-```{r}
-perc_large <- total_sites %>% 
-  left_join(DBHclass, by = "CSA2020") %>% 
-  mutate(PercLarge_sites = (large/all_sites)*100) %>% 
-  select(CSA2020, PercLarge_sites)
-
-```
 
 #9 Total Abundance by neighborhood
 ```{r}
@@ -161,7 +156,16 @@ DBHclass <- no_vacant %>%
 
 ```
 
-#12 % size
+#12 % Filled with Large Trees
+```{r}
+perc_large <- total_sites %>% 
+  left_join(DBHclass, by = "CSA2020") %>% 
+  mutate(PercLarge_sites = (large/all_sites)*100) %>% 
+  select(CSA2020, PercLarge_sites)
+
+```
+
+#13 % size
 ```{r}
 PercSize <- DBHclass %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
@@ -171,7 +175,7 @@ PercSize <- DBHclass %>%
   select(CSA2020,PercSmall, PercMedium, PercLarge)
 ```
 
-#13 Average DBH by neighborhood
+#14 Average DBH by neighborhood
 ```{r}
 AvgDBH <- no_vacant %>% 
   select(CSA2020,DBH)%>% 
@@ -181,7 +185,7 @@ AvgDBH <- no_vacant %>%
 #convert conditions to numeric 
 ```
 
-#14 CV of all DBH measurements by neighborhood
+#15 CV of all DBH measurements by neighborhood
 ```{r}
 CvDBH<- no_vacant %>% 
   group_by(CSA2020) %>% 
@@ -191,7 +195,7 @@ CvDBH<- no_vacant %>%
   select(cv, CSA2020)
 ```
 
-#15 Total Small Trees
+#16 Total Small Trees
 ```{r}
 Total_SM <- no_vacant %>% 
   filter(DBH>=0&DBH<=5) %>% 
@@ -200,7 +204,7 @@ Total_SM <- no_vacant %>%
 
 ```
 
-#16 SM Abund/Rich/evenness
+#17 SM Abund/Rich/evenness
 ```{r}
 NBabundSM <-no_vacant %>% 
   filter(DBH>=0&DBH<=5) %>% 
@@ -227,7 +231,7 @@ sm_rich_tot <- richevenSM %>%
 
 ```
 
-#17 Total Large Trees
+#18 Total Large Trees
 ```{r}
 Total_L <- no_vacant %>% 
   filter(DBH>20) %>% 
@@ -236,7 +240,7 @@ Total_L <- no_vacant %>%
 
 ```
 
-#18 L Abund/rich/even
+#19 L Abund/rich/even
 ```{r}
 NBabundL <-no_vacant %>% 
   filter(DBH>=20) %>% 
@@ -265,7 +269,7 @@ L_rich_tot <- richevenL %>%
   select(L_rich_tot, CSA2020)
 ```
 
-#19 Native or introduced 
+#20 Native or introduced 
 ```{r}
 
 species <- no_vacant %>%
@@ -385,11 +389,12 @@ PercNative <- native %>%
   summarize(n=length(Nat)) %>%
   pivot_wider(names_from = Nat, values_from = n, values_fill = 0) %>% 
   left_join(NBTotal) %>% 
-  mutate(PercNat = (native/total_trees)*100)
+  mutate(PercNat = (native/total_trees)*100) %>% 
+  select(CSA2020, PercNat)
 
 ```
 
-#20 Species Abundance per NB
+#21 Species Abundance per NB
 ```{r}
 species_abund <- species %>%
   group_by(CSA2020, Species) %>% 
@@ -399,7 +404,7 @@ species_abund <- species %>%
 write_csv(species_abund,'../input_data/Species_Abund.csv')
 ```
 
-#20 Pit Area Calculation
+#22 Pit Area Calculation
 ```{r}
 
 #this is at the tree level, our other calculations are at the nb level
@@ -427,7 +432,7 @@ large_pit <- pit_size %>%
 
 ```
 
-#21 Tree Condition
+#23 Tree Condition
 ```{r}
 #sum for each condition in a neighborhood
 #pivot
@@ -453,7 +458,7 @@ condition_grade <- no_vacant %>%
   # left_join(no_vacant_pit, by = "CSA2020")
 ```
 
-#22 Condition and Pit Area
+#24 Condition and Pit Area
 ```{r}
 
 no_vacant |> 
@@ -627,28 +632,15 @@ ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecie
 
 #25 Combine all dependent variables
 ```{r}
- DepVar <- total_sites %>% 
+ DepVar <- percfilled %>% 
+  left_join(total_sites) %>% 
   left_join(richeven, by = "CSA2020") %>% 
   left_join(AvgDBH, by = "CSA2020") %>% 
-  left_join(CvDBH, by = "CSA2020") %>% 
-  
-  left_join(richevenSM, by = "CSA2020") %>% 
-  left_join(sm_rich_tot, by = "CSA2020") %>% 
-  
-  left_join(richevenL, by = "CSA2020") %>%
-  left_join(L_rich_tot, by = "CSA2020") %>% 
-  
-  left_join(vacant_potential, by = "CSA2020") %>%  
   
   
   left_join(PercNative, by = "CSA2020") %>% 
   
-  left_join(perc_condition, by = "CSA2020") %>%
-  left_join(PercSize, by = "CSA2020") %>% 
-  
-  left_join(NBTotal, by = "CSA2020") %>% 
-  
-  left_join(perc_large, by = "CSA2020") %>% 
+  left_join(perc_condition, by = "CSA2020") %>% 
   left_join(large_pit, by = "CSA2020")
 
 
