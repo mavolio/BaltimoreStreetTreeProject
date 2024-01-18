@@ -99,14 +99,13 @@ print(cor_results)
 ```
 
 
-
 <!-- ## Filtered p < 0.05 -->
 ```{r message=FALSE, include=FALSE}
 
 p_filtered_0.05 <- cor_results %>% 
-  filter(PValue<0.05)
+  filter(PValue<0.05) 
 
-knitr:: kable(p_filtered_0.05)
+# knitr:: kable(p_filtered_0.05)
 ```
 
 <!-- ## Filtered p < 0.001 -->
@@ -114,17 +113,24 @@ knitr:: kable(p_filtered_0.05)
 p_filtered_0.001 <- cor_results %>% 
   filter(PValue<0.001)
 
-knitr:: kable(p_filtered_0.001)
+# knitr:: kable(p_filtered_0.001)
+```
+
+# filter for PercVacant relationships
+```{r}
+perc_vac_0.05 <- cor_results %>% 
+  filter(PValue<0.05) %>% 
+  filter(Variable1 == "vacant20" | Variable2 == "vacant20")
 ```
 
 ## Percent Filled 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-Combined |> 
+perc_filled_plot <- Combined |> 
   tidylog::select(
                    percent_filled  # depend
                   , PercBlk
                   , PercWhite
-                  , bahigher19
+                  , bahigher20
                   , mhhi20
                   ) |> 
   pivot_longer(-percent_filled) |> 
@@ -147,6 +153,8 @@ percfill_r <- p_filtered_0.05 %>%
   filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
 
 knitr:: kable(percfill_r)
+
+ggsave("perc_filled_plot.png", perc_filled_plot, dpi = 300)
 ```
 
 <!-- ## Richness -->
@@ -182,7 +190,7 @@ Combined |>
 ## Evenness
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-Combined |> 
+even_plot <- Combined |> 
   tidylog::select(
                     Evar  # depend 
                   , PercBlk
@@ -210,12 +218,14 @@ Evar_r <- p_filtered_0.05 %>%
   filter(Variable1 == "Evar" | Variable2 == "Evar")
 
 knitr:: kable(Evar_r)
+
+ggsave("even_plot.png", even_plot, dpi = 300)
 ```
 
 ## Average DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-Combined |> 
+dbh_plot <- Combined |> 
   tidylog::select(
                     AvgDBH  # depend 
                   , PercBlk
@@ -242,6 +252,8 @@ AvgDBH_r <- p_filtered_0.05 %>%
   filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
 
 knitr:: kable(AvgDBH_r)
+
+ggsave("dbh_plot.png", dbh_plot, dpi = 300)
 ```
 
 ## Percent Native Trees
@@ -274,7 +286,7 @@ knitr:: kable(PercNat_r)
 ## Percent Trees in Poor Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-Combined |> 
+percpoor_plot <- Combined |> 
   tidylog::select(
                     PercPoor  # depend 
                   , PercBlk
@@ -303,11 +315,13 @@ percpoor_r <- p_filtered_0.05 %>%
   filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
 
 knitr:: kable(percpoor_r)
+
+ggsave("percpoor_plot.png", percpoor_plot, dpi = 300)
 ```
 
 ## Percent Trees in Good Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-Combined |> 
+percgood_plot <- Combined |> 
   tidylog::select(
                     PercGood  # depend 
                   , PercBlk
@@ -336,6 +350,8 @@ percgood_r <- p_filtered_0.05 %>%
   filter(Variable1 == "PercGood" | Variable2 == "PercGood")
 
 knitr:: kable(percgood_r)
+
+ggsave("percgood_plot.png", percgood_plot, dpi = 300)
 ```
 
 ##  Percent Tree Pits > 32 sq ft
@@ -370,7 +386,7 @@ knitr:: kable(perc32_r)
 ggsave("avgtemp_plot.png", temp_plot, dpi = 300)
 ```
 
-##graphs 
+## Average Temp 
 ```{r}
 
 avgtemp_plot <- Combined |> 

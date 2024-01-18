@@ -45,6 +45,7 @@ bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_St
   st_make_valid() |>
   st_transform(crs = st_crs(street_tree))
 
+
   street_tree %>%
   st_join(bmore_bnia) %>%
   st_drop_geometry() |> 
@@ -100,13 +101,13 @@ NBTotal <-no_vacant %>%
 total_sites <- vacant_potential %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
   mutate(all_sites = sum_vacant_present + total_trees) %>% 
-  select(CSA2020, all_sites)
+  select(CSA2020, all_sites, total_trees)
 
 percfilled <- total_sites %>% 
   mutate(percent_filled = 100*(total_trees/all_sites)) %>% 
   select(CSA2020, percent_filled)
 
-total_sites %>% 
+percfilled %>% 
   ggplot(aes(percent_filled) ) +
   geom_density()
 

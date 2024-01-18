@@ -51,8 +51,6 @@ PercentWhite <-
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
   select(CSA2020, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
-
-
 ```
 
 #2 Median income
@@ -66,7 +64,7 @@ Income <-
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
-  select(CSA2020, bahigher19) 
+  select(CSA2020, bahigher20) 
 
 ```
 
@@ -101,6 +99,12 @@ PercentCanopy <- LandCover %>%
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
   select(CSA2020, PercCanopy)
 ```
+#8 % vacant and abandoned residential properties
+```{r}
+PercVacant <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
+  select(CSA2020, vacant20)
+```
 
 #8 join all independent variables 
 ```{r}
@@ -109,6 +113,7 @@ IndVar <- PercentBlk %>%
   left_join(Income, by = "CSA2020") %>%
   left_join(Edu, by = "CSA2020") %>%  
   left_join(NBtemperature, by = "CSA2020") %>% 
+  left_join(PercVacant, by = "CSA2020") %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  
