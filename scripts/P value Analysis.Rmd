@@ -105,7 +105,6 @@ print(cor_results)
 p_filtered_0.05 <- cor_results %>% 
   filter(PValue<0.05) 
 
-# knitr:: kable(p_filtered_0.05)
 ```
 
 <!-- ## Filtered p < 0.001 -->
@@ -116,7 +115,7 @@ p_filtered_0.001 <- cor_results %>%
 # knitr:: kable(p_filtered_0.001)
 ```
 
-# filter for PercVacant relationships
+# PercVacant
 ```{r}
 perc_vac_0.05 <- cor_results %>% 
   filter(PValue<0.05) %>% 
@@ -412,4 +411,5 @@ avgtemp_plot <- Combined |>
 
 ggsave("avgtemp_plot.png", temp_plot, dpi = 300)
 ```
+
 
