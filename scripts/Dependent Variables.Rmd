@@ -75,7 +75,7 @@ no_vacant <- clean %>%
 
 ```
 
-#6 Vacant Sites
+#6 Unfilled Sites
 ```{r}
 vacant_potential <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
@@ -117,6 +117,9 @@ total_sites %>% summary()
 ggplot(total_sites, aes(all_sites)) +
   geom_histogram()
 
+ggplot(total_sites, aes(total_trees)) +
+  geom_histogram()
+
 ```
 
 
@@ -141,10 +144,8 @@ richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, 
 #norm by total trees
 rich_tot <- richeven %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
-  mutate(rich_tot = richness/total_trees)
-
-#norm by total sites
-
+  mutate(rich_tot = richness/total_trees) %>% 
+  select(CSA2020, rich_tot)
 ```
 
 #11 Classify DBH (s/m/L)
@@ -482,6 +483,36 @@ perc_condition <- NBTotal %>%
   select(CSA2020, PercPoor, PercGood)
 ```
 
+#24 Flowering Trees
+```{r}
+# read in flowering data
+flowering <- read_csv("../../BaltimoreStreetTreeProject_Large_Data/Flowering Data.csv", show_col_types = FALSE)
+
+flower_y_n <- flowering %>% 
+  select(CSA2020, Flowering) %>% 
+  filter(Flowering =="yes" | Flowering == "no")
+
+showiness <- flowering %>% 
+  select(CSA2020, Visibility)
+
+PercFlower <- flower_y_n %>%
+  group_by(CSA2020, Flowering) %>% 
+  summarize(n=length(Flowering)) %>%
+  pivot_wider(names_from = Flowering, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  mutate(PercFlor = (yes/total_trees)*100) %>% 
+  select(CSA2020, PercFlor)
+
+PercShowy <- showiness %>% 
+  group_by(CSA2020, Visibility) %>% 
+  summarize(n=length(Visibility)) %>%
+  pivot_wider(names_from = Visibility, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  rename("showy" = '3') %>% 
+  mutate(PercShowy = (showy/total_trees)*100) %>% 
+  select(CSA2020, PercShowy)
+```
+
 #24 5 Hottest NB Top 5 Species 
 ```{r}
 small_trees_abund <- no_vacant %>%
@@ -636,13 +667,17 @@ ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecie
  DepVar <- percfilled %>% 
   left_join(total_sites) %>% 
   left_join(richeven, by = "CSA2020") %>% 
+  left_join(rich_tot, by = "CSA2020") %>% 
   left_join(AvgDBH, by = "CSA2020") %>% 
   
   
   left_join(PercNative, by = "CSA2020") %>% 
   
   left_join(perc_condition, by = "CSA2020") %>% 
-  left_join(large_pit, by = "CSA2020")
+  left_join(large_pit, by = "CSA2020") %>% 
+  
+  left_join(PercFlower, by = "CSA2020") %>% 
+  left_join(PercShowy, by = "CSA2020")
 
 
   
