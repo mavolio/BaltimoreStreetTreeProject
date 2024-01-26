@@ -488,10 +488,12 @@ perc_condition <- NBTotal %>%
 # read in flowering data
 flowering <- read_csv("../../BaltimoreStreetTreeProject_Large_Data/Flowering Data.csv", show_col_types = FALSE)
 
+#select for flowering yes/no
 flower_y_n <- flowering %>% 
   select(CSA2020, Flowering) %>% 
   filter(Flowering =="yes" | Flowering == "no")
 
+#select for showy = 3 (most showy)
 showiness <- flowering %>% 
   select(CSA2020, Visibility)
 
