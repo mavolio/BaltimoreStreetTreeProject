@@ -6,7 +6,7 @@ Independent<- read_csv('input_data/Independent_variable.csv')
 
 Combined <- Dependent %>% 
   left_join(Independent, by = "CSA2020") %>% 
-  select(CSA2020, bahigher19, PercBlk, PercWhite, mhhi20, avg_temp, ) %>% 
+  select(CSA2020, bahigher20, PercBlk, PercWhite, mhhi20, avg_temp, vacancy20) %>% 
   drop_na()
 
 panel.cor <- function(x, y){

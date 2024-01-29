@@ -47,10 +47,14 @@ PercentBlk <-
   select(CSA2020, paa20) %>% 
   rename(PercBlk = paa20)
 
+ggplot(data = PercentBlk, aes(x = PercBlk)) + geom_histogram()
+
 PercentWhite <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
   select(CSA2020, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
+
+ggplot(data = PercentWhite, aes(x = PercWhite)) + geom_histogram()
 ```
 
 #2 Median income
@@ -58,6 +62,8 @@ PercentWhite <-
 Income <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
   select(CSA2020, mhhi20) 
+
+ggplot(data = Income, aes(x = mhhi20)) + geom_histogram()
 ```
 
 #4 Education - percent of population 25 and over with a Bachelor's Degree or above
