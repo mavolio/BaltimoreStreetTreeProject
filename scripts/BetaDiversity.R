@@ -19,8 +19,8 @@ subsetCSA<-dat_trees %>%
   filter(CSA2020!="Dickeyville/Franklintown"&CSA2020!='Unassigned -- Jail')
 
 
-####within a neighborhood how similar are street trees on differnt blocks?
-#sums number of inds per species per block within a NB
+####within a neighborhood how similar are street trees on different blocks?
+#sums number of individuals per species per block within a NB
 nbdat<-subsetCSA %>% 
   group_by(CSA2020, Street, SPP) %>% 
   summarize(n=length(DBH)) %>% 
@@ -43,7 +43,7 @@ for (i in 1:length(nblist)){
     bind_rows(rac) 
   
 }
-##Looking into how within NB similarity relates to indepdent variables
+##Looking into how within NB similarity relates to independent variables
 winbeta<-outrac %>% 
   group_by(CSA2020) %>% 
   summarize(spave=mean(species_diff), rave=mean(rank_diff)) %>% 
@@ -64,7 +64,7 @@ ggplot(data=toplot, aes(x=indval, y=measval))+
 
 
 ###between neighborhoods, how similar are communities?
-##within a NB how many inds of each speceis, and creates categories for independant variables
+##within a NB how many inds of each species, and creates categories for independent variables
 nbmean<-subsetCSA %>% 
   group_by(CSA2020, SPP) %>% 
   summarize(n=length(DBH)) %>% 
@@ -78,7 +78,7 @@ nbmean<-subsetCSA %>%
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
   pivot_wider(names_from = SPP, values_from = n, values_fill = 0) 
 
-#multivariate analyses of community composiiton
+#multivariate analyses of community composition
 mds<-metaMDS(nbmean[13:275])
 
 nbinfo<-nbmean[1:12]
@@ -88,21 +88,31 @@ scores<-mds$points %>%
   bind_cols(nbinfo) 
 
 #which do we want? Temp, and one or two other
+#Race
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=race))+
   geom_point(size=5)
 # ggplot(data=scores, aes(x=MDS1, y=MDS2, color=Wht))+
 #   geom_point(size=5)
+#Income
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   geom_point(size=5)
+#Education
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
   geom_point(size=5)
+#Temperature
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
-  geom_point(size=5)
+  geom_point(size=5) +
+  stat_ellipse(size=1, aes(color=temp))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("NMDS Axis 1")+
+  ylab("NMDS Axis 2")
+
+#Vacancy
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   geom_point(size=5)
 
-#doing stats on the multiviarite analyes
-#looking at dispersion, use same matrix everytime
+#doing stats on the multivariate analyses
+#looking at dispersion, use same matrix every time
 dist<-vegdist(nbmean[13:275])
 
 #temp
@@ -124,3 +134,4 @@ permutest(betadisper(dist,nbmean$inc,type="centroid"))
 #ed
 adonis2(nbmean[13:275]~nbmean$ed)
 permutest(betadisper(dist,nbmean$ed,type="centroid"))
+
