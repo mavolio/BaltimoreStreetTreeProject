@@ -2,6 +2,7 @@ library(tidyverse)
 library(codyn)
 library(vegan)
 
+getwd()
 theme_set(theme_bw(12))
 
 
@@ -49,6 +50,8 @@ winbeta<-outrac %>%
   summarize(spave=mean(species_diff), rave=mean(rank_diff)) %>% 
   left_join(Independent) 
 
+write_csv(winbeta,'input_data/winbeta.csv')
+
 #TRINI DOES STATS HERE
 
 toplot<-winbeta%>% 
@@ -74,7 +77,7 @@ nbmean<-subsetCSA %>%
   mutate(inc=ifelse(mhhi20<40000, 'low', ifelse(mhhi20>40000&mhhi20<80000, 'mid', 'high')),
          vac=ifelse(vacant20<10, 'low', 'high'),
          temp=ifelse(avg_temp>32, 'hot', 'lesshot'),
-         race=ifelse(PercBlk>70, 'PredomBlk', ifelse(PercBlk<70&PercBlk>30, 'Mixed', 'PreDomWhite')),
+         race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
   pivot_wider(names_from = SPP, values_from = n, values_fill = 0) 
 
@@ -89,16 +92,32 @@ scores<-mds$points %>%
 
 #which do we want? Temp, and one or two other
 #Race
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=race))+
-  geom_point(size=5)
+ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
+  geom_point(size=5)+
+  stat_ellipse(size=1, aes(color=race))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("NMDS Axis 1")+
+  ylab("NMDS Axis 2")
+
 # ggplot(data=scores, aes(x=MDS1, y=MDS2, color=Wht))+
 #   geom_point(size=5)
+
 #Income
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
-  geom_point(size=5)
+  geom_point(size=5)+
+  stat_ellipse(size=1, aes(color=inc))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("NMDS Axis 1")+
+  ylab("NMDS Axis 2")
+
 #Education
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
-  geom_point(size=5)
+  geom_point(size=5)+
+  stat_ellipse(size=1, aes(color=ed))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("NMDS Axis 1")+
+  ylab("NMDS Axis 2")
+
 #Temperature
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
   geom_point(size=5) +
@@ -109,7 +128,11 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
 
 #Vacancy
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
-  geom_point(size=5)
+  geom_point(size=5) +
+  stat_ellipse(size=1, aes(color=vac))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("NMDS Axis 1")+
+  ylab("NMDS Axis 2")
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time
@@ -124,8 +147,10 @@ adonis2(nbmean[13:275]~nbmean$vac)
 permutest(betadisper(dist,nbmean$vac,type="centroid"))
 
 #race
-adonis2(nbmean[13:275]~nbmean$race)
-permutest(betadisper(dist,nbmean$race,type="centroid"))
+race2 <- nbmean %>% 
+  filter(race!= "drop")
+adonis2(race2[13:275]~race2$race)
+permutest(betadisper(dist,race2$race,type="centroid"))
 
 #inc
 adonis2(nbmean[13:275]~nbmean$inc)
