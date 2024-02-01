@@ -14,6 +14,9 @@ dat_trees<-dat %>%
   filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!='unknown shrub'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
 filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout")
 
+common<-dat_trees %>% 
+  group_by(SPP) %>% 
+  summarize(n=length(DBH))
 
 subsetCSA<-dat_trees %>% 
   select(CSA2020, SPP, Street, DBH, CONDITION, MT, TREE_HT, LOC_TYPE, CULTIVAR) %>% 
