@@ -1,0 +1,63 @@
+---
+title: "Pairs Plot"
+author: "Trini et al"
+date: "2024-01-26"
+output: html_document
+---
+
+# setup
+```{r}
+install.packages("GGally")
+library(GGally)
+
+Dependent <- read_csv('input_data/Dependent_variable.csv')
+Independent<- read_csv('input_data/Independent_variable.csv')
+
+Combined <- Dependent %>% 
+  left_join(Independent, by = "CSA2020") %>% 
+  select(CSA2020, bahigher20, PercBlk, PercWhite, mhhi20, avg_temp, vacant20) %>% 
+  drop_na()
+```
+# ggpairs
+```{r}
+ggpairs(Combined, columns = 2:7, columnLabels = 
+          c("Education","% Black","% White", "Income","Temperature","Vacancy"), aes(alpha = 0.05), 
+        upper = list(continuous = wrap("cor", size = 2.5)),
+        diag = list(continuous = wrap("barDiag", bins = 15))) +
+        theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+```
+
+# pairs plots
+```{r setup, include=FALSE}
+
+panel.cor <- function(x, y){
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- round(cor(x, y), digits=2)
+  txt <- paste0("r = ", r)
+  cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+# Customize upper panel
+upper.panel<-function(x, y){
+  points(x,y, pch = 19)
+}
+panel.hist <- function(x, ...)
+{
+  usr <- par("usr")
+  par(usr = c(usr[1:2], 0, 1.5) )
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y/max(y)
+  rect(breaks[-nB], 0, breaks[-1], y, col = "darkgray", ...)
+}
+
+# Create the plots
+pairs(Combined[,2:7], 
+      lower.panel = panel.cor,
+      upper.panel = upper.panel,
+      diag.panel=panel.hist)
+
+```
+
+

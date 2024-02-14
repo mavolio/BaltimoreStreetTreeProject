@@ -121,8 +121,21 @@ p_filtered_0.001 <- cor_results %>%
 # knitr:: kable(p_filtered_0.001)
 ```
 
-## Percent Filled 
+##Total Tree Pits
+```{r}
+totpits_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "all_sites" | Variable2 == "all_sites")
+
+view(totpits_r)
+```
+
+## Stocking
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+stocking_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
+
+view(stocking_r)
+
 perc_filled_plot <- Combined |> 
   tidylog::select(
                    percent_filled  # depend
@@ -157,7 +170,10 @@ ggsave("perc_filled_plot.png", perc_filled_plot, dpi = 300)
 
 ## Richness 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+richness_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "richness" | Variable2 == "richness")
 
+view(richness_r)
 Combined |> 
   tidylog::select(
                     richness  # depend 
@@ -185,8 +201,20 @@ Combined |>
   NULL
 ```
 
+##Norm Rich
+```{r}
+richtot_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
+
+view(richtot_r)
+```
+
 ## Evenness
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+even_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "Evar" | Variable2 == "Evar")
+
+view(Evar_r)
 
 even_plot <- Combined |> 
   tidylog::select(
@@ -222,6 +250,10 @@ ggsave("even_plot.png", even_plot, dpi = 300)
 
 ## Average DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
+
+view(dbh_r)
 
 dbh_plot <- Combined |> 
   tidylog::select(
@@ -256,6 +288,10 @@ ggsave("dbh_plot.png", dbh_plot, dpi = 300)
 
 ## Percent Native Trees
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
+
+View()
 Combined |> 
   tidylog::select(
                    PercNat  # depend
@@ -283,6 +319,10 @@ knitr:: kable(PercNat_r)
 
 ## Percent Trees in Poor Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+poor_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
+
+view(poor_r)
 
 percpoor_plot <- Combined |> 
   tidylog::select(
@@ -290,7 +330,7 @@ percpoor_plot <- Combined |>
                   , PercBlk
                   , PercWhite
                   , mhhi20
-                  , bahigher19
+                  , bahigher20
                   ) |> 
   pivot_longer(-PercPoor) |> 
   ggplot(aes(value, PercPoor)) + 
@@ -319,6 +359,11 @@ ggsave("percpoor_plot.png", percpoor_plot, dpi = 300)
 
 ## Percent Trees in Good Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+good_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercGood" | Variable2 == "PercGood")
+
+view(good_r)
+
 percgood_plot <- Combined |> 
   tidylog::select(
                     PercGood  # depend 
@@ -354,10 +399,15 @@ ggsave("percgood_plot.png", percgood_plot, dpi = 300)
 
 ##  Percent Tree Pits > 32 sq ft
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+perc32_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "Perc32" | Variable2 == "Perc32")
+
+view(perc32_r)
+
 plot_32 <- Combined |> 
   tidylog::select(
                     Perc32  # depend 
-                  , bahigher19
+                  , bahigher20
                   ) |> 
   pivot_longer(-Perc32) |> 
   ggplot(aes(value, Perc32)) + 
@@ -414,22 +464,13 @@ temp_plot <- Combined |>
 ggsave("avgtemp_plot.png", temp_plot, dpi = 300)
 ```
 
-# r value matrix
-```{r}
-cor_matrix <- cor_results %>% 
-  select(Variable1, Variable2, CorrelationCoefficient) %>% 
-  spread(Variable2, CorrelationCoefficient) %>% 
-  column_to_rownames(var = "Variable1")
-
-print(cor_matrix)
-
-
-write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.xlsx')
-
-```
-
 ## Flowering 
 ```{r}
+percflor_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
+
+view(percflor_r)
+
 Combined |> 
   tidylog::select(
                    PercShowy  # depend
@@ -455,6 +496,27 @@ Combined |>
   NULL
 ```
 
+## Showiness
+```{r}
+percshow_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
+
+view(percshow_r)
+```
+
+# r value matrix
+```{r}
+cor_matrix <- cor_results %>% 
+  select(Variable1, Variable2, CorrelationCoefficient) %>% 
+  spread(Variable2, CorrelationCoefficient) %>% 
+  column_to_rownames(var = "Variable1")
+
+print(cor_matrix)
+
+
+write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.xlsx')
+
+```
 
 #income
 ```{r}
