@@ -58,6 +58,8 @@ toplot<-winbeta%>%
   pivot_longer(PercBlk:vacant20, names_to = "ind", values_to = "indval") %>% 
   pivot_longer(spave:rave, names_to = 'measure', values_to = 'measval')
 
+
+
 #relationship between diversity and drivers
 ggplot(data=toplot, aes(x=indval, y=measval))+
   geom_point()+
