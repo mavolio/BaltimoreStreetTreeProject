@@ -88,3 +88,50 @@ speciesCSA<-tentwenty %>%
 
 length(unique(subset(speciesCSA, S10==1)$CSA2020))
 length(unique(subset(speciesCSA, S5==1)$CSA2020))
+
+#combining to get map
+famMap<-familyCSA %>% 
+  filter(F30==1|F20==1) %>% 
+  select(CSA2020, F30, F20) %>% 
+  unique
+
+famMap<-familyCSA %>% 
+  filter(F30==1|F20==1) %>% 
+  select(CSA2020, F30, F20) %>% 
+  unique
+
+
+genMap<-GeneraCSA %>% 
+  filter(G20==1) %>% 
+  select(CSA2020, G20) %>% 
+  unique
+
+sppMap<-speciesCSA %>% 
+  filter(S10==1) %>% 
+  select(CSA2020, S10) %>% 
+  unique
+
+map<-nbnumtree %>% 
+  left_join(famMap) %>% 
+  left_join(genMap) %>% 
+  left_join(sppMap)
+
+map[is.na(map)] <- 0
+
+map2<-map %>% 
+  mutate(tentwentythirty=ifelse(F30==1&G20==1&S10==1, 'Meets10/20/30', 'Not10/20/30'))
+
+#trying to map this
+library(mapview)
+library(sf)
+
+bmore_nb <- 
+  st_read('..//BaltimoreStreetTreeProject_Large_Data//Community_Statistical_Areas_(CSAs)__Reference_Boundaries//Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+  st_make_valid() 
+
+
+bmore_nb |> 
+  left_join(map2, by = 'CSA2020') |>
+  mapview::mapview(zcol = "tentwentythirty")
+
+         
