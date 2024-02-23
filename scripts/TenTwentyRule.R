@@ -51,15 +51,15 @@ familyCSA<-tentwenty %>%
   left_join(nbnumtree) %>% 
   mutate(fampercent=(n/numtree)*100) %>% 
   ungroup() %>% 
-  mutate(F30=ifelse(fampercent>30, 1, 0),
-         F20=ifelse(fampercent>20, 1, 0),
-         F15=ifelse(fampercent>15, 1, 0)) %>% 
-  filter(F30==1|F15==1|F20==1)
+  mutate(F30=ifelse(fampercent>30, 0, 1),
+         F20=ifelse(fampercent>20, 0, 1),
+         F15=ifelse(fampercent>15, 0, 1)) %>% 
+  filter(F30==0|F15==0|F20==0)
 
 #how many fail F30?
-length(unique(subset(familyCSA, F30==1)$CSA2020))
-length(unique(subset(familyCSA, F20==1)$CSA2020))
-length(unique(subset(familyCSA, F15==1)$CSA2020))
+length(unique(subset(familyCSA, F30==0)$CSA2020))
+length(unique(subset(familyCSA, F20==0)$CSA2020))
+length(unique(subset(familyCSA, F15==0)$CSA2020))
  
 
 GeneraCSA<-tentwenty %>% 
@@ -68,12 +68,12 @@ GeneraCSA<-tentwenty %>%
   left_join(nbnumtree) %>% 
   mutate(genpercent=(n/numtree)*100) %>% 
   ungroup() %>% 
-  mutate(G20=ifelse(genpercent>20, 1, 0),
-         G10=ifelse(genpercent>10, 1, 0)) %>% 
-  filter(G20==1|G10==1)
+  mutate(G20=ifelse(genpercent>20, 0, 1),
+         G10=ifelse(genpercent>10, 0, 1)) %>% 
+  filter(G20==0|G10==0)
 
-length(unique(subset(GeneraCSA, G20==1)$CSA2020))
-length(unique(subset(GeneraCSA, G10==1)$CSA2020))
+length(unique(subset(GeneraCSA, G20==0)$CSA2020))
+length(unique(subset(GeneraCSA, G10==0)$CSA2020))
 
 
 speciesCSA<-tentwenty %>% 
@@ -82,32 +82,26 @@ speciesCSA<-tentwenty %>%
   left_join(nbnumtree) %>% 
   mutate(spppercent=(n/numtree)*100) %>% 
   ungroup() %>% 
-  mutate(S10=ifelse(spppercent>10, 1, 0),
-         S5=ifelse(spppercent>5, 1, 0)) %>% 
+  mutate(S10=ifelse(spppercent>10, 0, 1),
+         S5=ifelse(spppercent>5, 0, 1)) %>% 
   filter(S10==1|S5==1)
 
-length(unique(subset(speciesCSA, S10==1)$CSA2020))
-length(unique(subset(speciesCSA, S5==1)$CSA2020))
+length(unique(subset(speciesCSA, S10==0)$CSA2020))
+length(unique(subset(speciesCSA, S5==0)$CSA2020))
 
 #combining to get map
 famMap<-familyCSA %>% 
-  filter(F30==1|F20==1) %>% 
+  filter(F30==0|F20==0) %>% 
   select(CSA2020, F30, F20) %>% 
   unique
-
-famMap<-familyCSA %>% 
-  filter(F30==1|F20==1) %>% 
-  select(CSA2020, F30, F20) %>% 
-  unique
-
 
 genMap<-GeneraCSA %>% 
-  filter(G20==1) %>% 
+  filter(G20==0) %>% 
   select(CSA2020, G20) %>% 
   unique
 
 sppMap<-speciesCSA %>% 
-  filter(S10==1) %>% 
+  filter(S10==0) %>% 
   select(CSA2020, S10) %>% 
   unique
 
@@ -116,7 +110,7 @@ map<-nbnumtree %>%
   left_join(genMap) %>% 
   left_join(sppMap)
 
-map[is.na(map)] <- 0
+map[is.na(map)] <- 1
 
 map2<-map %>% 
   mutate(tentwentythirty=ifelse(F30==1&G20==1&S10==1, 'Meets10/20/30', 'Not10/20/30'))
