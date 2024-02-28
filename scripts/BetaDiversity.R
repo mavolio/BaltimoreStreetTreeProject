@@ -79,7 +79,7 @@ nbmean<-subsetCSA %>%
   left_join(Independent) %>% 
   filter(!is.na(CSA2020)) %>% 
   drop_na() %>% 
-  mutate(inc=ifelse(mhhi20<40000, 'low', ifelse(mhhi20>40000&mhhi20<80000, 'mid', 'high')),
+  mutate(inc=ifelse(mhhi20<=40000, 'low', ifelse(mhhi20>40000&mhhi20<80000, 'mid', 'high')),
          vac=ifelse(vacant20<10, 'low', 'high'),
          temp=ifelse(avg_temp>32, 'hot', 'lesshot'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
@@ -100,6 +100,7 @@ scores<-mds$points %>%
 ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
   geom_point(size=5)+
   stat_ellipse(size=1, aes(color=race))+
+  scale_color_manual(values = c("darkslategray3", "darkseagreen"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")
@@ -108,9 +109,10 @@ ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
 #   geom_point(size=5)
 
 #Income
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
+A <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   geom_point(size=5)+
   stat_ellipse(size=1, aes(color=inc))+
+  scale_color_manual(values = c("coral1", "cyan3", "blue3"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")
@@ -124,9 +126,10 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
   ylab("NMDS Axis 2")
 
 #Temperature
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
+B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
   geom_point(size=5) +
   stat_ellipse(size=1, aes(color=temp))+
+  scale_color_manual(values = c("indianred3", "orange")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")

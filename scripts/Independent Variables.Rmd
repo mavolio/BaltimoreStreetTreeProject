@@ -26,7 +26,6 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 #`%nin%` <- Negate(in)
 ```
 
-
 Read in BNIA csv files with demographic data
 
 #1 BNIA CSA race demographics ## use 2020
@@ -66,7 +65,7 @@ Income <-
 ggplot(data = Income, aes(x = mhhi20)) + geom_histogram()
 ```
 
-#4 Education - percent of population 25 and over with a Bachelor's Degree or above
+#3 Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
@@ -74,7 +73,7 @@ Edu <-
 
 ```
 
-#5 Temperature
+#4 Temperature
 ```{r}
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
@@ -86,7 +85,7 @@ NBtemperature <- temperature_by_neigh %>%
   select(-n_pixel)
 ```
 
-#6 Land Cover BNIA total NB area
+#5 Land Cover BNIA total NB area
 ```{r}
 LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
            , col_names = c('CSA2020'
@@ -98,14 +97,14 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
   mutate(total_area_in_pixels = rowSums(.[,-1]))
 ```
 
-
-#7 % canopy tree cover
+#6 % canopy tree cover
 ```{r}
 PercentCanopy <- LandCover %>% 
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
   select(CSA2020, PercCanopy)
 ```
-#8 % vacant and abandoned residential properties
+
+#7 % vacant and abandoned residential properties
 ```{r}
 PercVacant <- 
   read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 

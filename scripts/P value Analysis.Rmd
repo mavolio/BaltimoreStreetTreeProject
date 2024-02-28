@@ -38,7 +38,7 @@ var_names_2 <- as_labeller(
        `PercNat` = "Nativity", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `richness` = "Richness"))
 ```
 
-<!-- #1 Combined dep+ind -->
+#1 Combined dep+ind
 ```{r include=FALSE}
 Dependent <- read_csv('../input_data/Dependent_variable.csv')
 Independent<- read_csv('../input_data/Independent_variable.csv')
@@ -46,9 +46,10 @@ Independent<- read_csv('../input_data/Independent_variable.csv')
 Combined <- Dependent %>% 
   left_join(Independent, by = "CSA2020") 
 
+cor.test(Combined$avg_temp, Combined$spave)
 ```
 
-<!-- #2 All p values and correlations -->
+#2 All p values and correlations
 ```{r include=FALSE}
  
 #empty df to store results
@@ -104,8 +105,7 @@ print(cor_results)
 #   tibble() # can add this 
 ```
 
-
-<!-- ## Filtered p < 0.05 -->
+#3 Filtered p < 0.05
 ```{r message=FALSE, include=FALSE}
 
 p_filtered_0.05 <- cor_results %>% 
@@ -168,40 +168,7 @@ knitr:: kable(percfill_r)
 ggsave("perc_filled_plot.png", perc_filled_plot, dpi = 300)
 ```
 
-## Richness 
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-richness_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "richness" | Variable2 == "richness")
-
-view(richness_r)
-Combined |> 
-  tidylog::select(
-                    richness  # depend 
-                  , PercBlk
-                  , PercWhite
-                  , mhhi20
-                  , bahigher19
-                  , avg_temp
-                  ) |> 
-  pivot_longer(-richness) |> 
-  ggplot(aes(value, richness)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 3, labeller = var_names
-             ) +
-  labs(
-        x = 'Predictor'
-       , y = 'Trees Richness'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=18)) +
-  NULL
-```
-
-##Norm Rich
+##Richness
 ```{r}
 richtot_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
@@ -214,7 +181,7 @@ view(richtot_r)
 even_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "Evar" | Variable2 == "Evar")
 
-view(Evar_r)
+view(even_r)
 
 even_plot <- Combined |> 
   tidylog::select(
@@ -246,6 +213,15 @@ Evar_r <- p_filtered_0.05 %>%
 knitr:: kable(Evar_r)
 
 ggsave("even_plot.png", even_plot, dpi = 300)
+```
+
+##Beta Diversity
+```{r}
+betadiv_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "spave" | Variable2 == "spave")
+
+view(betadiv_r)
+
 ```
 
 ## Average DBH
@@ -286,36 +262,6 @@ knitr:: kable(AvgDBH_r)
 ggsave("dbh_plot.png", dbh_plot, dpi = 300)
 ```
 
-## Percent Native Trees
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-dbh_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
-
-View()
-Combined |> 
-  tidylog::select(
-                   PercNat  # depend
-                  , avg_temp
-                  ) |> 
-  pivot_longer(-PercNat) |> 
-  ggplot(aes(PercNat, value)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(x = 'Average Temperature'
-       , y = 'Percent Native Trees'
-       ) +   theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
-
-PercNat_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercNat" | Variable2 == "PercNat")
-
-knitr:: kable(PercNat_r)
-```
 
 ## Percent Trees in Poor Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -496,12 +442,28 @@ Combined |>
   NULL
 ```
 
-## Showiness
+## Percent Showy
 ```{r}
 percshow_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
 
 view(percshow_r)
+```
+
+## Average Showiness
+```{r}
+avgshow_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgShowy" | Variable2 == "AvgShowy")
+
+view(avgshow_r)
+```
+
+## color richness
+```{r}
+color_rich_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "color_rich" | Variable2 == "color_rich")
+
+view(color_rich_r)
 ```
 
 # r value matrix
