@@ -1,6 +1,12 @@
 library(tidyverse)
 library(codyn)
 library(vegan)
+library(gtable)
+library(grid)
+library(gridExtra)
+
+install.packages("cowplot")
+library(cowplot)
 
 getwd()
 theme_set(theme_bw(12))
@@ -79,9 +85,9 @@ nbmean<-subsetCSA %>%
   left_join(Independent) %>% 
   filter(!is.na(CSA2020)) %>% 
   drop_na() %>% 
-  mutate(inc=ifelse(mhhi20<=40000, 'low', ifelse(mhhi20>40000&mhhi20<80000, 'mid', 'high')),
+  mutate(inc=ifelse(mhhi20<=40000, 'low', ifelse(40000<mhhi20&mhhi20<80000,'middle' ,'high' )),
          vac=ifelse(vacant20<10, 'low', 'high'),
-         temp=ifelse(avg_temp>32, 'hot', 'lesshot'),
+         temp=ifelse(avg_temp>32, '>32', '=<32'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
   pivot_wider(names_from = SPP, values_from = n, values_fill = 0) 
@@ -112,10 +118,12 @@ ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
 A <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   geom_point(size=5)+
   stat_ellipse(size=1, aes(color=inc))+
-  scale_color_manual(values = c("coral1", "cyan3", "blue3"))+
+  scale_color_manual(values = c("cyan3", "blue3", "coral1"), limits = c("low", "middle", "high"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2")+
+  labs(color = "Income")
+  
 
 #Education
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
@@ -129,10 +137,11 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
 B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
   geom_point(size=5) +
   stat_ellipse(size=1, aes(color=temp))+
-  scale_color_manual(values = c("indianred3", "orange")) +
+  scale_color_manual(values = c("orange", "indianred3")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2")+
+  labs(color = "Temperature")
 
 #Vacancy
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
@@ -141,6 +150,10 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")
+
+Fig <- plot_grid(A, B, labels = c('A', 'B'), ncol = 1)
+
+ggsave("..\\BaltimoreStreetTreeProject/input_data/FigNMDS.jpg",width=180, height=200, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time

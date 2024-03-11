@@ -298,7 +298,6 @@ color_rich <- community_structure(color_abund, abundance.var="abund", time.var= 
   rename(color_evar = Evar)
 ```
 
-
 #22 Average Showiness
 ```{r}
 

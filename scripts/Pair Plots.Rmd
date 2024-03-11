@@ -10,18 +10,25 @@ output: html_document
 install.packages("GGally")
 library(GGally)
 
-Dependent <- read_csv('input_data/Dependent_variable.csv')
-Independent<- read_csv('input_data/Independent_variable.csv')
-
-Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2020") %>% 
-  select(CSA2020, bahigher20, PercBlk, PercWhite, mhhi20, avg_temp, vacant20) %>% 
+Dependent <- read_csv('../input_data/Dependent_variable.csv') %>% 
   drop_na()
+Independent<- read_csv('../input_data/Independent_variable.csv') %>% 
+  drop_na()
+
 ```
-# ggpairs
+# Ind ggpairs
 ```{r}
 ggpairs(Combined, columns = 2:7, columnLabels = 
           c("Education","% Black","% White", "Income","Temperature","Vacancy"), aes(alpha = 0.05), 
+        upper = list(continuous = wrap("cor", size = 2.5)),
+        diag = list(continuous = wrap("barDiag", bins = 15))) +
+        theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+```
+
+# Dep ggpairs
+```{r}
+ggpairs(Independent, columns = 2:17, columnLabels = 
+          c("Stocking","All Sites","Total Trees", "Richness","Evenness","Vacancy"), aes(alpha = 0.05), 
         upper = list(continuous = wrap("cor", size = 2.5)),
         diag = list(continuous = wrap("barDiag", bins = 15))) +
         theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
