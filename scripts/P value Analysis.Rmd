@@ -12,7 +12,7 @@ output:
 ---
 Scatter plots for correlations p<0.05
 
-<!-- set up -->
+#0 set up 
 ```{r include=FALSE}
 # load packages
 library(tidyverse)
@@ -23,6 +23,8 @@ library(purrr)
 library('correlation')
 library("writexl")
 
+library(grid)
+library(gridExtra)
 #working directory
 getwd()
 list.files()
@@ -31,7 +33,7 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 
 var_names <- as_labeller(
      c(`PercBlk` = "% Black", `PercWhite` = "% White",`mhhi20` = "Income", 
-       `bahigher19` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
+       `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
 
 var_names_2 <- as_labeller(
      c(`AvgDBH` = "Average DBH", `Evar` = "Evenness",`Perc32` = "Ideal Pits", 
@@ -113,43 +115,45 @@ p_filtered_0.05 <- cor_results %>%
 
 ```
 
-<!-- ## Filtered p < 0.001 -->
+# Filtered p < 0.001
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 p_filtered_0.001 <- cor_results %>% 
   filter(PValue<0.001)
 
-# knitr:: kable(p_filtered_0.001)
 ```
 
-##Total Tree Pits
+#4 Total Tree Pits
 ```{r}
 totpits_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "all_sites" | Variable2 == "all_sites")
 
 view(totpits_r)
+
+totpits_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "all_sites" | Variable2 == "all_sites")
+
+view(totpits_r2)
 ```
 
-## Stocking
+#5 Stocking
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 stocking_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
 
 view(stocking_r)
 
-perc_filled_plot <- Combined |> 
+#perc_filled_plot <-
+  Combined |> 
   tidylog::select(
                    percent_filled  # depend
-                  , PercBlk
-                  , PercWhite
                   , bahigher20
-                  , mhhi20
                   ) |> 
   pivot_longer(-percent_filled) |> 
   ggplot(aes(value, percent_filled)) + 
   geom_point() +
   geom_smooth(method = 'lm') + # forces a linear model
   facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, nrow =2
+             , ncol = 1, nrow =1
              , labeller = var_names
              ) +
   labs(
@@ -160,71 +164,56 @@ perc_filled_plot <- Combined |>
         text=element_text(size=20)) +
   NULL
 
-percfill_r <- p_filtered_0.05 %>% 
+# <0.001
+
+stocking_r2 <- p_filtered_0.001 %>% 
   filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
 
-knitr:: kable(percfill_r)
-
-ggsave("perc_filled_plot.png", perc_filled_plot, dpi = 300)
+view(stocking_r2)  
 ```
 
-##Richness
+#6 Richness
 ```{r}
 richtot_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
 
 view(richtot_r)
+
+richtot_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
+
+view(richtot_r2)
 ```
 
-## Evenness
+#7 Evenness
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 even_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "Evar" | Variable2 == "Evar")
 
 view(even_r)
 
-even_plot <- Combined |> 
-  tidylog::select(
-                    Evar  # depend 
-                  , PercBlk
-                  , avg_temp
-                  , bahigher20
-                  ) |> 
-  pivot_longer(-Evar) |> 
-  ggplot(aes(value, Evar)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, labeller = var_names
-             ) +
-  labs(
-        x = 'Predictor'
-       , y = 'Trees Evenness'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
-
-Evar_r <- p_filtered_0.05 %>% 
+#p<0.001  
+even_r2 <- p_filtered_0.001 %>% 
   filter(Variable1 == "Evar" | Variable2 == "Evar")
 
-knitr:: kable(Evar_r)
+view(even_r2)
 
-ggsave("even_plot.png", even_plot, dpi = 300)
 ```
 
-##Beta Diversity
+#8 Beta Diversity
 ```{r}
 betadiv_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "spave" | Variable2 == "spave")
 
 view(betadiv_r)
 
+betadiv_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "spave" | Variable2 == "spave")
+
+view(betadiv_r2)
 ```
 
-## Average DBH
+#9 Average DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 dbh_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
@@ -254,203 +243,80 @@ dbh_plot <- Combined |>
         text=element_text(size=20)) +
   NULL
 
-AvgDBH_r <- p_filtered_0.05 %>% 
+dbh_r2 <- p_filtered_0.001 %>% 
   filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
 
-knitr:: kable(AvgDBH_r)
-
-ggsave("dbh_plot.png", dbh_plot, dpi = 300)
+view(dbh_r2)
 ```
 
-
-## Percent Trees in Poor Condition
+#10 Poor Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 poor_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
 
 view(poor_r)
 
-percpoor_plot <- Combined |> 
-  tidylog::select(
-                    PercPoor  # depend 
-                  , PercBlk
-                  , PercWhite
-                  , mhhi20
-                  , bahigher20
-                  ) |> 
-  pivot_longer(-PercPoor) |> 
-  ggplot(aes(value, PercPoor)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, labeller = var_names
-             ) +
-  labs(
-        x = 'Predictor'
-       , y = 'Percent Trees in Poor Condition'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
-
-percpoor_r <- p_filtered_0.05 %>% 
+poor_r2 <- p_filtered_0.001 %>% 
   filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
 
-knitr:: kable(percpoor_r)
-
-ggsave("percpoor_plot.png", percpoor_plot, dpi = 300)
+view(poor_r2)
 ```
 
-## Percent Trees in Good Condition
+#11 Good Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 good_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercGood" | Variable2 == "PercGood")
 
 view(good_r)
 
-percgood_plot <- Combined |> 
-  tidylog::select(
-                    PercGood  # depend 
-                  , PercBlk
-                  , PercWhite
-                  , mhhi20
-                  , bahigher19
-                  ) |> 
-  pivot_longer(-PercGood) |> 
-  ggplot(aes(value, PercGood)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, labeller = var_names
-             ) +
-  labs(
-        x = 'Predictor'
-       , y = 'Percent Trees in Good Condition'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
-
-percgood_r <- p_filtered_0.05 %>% 
+good_r2 <- p_filtered_0.001 %>% 
   filter(Variable1 == "PercGood" | Variable2 == "PercGood")
 
-knitr:: kable(percgood_r)
-
-ggsave("percgood_plot.png", percgood_plot, dpi = 300)
+view(good_r2)
 ```
 
-##  Percent Tree Pits > 32 sq ft
+#12 Target Pit Size
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 perc32_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "Perc32" | Variable2 == "Perc32")
 
 view(perc32_r)
 
-plot_32 <- Combined |> 
-  tidylog::select(
-                    Perc32  # depend 
-                  , bahigher20
-                  ) |> 
-  pivot_longer(-Perc32) |> 
-  ggplot(aes(value, Perc32)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, labeller = var_names
-             ) +
-  labs(
-        x = 'Predictor'
-       , y = 'Percent Tree Pits >32 sq. ft.'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
-
-perc32_r <- p_filtered_0.05 %>% 
+# p<0.001
+perc32_r2 <- p_filtered_0.001 %>% 
   filter(Variable1 == "Perc32" | Variable2 == "Perc32")
 
-knitr:: kable(perc32_r)
+view(perc32_r2)
 
-ggsave("avgtemp_plot.png", temp_plot, dpi = 300)
 ```
 
-## Temperature 
-```{r}
-temp_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "avg_temp" | Variable2 == "avg_temp")
-view(temp_r)
-
-temp_plot <- Combined |> 
-  tidylog::select(
-    avg_temp# depend 
-    , Evar
-    , AvgDBH
-    , PercNat
-    , Perc32
-  ) |> 
-  pivot_longer(-avg_temp) |> 
-  ggplot(aes(x = avg_temp, y = value)) +  # Swap x and y aesthetics
-  geom_point() +
-  geom_smooth(method = 'lm') +  # forces a linear model
-  facet_wrap(~name, scales = 'free_y', ncol = 2, labeller = var_names_2) +  # scales = 'free_y'
-  labs(
-    x = 'Average Temperature',  # Updated x-axis label
-    y = 'Response'  # Updated y-axis label
-  ) + 
-  theme_bw() +
-  theme(panel.grid = element_blank(), text = element_text(size = 20)) +
-  NULL
-
-ggsave("avgtemp_plot.png", temp_plot, dpi = 300)
-```
-
-## Flowering 
+#13 Flowering 
 ```{r}
 percflor_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
 
 view(percflor_r)
 
-Combined |> 
-  tidylog::select(
-                   PercShowy  # depend
-                  , PercBlk
-                  , PercWhite
-                  , mhhi20
-                  ) |> 
-  pivot_longer(-PercShowy) |> 
-  ggplot(aes(value, PercShowy)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, nrow =2
-             , labeller = var_names
-             ) +
-  labs(
-         x = 'Predictor'
-       , y = 'PercShowy'
-       ) +   
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
+percflor_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
+
+view(percflor_r2)
 ```
 
-## Percent Showy
+#14 Percent Showy
 ```{r}
 percshow_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
 
 view(percshow_r)
+
+percshow_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
+
+view(percshow_r2)
 ```
 
-## Average Showiness
+#15 Average Showiness
 ```{r}
 avgshow_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "AvgShowy" | Variable2 == "AvgShowy")
@@ -480,59 +346,59 @@ write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.x
 
 ```
 
-#income
-```{r}
-income_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "mhhi20" | Variable2 == "mhhi20")
 
-view(income_r)
+# scatter plots
+```{r}
+# stocking vs education
+A <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
+  geom_point(color = "#00e293", size=2.5)+
+  labs(x = "Bachelor's", y = "Stocking") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#richness vs temperature
+B <- ggplot(Combined, aes(x = avg_temp, y = richness))+
+  geom_point(color = "#ffd919", size=2.5)+
+  labs(x = "Temperature (C)", y = "Richness") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#richness vs % black
+C <- ggplot(Combined, aes(x = PercBlk, y = richness))+
+  geom_point(color = "#00afff", size=2.5)+
+  labs(x = "% Black", y = "Richness") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#DBH vs temp
+D <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
+  geom_point(color = "#ff794c", size=2.5)+
+  labs(x = "Temperature (C)", y = "Average DBH") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#%poor vs % black
+E <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
+  geom_point(color = "#e95789", size=2.5)+
+  labs(x = "% Black", y = "Poor Condition") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#showy vs %white
+G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
+  geom_point(color = "#a55aa4", size=2.5)+
+  labs(x = "% White", y = "% Showy") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
 ```
 
-#education
+# arrange in grid
 ```{r}
-education_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "bahigher20" | Variable2 == "bahigher20")
-```
-
-# Race
-```{r}
-pblack_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercBlk" | Variable2 == "PercBlk")
-view(pblack_r)
-
-pwhite_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercWhite" | Variable2 == "PercWhite")
-view(pwhite_r)
-```
-
-# Vacancy
-```{r}
-vacancy_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "vacant20" | Variable2 == "vacant20")
-view(vacancy_r)
+library(gtable)
+Fig_grid <- grid.arrange(C, E, B, D, G, A, nrow=3)
 
 
-vacancy_plot <- Combined |> 
-  tidylog::select(
-    vacant20# depend 
-    , richness
-    , AvgDBH
-    , PercGood
-    , Perc32
-  ) |> 
-  pivot_longer(-vacant20) |> 
-  ggplot(aes(x = vacant20, y = value)) +  # Swap x and y aesthetics
-  geom_point() +
-  geom_smooth(method = 'lm') +  # forces a linear model
-  facet_wrap(~name, scales = 'free_y', ncol = 2, labeller = var_names_2) +  # scales = 'free_y'
-  labs(
-    x = 'Vacancy',  # Updated x-axis label
-    y = 'Response'  # Updated y-axis label
-  ) + 
-  theme_bw() +
-  theme(panel.grid = element_blank(), text = element_text(size = 20)) +
-  NULL
-
-ggsave("vacancy_plot.png", vacancy_plot, dpi = 300)
+ggsave("scatterplot grid.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
 ```
 

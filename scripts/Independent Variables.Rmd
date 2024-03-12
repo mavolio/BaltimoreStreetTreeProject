@@ -123,6 +123,3 @@ IndVar <- PercentBlk %>%
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  
 ```
-
-
-
