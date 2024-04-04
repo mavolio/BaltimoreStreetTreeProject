@@ -85,9 +85,9 @@ C <- ggplot(data = map_dep_vars) +
 #richness 
 ```{r}
 D <- ggplot(data = map_dep_vars) + 
-  geom_sf(aes(fill = richness)) + 
+  geom_sf(aes(fill = rich_tot)) + 
   scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw() +
-  guides(fill = guide_legend(title = "Stocking"))
+  guides(fill = guide_legend(title = "Richness"))
 ```
 
 # perc poor
@@ -108,7 +108,7 @@ F <- ggplot(data = map_dep_vars) +
 
 #Percent Black
 ```{r}
-H <-ggplot(data = map_ind_vars) + 
+ggplot(data = map_ind_vars) + 
   geom_sf(aes(fill = PercBlk)) +
   scale_fill_viridis_c(option = "C") + theme_bw() +
   guides(fill = guide_legend(title = "% Black"))

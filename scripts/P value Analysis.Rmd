@@ -290,7 +290,7 @@ view(perc32_r2)
 
 ```
 
-#13 Flowering 
+#13 % Flowering 
 ```{r}
 percflor_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
@@ -303,7 +303,7 @@ percflor_r2 <- p_filtered_0.001 %>%
 view(percflor_r2)
 ```
 
-#14 Percent Showy
+#14 % Showy
 ```{r}
 percshow_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
@@ -322,7 +322,28 @@ avgshow_r <- p_filtered_0.05 %>%
   filter(Variable1 == "AvgShowy" | Variable2 == "AvgShowy")
 
 view(avgshow_r)
+
+
 ```
+
+#16 Num Flowering
+```{r}
+numflor_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "num_flor" | Variable2 == "num_flor")
+
+view(numflor_r)
+```
+
+#17 Num showy
+```{r}
+numshowy_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "num_showy" | Variable2 == "num_showy")
+
+view(numshowy_r)
+
+
+```
+
 
 ## color richness
 ```{r}
@@ -357,14 +378,14 @@ A <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
 #richness vs temperature
-B <- ggplot(Combined, aes(x = avg_temp, y = richness))+
+B <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
   geom_point(color = "#ffd919", size=2.5)+
   labs(x = "Temperature (C)", y = "Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
 #richness vs % black
-C <- ggplot(Combined, aes(x = PercBlk, y = richness))+
+C <- ggplot(Combined, aes(x = PercBlk, y = rich_tot))+
   geom_point(color = "#00afff", size=2.5)+
   labs(x = "% Black", y = "Richness") + 
   theme_bw()+

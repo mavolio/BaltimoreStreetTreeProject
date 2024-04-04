@@ -144,7 +144,7 @@ richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, 
 rich_tot <- richeven %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
   mutate(rich_tot = richness/total_trees) %>% 
-  select(CSA2020, rich_tot)
+  select(CSA2020, rich_tot, Evar)
 ```
 
 #11 Beta Diversity
@@ -252,6 +252,10 @@ flower_y_n <- flowering %>%
   select(CSA2020, Flowering) %>% 
   filter(Flowering =="yes" | Flowering == "no")
 
+raw_flor <- flower_y_n %>%
+  filter(Flowering == "yes") %>% 
+  group_by(CSA2020) %>% 
+  summarize(num_flor=length(Flowering))
 
 PercFlower <- flower_y_n %>%
   group_by(CSA2020, Flowering) %>% 
@@ -266,7 +270,7 @@ PercFlower <- flower_y_n %>%
 
 #19 Showy
 ```{r}
-#select for showy = 3 (most showy)
+#select for showy = 2 (most showy)
 showiness <- flowering %>% 
   select(CSA2020, Visibility)
 
@@ -278,6 +282,11 @@ PercShowy <- showiness %>%
   rename("showy" = '2') %>% 
   mutate(PercShowy = (showy/total_trees)*100) %>% 
   select(CSA2020, PercShowy)
+
+raw_showy <- showiness %>% 
+  filter(Visibility == 2) %>% 
+  group_by(CSA2020) %>% 
+  summarize(num_showy=length(Visibility))
 ```
 
 #20 Color abundance
@@ -460,8 +469,7 @@ ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecie
 #29 Combine all dependent variables
 ```{r}
  DepVar <- percfilled %>% 
-  left_join(total_sites) %>% 
-  left_join(richeven, by = "CSA2020") %>% 
+  left_join(total_sites) %>%  
   left_join(rich_tot, by = "CSA2020") %>% 
   left_join(betadiv, by = "CSA2020") %>% 
   
@@ -470,10 +478,11 @@ ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecie
   left_join(perc_condition, by = "CSA2020") %>% 
   left_join(large_pit, by = "CSA2020") %>% 
   
+  left_join(raw_flor, by = "CSA2020") %>% 
+  left_join(raw_showy, by = "CSA2020") %>% 
+  
   left_join(PercFlower, by = "CSA2020") %>% 
-  left_join(PercShowy, by = "CSA2020") %>%  
-  left_join(color_rich, by = "CSA2020") %>% 
-  left_join(avgShowy, by = "CSA2020")
+  left_join(PercShowy, by = "CSA2020")
 
   
 write_csv(DepVar,'../input_data/Dependent_variable.csv')  
