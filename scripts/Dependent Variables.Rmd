@@ -21,7 +21,6 @@ library(tidyverse)
 library(sf) 
 library(mapview)  
 library(tidylog) 
-library(dplyr)
 library(vegan)
 library(codyn)
 
@@ -63,6 +62,13 @@ bnia_street_tree <-
 clean <- bnia_street_tree %>% 
   select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
+
+
+clean |>
+select(where(is.character)) |>
+mutate_all(as.factor) |>
+map(~levels(.))
+
 ```
 
 #5 Filter tree data for only present tree species
@@ -252,11 +258,6 @@ flower_y_n <- flowering %>%
   select(CSA2020, Flowering) %>% 
   filter(Flowering =="yes" | Flowering == "no")
 
-raw_flor <- flower_y_n %>%
-  filter(Flowering == "yes") %>% 
-  group_by(CSA2020) %>% 
-  summarize(num_flor=length(Flowering))
-
 PercFlower <- flower_y_n %>%
   group_by(CSA2020, Flowering) %>% 
   summarize(n=length(Flowering)) %>%
@@ -302,9 +303,7 @@ color_abund <- flowering %>%
 
 #21 Color Richness
 ```{r}
-color_rich <- community_structure(color_abund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020") %>% 
-  rename(color_rich = richness) %>% 
-  rename(color_evar = Evar)
+color_rich <- community_diversity(color_abund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020")
 ```
 
 #22 Average Showiness
@@ -478,10 +477,7 @@ ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecie
   left_join(perc_condition, by = "CSA2020") %>% 
   left_join(large_pit, by = "CSA2020") %>% 
   
-  left_join(raw_flor, by = "CSA2020") %>% 
-  left_join(raw_showy, by = "CSA2020") %>% 
-  
-  left_join(PercFlower, by = "CSA2020") %>% 
+  left_join(color_rich, by = "CSA2020")%>% 
   left_join(PercShowy, by = "CSA2020")
 
   

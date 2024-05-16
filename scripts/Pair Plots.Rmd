@@ -7,7 +7,7 @@ output: html_document
 
 # setup
 ```{r}
-install.packages("GGally")
+
 library(GGally)
 
 Dependent <- read_csv('../input_data/Dependent_variable.csv') %>% 
@@ -15,23 +15,40 @@ Dependent <- read_csv('../input_data/Dependent_variable.csv') %>%
 Independent<- read_csv('../input_data/Independent_variable.csv') %>% 
   drop_na()
 
+Combined <- Dependent %>% 
+  left_join(Independent, by = "CSA2020")
+View(Dependent)
 ```
+
 # Ind ggpairs
 ```{r}
-ggpairs(Combined, columns = 2:7, columnLabels = 
-          c("Education","% Black","% White", "Income","Temperature","Vacancy"), aes(alpha = 0.05), 
-        upper = list(continuous = wrap("cor", size = 2.5)),
-        diag = list(continuous = wrap("barDiag", bins = 15))) +
-        theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+#options(repr.plot.width=8, repr.plot.height=4, repr.plot.res = 300) #set resolution
+
+
+ind_pair <- ggpairs(Combined, columns = 2:7, columnLabels = 
+          c("Education","% Black","% White", "Income","Temperature","Vacancy"), 
+          aes(alpha = 0.05), 
+          upper = list(continuous = wrap("cor", size = 2.5)),
+          diag = list(continuous = wrap("barDiag", bins = 15))) +
+        theme(panel.grid=element_blank(), 
+              text = element_text(size = 15),
+              axis.text = element_text(size =8))+ 
+  theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+
+ggsave("indep var pairplot.jpg",width=10, height=8, plot=ind_pair, dpi=600 )
 ```
 
 # Dep ggpairs
 ```{r}
-ggpairs(Independent, columns = 2:17, columnLabels = 
-          c("Stocking","All Sites","Total Trees", "Richness","Evenness","Vacancy"), aes(alpha = 0.05), 
-        upper = list(continuous = wrap("cor", size = 2.5)),
-        diag = list(continuous = wrap("barDiag", bins = 15))) +
+dep_pair <- ggpairs(Dependent, columns = 2:13, columnLabels = 
+          c("Stocking","All Sites","Total Trees", "Richness", "Evenness", "Beta Diversity", "DBH", "Poor Condition", "Good Condition", "Pit Size", "Color Richness", "Showiness"), #set titles
+          aes(alpha = 0.05), 
+          upper = list(continuous = wrap("cor", size = 2.5)),
+          diag = list(continuous = wrap("barDiag", bins = 15))) +
         theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+
+#save as jpg
+ggsave("dep var pairplot.jpg",width=10, height=8, plot=dep_pair, dpi=600 )
 ```
 
 # pairs plots

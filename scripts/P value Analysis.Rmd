@@ -10,7 +10,6 @@ output:
     toc_float: true
     self_contained: true
 ---
-Scatter plots for correlations p<0.05
 
 #0 set up 
 ```{r include=FALSE}
@@ -19,9 +18,6 @@ library(tidyverse)
 library(sf) 
 library(mapview)  
 library(tidylog) 
-library(purrr)
-library('correlation')
-library("writexl")
 
 library(grid)
 library(gridExtra)
@@ -48,7 +44,6 @@ Independent<- read_csv('../input_data/Independent_variable.csv')
 Combined <- Dependent %>% 
   left_join(Independent, by = "CSA2020") 
 
-cor.test(Combined$avg_temp, Combined$spave)
 ```
 
 #2 All p values and correlations
@@ -326,29 +321,18 @@ view(avgshow_r)
 
 ```
 
-#16 Num Flowering
+#18 Avg showy
 ```{r}
-numflor_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "num_flor" | Variable2 == "num_flor")
+avgshowy_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "avgShowy" | Variable2 == "AvgShowy")
 
-view(numflor_r)
+view(avgshowy_r)
 ```
-
-#17 Num showy
-```{r}
-numshowy_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "num_showy" | Variable2 == "num_showy")
-
-view(numshowy_r)
-
-
-```
-
 
 ## color richness
 ```{r}
 color_rich_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "color_rich" | Variable2 == "color_rich")
+  filter(Variable1 == "Shannon" | Variable2 == "Shannon")
 
 view(color_rich_r)
 ```
@@ -371,12 +355,13 @@ write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.x
 # scatter plots
 ```{r}
 # stocking vs education
-A <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
+A<- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
   labs(x = "Bachelor's", y = "Stocking") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
+
 #richness vs temperature
 B <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
   geom_point(color = "#ffd919", size=2.5)+
@@ -417,6 +402,7 @@ G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
 # arrange in grid
 ```{r}
 library(gtable)
+
 Fig_grid <- grid.arrange(C, E, B, D, G, A, nrow=3)
 
 

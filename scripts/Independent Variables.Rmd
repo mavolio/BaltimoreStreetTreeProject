@@ -15,7 +15,6 @@ library(tidyverse)
 library(sf) #simple features - vector GIS support
 library(mapview) #quick web maps 
 library(tidylog) #makes dplyr and tidyr verbose
-library(dplyr)
 
 #working directory
 getwd()
@@ -77,7 +76,7 @@ Edu <-
 ```{r}
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
-    read_csv('../input_data/NB_pm_temp_2023-11-08.csv' 
+    read_csv('../input_data/NB_af_temp_2024-05-07.csv' 
              , col_names = c('CSA2020', 'avg_temp', 'n_pixel'))
 )
 

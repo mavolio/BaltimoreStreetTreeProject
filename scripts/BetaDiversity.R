@@ -115,7 +115,7 @@ ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
 #   geom_point(size=5)
 
 #Income
-A <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
+ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   geom_point(size=5)+
   stat_ellipse(size=1, aes(color=inc))+
   scale_color_manual(values = c("cyan3", "blue3", "coral1"), limits = c("low", "middle", "high"))+
@@ -134,7 +134,7 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
   ylab("NMDS Axis 2")
 
 #Temperature
-B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
+ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
   geom_point(size=5) +
   stat_ellipse(size=1, aes(color=temp))+
   scale_color_manual(values = c("orange", "indianred3")) +
@@ -170,8 +170,9 @@ permutest(betadisper(dist,nbmean$vac,type="centroid"))
 #race
 race2 <- nbmean %>% 
   filter(race!= "drop")
+dist.r<-vegdist(race2[13:275])
 adonis2(race2[13:275]~race2$race)
-permutest(betadisper(dist,race2$race,type="centroid"))
+permutest(betadisper(dist.r,race2$race,type="centroid"))
 
 #inc
 adonis2(nbmean[13:275]~nbmean$inc)
