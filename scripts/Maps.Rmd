@@ -57,7 +57,7 @@ map_ind_vars <- bmore_nb |>
 
 # using ggplot
 
-#14 Stocking
+#5 Stocking
 ```{r}
 A <- ggplot(data = map_dep_vars) + 
   geom_sf(aes(fill = percent_filled)) + 
@@ -66,7 +66,7 @@ A <- ggplot(data = map_dep_vars) +
   
 ```
 
-#15 Target Pit Size
+#6 Target Pit Size
 ```{r}
 B <- ggplot(data = map_dep_vars) + 
   geom_sf(aes(fill = Perc32)) + 
@@ -74,7 +74,7 @@ B <- ggplot(data = map_dep_vars) +
   guides(fill = guide_legend(title = "Target Pit Size"))
 ```
 
-#16 Showy 
+#7 Showy 
 ```{r}
 C <- ggplot(data = map_dep_vars) + 
   geom_sf(aes(fill = PercShowy)) + 
@@ -82,7 +82,7 @@ C <- ggplot(data = map_dep_vars) +
   guides(fill = guide_legend(title = "Percent Showy"))
 ```
 
-#richness 
+#8 richness 
 ```{r}
 D <- ggplot(data = map_dep_vars) + 
   geom_sf(aes(fill = rich_tot)) + 
@@ -90,7 +90,7 @@ D <- ggplot(data = map_dep_vars) +
   guides(fill = guide_legend(title = "Richness"))
 ```
 
-# perc poor
+#9 perc poor
 ```{r}
 E <- ggplot(data = map_dep_vars) + 
   geom_sf(aes(fill = PercPoor)) + 
@@ -98,7 +98,7 @@ E <- ggplot(data = map_dep_vars) +
   guides(fill = guide_legend(title = "Poor Condition"))
 ```
 
-# average DBH
+#10 average DBH
 ```{r}
 F <- ggplot(data = map_dep_vars) + 
   geom_sf(aes(fill = AvgDBH)) + 
@@ -106,7 +106,7 @@ F <- ggplot(data = map_dep_vars) +
   guides(fill = guide_legend(title = "Average DBH"))
 ```
 
-#Percent Black
+#11 Percent Black
 ```{r}
 ggplot(data = map_ind_vars) + 
   geom_sf(aes(fill = PercBlk)) +
@@ -115,7 +115,7 @@ ggplot(data = map_ind_vars) +
 
 ```
 
-# arrange maps
+#12 arrange maps
 ```{r}
 Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2)
 

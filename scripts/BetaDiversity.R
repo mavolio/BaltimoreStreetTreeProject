@@ -87,7 +87,7 @@ nbmean<-subsetCSA %>%
   drop_na() %>% 
   mutate(inc=ifelse(mhhi20<=40000, 'low', ifelse(40000<mhhi20&mhhi20<80000,'middle' ,'high' )),
          vac=ifelse(vacant20<10, 'low', 'high'),
-         temp=ifelse(avg_temp>32, '>32', '=<32'),
+         temp=ifelse(avg_temp>35, '>35', '=<35'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
   pivot_wider(names_from = SPP, values_from = n, values_fill = 0) 
@@ -101,22 +101,20 @@ nbinfo<-nbmean[1:12]
 scores<-mds$points %>% 
   bind_cols(nbinfo) 
 
-#which do we want? Temp, and one or two other
+
 #Race
-ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
-  geom_point(size=5)+
+A <- ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
+  geom_point(size=3)+
   stat_ellipse(size=1, aes(color=race))+
   scale_color_manual(values = c("darkslategray3", "darkseagreen"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
-
-# ggplot(data=scores, aes(x=MDS1, y=MDS2, color=Wht))+
-#   geom_point(size=5)
+  ylab("NMDS Axis 2")+
+  labs(color = "Race")
 
 #Income
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
-  geom_point(size=5)+
+B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
+  geom_point(size=3)+
   stat_ellipse(size=1, aes(color=inc))+
   scale_color_manual(values = c("cyan3", "blue3", "coral1"), limits = c("low", "middle", "high"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -126,32 +124,34 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   
 
 #Education
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
-  geom_point(size=5)+
+C <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
+  geom_point(size=3)+
   stat_ellipse(size=1, aes(color=ed))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2") +
+  labs(color = "Education")
 
 #Temperature
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
-  geom_point(size=5) +
+D <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
+  geom_point(size=3) +
   stat_ellipse(size=1, aes(color=temp))+
   scale_color_manual(values = c("orange", "indianred3")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
-  labs(color = "Temperature")
+  labs(color = "Temp.")
 
 #Vacancy
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
-  geom_point(size=5) +
+E <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
+  geom_point(size=3) +
   stat_ellipse(size=1, aes(color=vac))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2")+
+  labs(color = "Vacancy")
 
-Fig <- plot_grid(A, B, labels = c('A', 'B'), ncol = 1)
+Fig <- plot_grid(A, B, C, D, E , labels = c('A', 'B', 'C', 'D', 'E'), ncol = 2)
 
 ggsave("..\\BaltimoreStreetTreeProject/input_data/FigNMDS.jpg",width=180, height=200, unit="mm", plot=Fig, dpi=300 )
 
@@ -182,3 +182,4 @@ permutest(betadisper(dist,nbmean$inc,type="centroid"))
 adonis2(nbmean[13:275]~nbmean$ed)
 permutest(betadisper(dist,nbmean$ed,type="centroid"))
 
+hist(Independent$avg_temp)

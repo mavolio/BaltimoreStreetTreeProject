@@ -484,6 +484,17 @@ ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecie
 write_csv(DepVar,'../input_data/Dependent_variable.csv')  
 ```
 
+#Abundance overall 
+```{r}
+bmore_abund <- no_vacant %>% 
+  filter(Species != "unknown tree") %>% 
+  group_by(Species) %>% 
+  summarize(bmore_abund=sum(present)) %>% 
+  select(Species, bmore_abund)
+```
 
-
+#Descriptive Statistics
+```{r}
+summary(DepVar)
+```
 

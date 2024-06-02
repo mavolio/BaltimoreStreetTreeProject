@@ -10,14 +10,11 @@ output: html_document
 
 library(GGally)
 
-Dependent <- read_csv('../input_data/Dependent_variable.csv') %>% 
+Dependent_pair <- read_csv('../input_data/Dependent_variable.csv') %>% 
   drop_na()
-Independent<- read_csv('../input_data/Independent_variable.csv') %>% 
+Independent_pair <- read_csv('../input_data/Independent_variable.csv') %>% 
   drop_na()
 
-Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2020")
-View(Dependent)
 ```
 
 # Ind ggpairs
@@ -25,17 +22,18 @@ View(Dependent)
 #options(repr.plot.width=8, repr.plot.height=4, repr.plot.res = 300) #set resolution
 
 
-ind_pair <- ggpairs(Combined, columns = 2:7, columnLabels = 
-          c("Education","% Black","% White", "Income","Temperature","Vacancy"), 
+ind_pair <- ggpairs(Independent_pair, columns = 2:7, columnLabels = 
+          c("% Black","% White", "Income","Education","Temp.","Vacancy"), 
           aes(alpha = 0.05), 
           upper = list(continuous = wrap("cor", size = 2.5)),
           diag = list(continuous = wrap("barDiag", bins = 15))) +
-        theme(panel.grid=element_blank(), 
-              text = element_text(size = 15),
-              axis.text = element_text(size =8))+ 
+        theme(panel.grid=element_blank(),
+              axis.text.x = element_text(size =8),
+              axis.text.y = element_text(size = 8))+
+  
   theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
 
-ggsave("indep var pairplot.jpg",width=10, height=8, plot=ind_pair, dpi=600 )
+ggsave("indep var pairplot.png",width=6, height=8, plot=ind_pair)
 ```
 
 # Dep ggpairs

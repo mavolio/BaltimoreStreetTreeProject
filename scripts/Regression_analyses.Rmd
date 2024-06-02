@@ -60,7 +60,7 @@ Combined |> glimpse()
 #2 Neighborhoods as spatial objects
 ```{r}
 
-neigh_path <- '../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
+neigh_path <- '..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statistical_Areas(2020)/Community_Statistical_Areas__2020_.shp'
 
 neighs <- 
   read_sf(  neigh_path
@@ -74,7 +74,6 @@ neighs <-
       richness
     , Evar
     , AvgDBH
-    , cv # coef of var for dbh
     , richness_SM # small
     , Evar_SM
     , sm_rich_tot # small normalized by total trees
@@ -814,42 +813,6 @@ Combined |>
 cor.test(Combined$percent_filled, Combined$PercBlk)
 cor.test(Combined$percent_filled, Combined$PercWhite)
 cor.test(Combined$percent_filled, Combined$bahigher19)
-```
-
-# 14 % Plantable Sites with Small Trees
-```{r}
-
-```
-
-# 15 % Plantable Sites with Large Trees
-```{r}
-
-```
-
-# 16 Percent Nativity
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Combined |> 
-  tidylog::select(
-                   PercNat  # depend
-                  , avg_temp
-                  ) |> 
-  pivot_longer(-PercNat) |> 
-  ggplot(aes(PercNat, value)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(x = 'Average Temperature'
-       , y = 'Percent Native'
-       ) +   theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20))
-  NULL
-
-cor.test(Combined$avg_temp, Combined$PercNat)
-
-
 ```
 
 # 17 all sites 
