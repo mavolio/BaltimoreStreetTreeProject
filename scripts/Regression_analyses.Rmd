@@ -62,6 +62,9 @@ Combined |> glimpse()
 
 neigh_path <- '..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statistical_Areas(2020)/Community_Statistical_Areas__2020_.shp'
 
+# Dexter path
+neigh_path <- '../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
+
 neighs <- 
   read_sf(  neigh_path
           , as_tibble = TRUE) |> 

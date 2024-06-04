@@ -42,7 +42,12 @@ bnia_street_tree <-
 #3 read in dependent variables
 ```{r}
 dependmap <- read_csv('..\\..\\BaltimoreStreetTreeProject\\input_data\\Dependent_variable.csv')
+
+dependmap <- read_csv('input_data/Dependent_variable.csv')
+
  indepmap <- read_csv('..\\..\\BaltimoreStreetTreeProject\\input_data\\Independent_variable.csv')
+ 
+ indepmap <- read_csv('input_data/Independent_variable.csv')
 ```
 
 #4 combine dep with nb boundaries to use mapview

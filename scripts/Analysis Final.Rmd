@@ -41,6 +41,10 @@ var_names_2 <- as_labeller(
 Dependent <- read_csv('../input_data/Dependent_variable.csv')
 Independent<- read_csv('../input_data/Independent_variable.csv')
 
+# Dexter path
+Dependent <- read_csv('input_data/Dependent_variable.csv')
+Independent<- read_csv('input_data/Independent_variable.csv')
+
 Combined <- Dependent %>% 
   left_join(Independent, by = "CSA2020") 
 
