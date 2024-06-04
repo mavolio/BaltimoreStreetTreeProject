@@ -14,7 +14,7 @@ theme_set(theme_bw(12))
 
 Independent<- read_csv('input_data/Independent_variable.csv')
 
-dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-10-31.csv')
+dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 
 dat_trees<-dat %>% 
   filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!='unknown shrub'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
@@ -104,9 +104,9 @@ scores<-mds$points %>%
 
 #Race
 A <- ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
-  geom_point(size=3)+
+  geom_point(size=2)+
   stat_ellipse(size=1, aes(color=race))+
-  scale_color_manual(values = c("darkslategray3", "darkseagreen"))+
+  scale_color_manual(values = c("deepskyblue", "deeppink"), labels = c("Predom.\nBlack", "Predom.\nWhite"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
@@ -114,9 +114,9 @@ A <- ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))
 
 #Income
 B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
-  geom_point(size=3)+
+  geom_point(size=2)+
   stat_ellipse(size=1, aes(color=inc))+
-  scale_color_manual(values = c("cyan3", "blue3", "coral1"), limits = c("low", "middle", "high"))+
+  scale_color_manual(values = c("cyan3", "blue3", "coral1"), labels = c("Low", "Middle", "High"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
@@ -125,8 +125,9 @@ B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
 
 #Education
 C <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
-  geom_point(size=3)+
+  geom_point(size=2)+
   stat_ellipse(size=1, aes(color=ed))+
+  scale_color_manual(values = c("magenta", "palegreen2"), labels = c("Higher", "Lower")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2") +
@@ -134,16 +135,16 @@ C <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
 
 #Temperature
 D <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
-  geom_point(size=3) +
+  geom_point(size=2) +
   stat_ellipse(size=1, aes(color=temp))+
-  scale_color_manual(values = c("orange", "indianred3")) +
+  scale_color_manual(values = c("orange", "indianred3"), labels = c("=<35 C", ">35 C")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
   labs(color = "Temp.")
 
 #Vacancy
-E <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
+ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   geom_point(size=3) +
   stat_ellipse(size=1, aes(color=vac))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -151,9 +152,9 @@ E <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   ylab("NMDS Axis 2")+
   labs(color = "Vacancy")
 
-Fig <- plot_grid(A, B, C, D, E , labels = c('A', 'B', 'C', 'D', 'E'), ncol = 2)
+Fig <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D'), ncol = 1)
 
-ggsave("..\\BaltimoreStreetTreeProject/input_data/FigNMDS.jpg",width=180, height=200, unit="mm", plot=Fig, dpi=300 )
+ggsave("FigNMDS.jpg",width=100, height=200, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time

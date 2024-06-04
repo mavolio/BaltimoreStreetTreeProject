@@ -13,6 +13,7 @@ output:
 ---
 
 This file contains all dependent variable data for analysis
+This file CREATES .CSV WITH COMBINED NB AND STREET TREE ATTRIBUTES
 
 # 0 set up 
 ```{r include=FALSE}
@@ -48,13 +49,13 @@ bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_St
   street_tree %>%
   st_join(bmore_bnia) %>%
   st_drop_geometry() |> 
-  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_', Sys.Date(), '.csv'))
+  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv'))
 ```
 
 #3 Read in street tree + neighborhood file
 ```{r include=FALSE}
 bnia_street_tree <-
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-10-31.csv')
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 ```
 
 #4 Clean combined data
@@ -62,12 +63,6 @@ bnia_street_tree <-
 clean <- bnia_street_tree %>% 
   select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
-
-
-clean |>
-select(where(is.character)) |>
-mutate_all(as.factor) |>
-map(~levels(.))
 
 ```
 
@@ -316,156 +311,7 @@ avgShowy <- showiness %>%
 
 ```
 
-#27 5 Hottest NB Top 5 Species 
-```{r}
-small_trees_abund <- no_vacant %>%
-  filter(DBH>=0&DBH<=5) %>%  
-  group_by(CSA2020, Species) %>% 
-  summarize(n=length(Species)) %>%
-  pivot_wider(names_from = Species, values_from = n, values_fill = 0)
-
-small_abund_temp <- NBtemperature %>%
-  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% 
-  left_join(small_trees_abund, by = "CSA2020") %>% 
-  arrange(desc(avg_temp)) %>% 
-  select(-avg_temp)
-
-#top species for Madison
-madison_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Madison/East End") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(madison_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Madison/East End"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#Patterson Park
-patterson_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Patterson Park North & East") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(patterson_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Patterson Park North & East"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# oldtown
-oldtown_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Oldtown/Middle East") %>% 
-  gather(key = "TreeSpecies", value = "Count", -CSA2020) %>%
-  slice_max(order_by = Count, n = 5)
-
-ggplot(oldtown_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Oldtown/Middle East"), x = "TreeSpecies", y = "Count") +
-
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Highlandtown
-highland_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Highlandtown") %>% 
-  gather(key = "TreeSpecies", value = "Count", -CSA2020) %>%
-  slice_max(order_by = Count, n = 5)
-
-ggplot(highland_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Highlandtown"), x = "TreeSpecies", y = "Count") +
-
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Downtown/Seton Hill
-downtown_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Downtown/Seton Hill") %>% 
-  gather(key = "TreeSpecies", value = "Count", -CSA2020) %>%
-  slice_max(order_by = Count, n = 5)
-
-ggplot(downtown_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Downtown/Seton Hill"), x = "TreeSpecies", y = "Count") +
-
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-#28 5 Coolest NB Top 5 Species
-```{r}
-#mount washington
-mtwash_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Mount Washington/Coldspring") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(mtwash_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Mount Washington/Coldspring"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#forest park
-forpark_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Forest Park/Walbrook") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(forpark_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Forest Park/Walbrook"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#edmonson village
-edmonson_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Edmonson Village") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(edmonson_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Edmonson Village"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#greater roland park
-roland_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Greater Roland Park/Poplar Hill") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(roland_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Greater Roland Park/Poplar Hill"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#beechfield
-beechfield_top_species <- small_abund_temp %>% 
-  filter(CSA2020 == "Beechfield/Ten Hills/West Hills") %>% #filter for neighborhood
-  gather(key = "TreeSpecies", value = "Count", -CSA2020)  %>% # make long
-  slice_max(order_by = Count, n = 5) #slice top 5 species
-
-ggplot(beechfield_top_species, aes(x = TreeSpecies, y = Count, fill = TreeSpecies)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste("Top Tree Species in", "Beechfield/Ten Hills/West Hills"), x = "TreeSpecies", y = "Count") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set1") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
-
-#29 Combine all dependent variables
+#23 Combine all dependent variables
 ```{r}
  DepVar <- percfilled %>% 
   left_join(total_sites) %>%  

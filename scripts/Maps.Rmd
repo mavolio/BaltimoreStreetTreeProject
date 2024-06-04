@@ -7,6 +7,7 @@ output: html_document
 
 install.packages("maps")
 install.packages("RColorBrewer")
+
 #0 set up 
 ```{r}
 library(tidyverse)
@@ -35,7 +36,7 @@ bmore_nb <-
 #2 read in street tree + neighborhoods file
 ```{r}
 bnia_street_tree <-
-  read_csv('..//..//BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-10-31.csv')
+  read_csv('..//..//BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 
 ```
 
