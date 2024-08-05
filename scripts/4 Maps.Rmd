@@ -1,0 +1,130 @@
+---
+title: "Maps"
+author: "Trini et al"
+date: "2024-03-05"
+output: html_document
+---
+
+install.packages("maps")
+install.packages("RColorBrewer")
+
+#0 set up 
+```{r}
+library(tidyverse)
+library(sf) 
+library(mapview)  
+library(tidylog) 
+library(dplyr)
+library(maps)
+library(viridis)
+library(cowplot)
+
+library(RColorBrewer)
+getwd()
+list.files()
+list.files('../../BaltimoreStreetTreeProject_Large_Data/')
+list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+```
+
+#1 read in neighborhood boundaries
+```{r}
+bmore_nb <- 
+  st_read('..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statistical_Areas_(CSAs)__Reference_Boundaries//Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+  st_make_valid()
+```
+
+#2 read in street tree + neighborhoods file
+```{r}
+bnia_street_tree <-
+  read_csv('..//..//BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+
+```
+
+#3 read in dependent variables
+```{r}
+dependmap <- read_csv('..\\..\\BaltimoreStreetTreeProject\\input_data\\Dependent_variable.csv')
+
+dependmap <- read_csv('input_data/Dependent_variable.csv')
+
+ indepmap <- read_csv('..\\..\\BaltimoreStreetTreeProject\\input_data\\Independent_variable.csv')
+ 
+ indepmap <- read_csv('input_data/Independent_variable.csv')
+```
+
+#4 combine dep with nb boundaries to use mapview
+```{r}
+map_dep_vars <- bmore_nb |> 
+  left_join(dependmap, by = 'CSA2020')
+
+map_ind_vars <- bmore_nb |> 
+  left_join(indepmap, by = 'CSA2020')
+
+```
+
+# using ggplot
+
+#5 Stocking
+```{r}
+A <- ggplot(data = map_dep_vars) + 
+  geom_sf(aes(fill = percent_filled)) + 
+  scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw() +
+  guides(fill = guide_legend(title = "Stocking"))
+  
+```
+
+#6 Target Pit Size
+```{r}
+B <- ggplot(data = map_dep_vars) + 
+  geom_sf(aes(fill = Perc32)) + 
+  scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_bw()+
+  guides(fill = guide_legend(title = "Target Pit Size"))
+```
+
+#7 Showy 
+```{r}
+C <- ggplot(data = map_dep_vars) + 
+  geom_sf(aes(fill = PercShowy)) + 
+  scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw()+
+  guides(fill = guide_legend(title = "Percent Showy"))
+```
+
+#8 richness 
+```{r}
+D <- ggplot(data = map_dep_vars) + 
+  geom_sf(aes(fill = rich_tot)) + 
+  scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw() +
+  guides(fill = guide_legend(title = "Richness"))
+```
+
+#9 perc poor
+```{r}
+E <- ggplot(data = map_dep_vars) + 
+  geom_sf(aes(fill = PercPoor)) + 
+  scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_bw()+
+  guides(fill = guide_legend(title = "Poor Condition"))
+```
+
+#10 average DBH
+```{r}
+F <- ggplot(data = map_dep_vars) + 
+  geom_sf(aes(fill = AvgDBH)) + 
+  scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw() +
+  guides(fill = guide_legend(title = "Average DBH"))
+```
+
+#11 Percent Black
+```{r}
+ggplot(data = map_ind_vars) + 
+  geom_sf(aes(fill = PercBlk)) +
+  scale_fill_viridis_c(option = "C") + theme_bw() +
+  guides(fill = guide_legend(title = "% Black"))
+
+```
+
+#12 arrange maps
+```{r}
+Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2)
+
+ggsave("Maps.jpg",width=180, height=200, unit="mm", plot=Maps, dpi=300 )
+```
+

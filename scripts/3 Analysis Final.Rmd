@@ -1,0 +1,414 @@
+---
+title: "Analysis Final"
+output:
+  pdf_document: default
+  html_document:
+    fig_width: 8
+    fig_height: 5
+    fig_caption: true
+    toc: true
+    toc_float: true
+    self_contained: true
+---
+
+#0 set up 
+```{r include=FALSE}
+# load packages
+library(tidyverse)
+library(sf) 
+library(mapview)  
+library(tidylog) 
+
+library(grid)
+library(gridExtra)
+#working directory
+getwd()
+list.files()
+list.files('../../BaltimoreStreetTreeProject_Large_Data/')
+list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+
+var_names <- as_labeller(
+     c(`PercBlk` = "% Black", `PercWhite` = "% White",`mhhi20` = "Income", 
+       `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
+
+var_names_2 <- as_labeller(
+     c(`AvgDBH` = "Average DBH", `Evar` = "Evenness",`Perc32` = "Ideal Pits", 
+       `PercNat` = "Nativity", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `richness` = "Richness"))
+```
+
+#1 Combined dep+ind
+```{r include=FALSE}
+Dependent <- read_csv('../input_data/Dependent_variable.csv')
+Independent<- read_csv('../input_data/Independent_variable.csv')
+
+# Dexter path
+Dependent <- read_csv('input_data/Dependent_variable.csv')
+Independent<- read_csv('input_data/Independent_variable.csv')
+
+Combined <- Dependent %>% 
+  left_join(Independent, by = "CSA2020") 
+
+```
+
+#2 All p values and correlations
+```{r include=FALSE}
+ 
+#empty df to store results
+cor_results <- data.frame()
+
+# Get names of all variables in df
+
+Vars <- Combined %>% 
+  select(where(is.numeric)) 
+
+variables <- names(Vars)
+
+# Loop through all combinations of variables
+for (i in 1:(length(variables) - 1)) {
+  for (j in (i + 1):length(variables)) {
+    
+    # Extract the two variables for the current combination
+    var1 <- Vars[[variables[i]]]
+    var2 <- Vars[[variables[j]]]
+    
+    # Run correlation test
+    cor_test_result <- cor.test(var1, var2)
+    
+    # Extract correlation coefficient and p-value
+    correlation_coefficient <- cor_test_result$estimate
+    p_value <- cor_test_result$p.value
+    
+    # Create a row for the results dataframe
+    result_row <- data.frame(
+      Variable1 = variables[i],
+      Variable2 = variables[j],
+      CorrelationCoefficient = correlation_coefficient,
+      PValue = p_value
+    )
+    
+    # Bind row to results df
+    cor_results <- rbind(cor_results, result_row)
+  }
+}
+
+# View the resulting dataframe
+print(cor_results)
+
+# Different Method
+# # like this
+# correlation::correlation(Vars)
+# 
+# # # or like this,
+# pvalues <- 
+# Combined |> 
+#   select(where(is.numeric)) |> 
+#   correlation::correlation() |>
+#   tibble() # can add this 
+```
+
+#3 Filtered p < 0.05
+```{r message=FALSE, include=FALSE}
+
+p_filtered_0.05 <- cor_results %>% 
+  filter(PValue<0.05) 
+
+```
+
+# Filtered p < 0.001
+```{r message=FALSE, warning=FALSE, include=FALSE}
+p_filtered_0.001 <- cor_results %>% 
+  filter(PValue<0.001)
+
+```
+
+#4 Total Tree Pits
+```{r}
+totpits_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "all_sites" | Variable2 == "all_sites")
+
+view(totpits_r)
+
+totpits_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "all_sites" | Variable2 == "all_sites")
+
+view(totpits_r2)
+```
+
+#5 Stocking
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+stocking_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
+
+view(stocking_r)
+
+#perc_filled_plot <-
+  Combined |> 
+  tidylog::select(
+                   percent_filled  # depend
+                  , bahigher20
+                  ) |> 
+  pivot_longer(-percent_filled) |> 
+  ggplot(aes(value, percent_filled)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 1, nrow =1
+             , labeller = var_names
+             ) +
+  labs(
+         x = 'Predictor'
+       , y = 'Percent Filled'
+       ) +   theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20)) +
+  NULL
+
+# <0.001
+
+stocking_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
+
+view(stocking_r2)  
+```
+
+#6 Richness
+```{r}
+richtot_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
+
+view(richtot_r)
+
+richtot_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
+
+view(richtot_r2)
+```
+
+#7 Evenness
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+even_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "Evar" | Variable2 == "Evar")
+
+view(even_r)
+
+#p<0.001  
+even_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "Evar" | Variable2 == "Evar")
+
+view(even_r2)
+
+```
+
+#8 Beta Diversity
+```{r}
+betadiv_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "spave" | Variable2 == "spave")
+
+view(betadiv_r)
+
+betadiv_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "spave" | Variable2 == "spave")
+
+view(betadiv_r2)
+```
+
+#9 Average DBH
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
+
+view(dbh_r)
+
+dbh_plot <- Combined |> 
+  tidylog::select(
+                    AvgDBH  # depend 
+                  , PercBlk
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-AvgDBH) |> 
+  ggplot(aes(value, AvgDBH)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2, labeller = var_names
+             ) +
+  labs(
+        x = 'Predictor'
+       , y = 'Average DBH'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20)) +
+  NULL
+
+dbh_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
+
+view(dbh_r2)
+```
+
+#10 Poor Condition
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+poor_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
+
+view(poor_r)
+
+poor_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
+
+view(poor_r2)
+```
+
+#11 Good Condition
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+good_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercGood" | Variable2 == "PercGood")
+
+view(good_r)
+
+good_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercGood" | Variable2 == "PercGood")
+
+view(good_r2)
+```
+
+#12 Target Pit Size
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+perc32_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "Perc32" | Variable2 == "Perc32")
+
+view(perc32_r)
+
+# p<0.001
+perc32_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "Perc32" | Variable2 == "Perc32")
+
+view(perc32_r2)
+
+```
+
+#13 % Flowering 
+```{r}
+percflor_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
+
+view(percflor_r)
+
+percflor_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
+
+view(percflor_r2)
+```
+
+#14 % Showy
+```{r}
+percshow_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
+
+view(percshow_r)
+
+percshow_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
+
+view(percshow_r2)
+```
+
+#15 Average Showiness
+```{r}
+avgshow_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgShowy" | Variable2 == "AvgShowy")
+
+view(avgshow_r)
+
+
+```
+
+#18 Avg showy
+```{r}
+avgshowy_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "avgShowy" | Variable2 == "AvgShowy")
+
+view(avgshowy_r)
+```
+
+## color richness
+```{r}
+color_rich_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "Shannon" | Variable2 == "Shannon")
+
+view(color_rich_r)
+```
+
+# r value matrix
+```{r}
+cor_matrix <- cor_results %>% 
+  select(Variable1, Variable2, CorrelationCoefficient) %>% 
+  spread(Variable2, CorrelationCoefficient) %>% 
+  column_to_rownames(var = "Variable1")
+
+print(cor_matrix)
+
+
+write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.xlsx')
+
+```
+
+# scatter plots
+```{r}
+# stocking vs education
+A<- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
+  geom_point(color = "#00e293", size=2.5)+
+  labs(x = "Bachelor's", y = "Stocking") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+
+#richness vs temperature
+B <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
+  geom_point(color = "#ffd919", size=2.5)+
+  labs(x = "Temperature (C)", y = "Richness") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#richness vs % black
+C <- ggplot(Combined, aes(x = PercBlk, y = rich_tot))+
+  geom_point(color = "#00afff", size=2.5)+
+  labs(x = "% Black", y = "Richness") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#DBH vs temp
+D <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
+  geom_point(color = "#ff794c", size=2.5)+
+  labs(x = "Temperature (C)", y = "Average DBH") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#%poor vs % black
+E <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
+  geom_point(color = "#e95789", size=2.5)+
+  labs(x = "% Black", y = "Poor Condition") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+#showy vs %white
+G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
+  geom_point(color = "#a55aa4", size=2.5)+
+  labs(x = "% White", y = "% Showy") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+```
+
+# arrange in grid
+```{r}
+library(gtable)
+
+Fig_grid <- grid.arrange(C, E, B, D, G, A, nrow=3)
+
+
+ggsave("scatterplot grid.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
+```
+

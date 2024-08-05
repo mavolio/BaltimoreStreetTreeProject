@@ -1,6 +1,12 @@
 library(tidyverse)
 library(codyn)
 library(vegan)
+library(gtable)
+library(grid)
+library(gridExtra)
+
+install.packages("cowplot")
+library(cowplot)
 
 getwd()
 theme_set(theme_bw(20))
@@ -28,7 +34,7 @@ ggplot(data=sites, aes(x=value, y=all_sites))+
   ylab('Number of Street Tree Sites')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
-dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2023-10-31.csv')
+dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 
 dat_trees<-dat %>% 
   filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!='unknown shrub'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
@@ -99,9 +105,9 @@ nbmean<-subsetCSA %>%
   left_join(Independent) %>% 
   filter(!is.na(CSA2020)) %>% 
   drop_na() %>% 
-  mutate(inc=ifelse(mhhi20<40000, 'low', ifelse(mhhi20>40000&mhhi20<80000, 'mid', 'high')),
+  mutate(inc=ifelse(mhhi20<=40000, 'low', ifelse(40000<mhhi20&mhhi20<80000,'middle' ,'high' )),
          vac=ifelse(vacant20<10, 'low', 'high'),
-         temp=ifelse(avg_temp>32, 'hot', 'lesshot'),
+         temp=ifelse(avg_temp>35, '>35', '=<35'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
   pivot_wider(names_from = SPP, values_from = n, values_fill = 0) 
@@ -115,49 +121,60 @@ nbinfo<-nbmean[1:12]
 scores<-mds$points %>% 
   bind_cols(nbinfo) 
 
-#which do we want? Temp, and one or two other
+
 #Race
-ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
-  geom_point(size=5)+
+A <- ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
+  geom_point(size=2)+
   stat_ellipse(size=1, aes(color=race))+
+  scale_color_manual(values = c("deepskyblue", "deeppink"), labels = c("Predom.\nBlack", "Predom.\nWhite"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
-
-# ggplot(data=scores, aes(x=MDS1, y=MDS2, color=Wht))+
-#   geom_point(size=5)
+  ylab("NMDS Axis 2")+
+  labs(color = "Race")
 
 #Income
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
-  geom_point(size=5)+
+B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
+  geom_point(size=2)+
   stat_ellipse(size=1, aes(color=inc))+
+  scale_color_manual(values = c("cyan3", "blue3", "coral1"), labels = c("Low", "Middle", "High"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2")+
+  labs(color = "Income")
+  
 
 #Education
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
-  geom_point(size=5)+
+C <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=ed))+
+  geom_point(size=2)+
   stat_ellipse(size=1, aes(color=ed))+
+  scale_color_manual(values = c("magenta", "palegreen2"), labels = c("Higher", "Lower")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2") +
+  labs(color = "Education")
 
 #Temperature
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
-  geom_point(size=5) +
+D <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
+  geom_point(size=2) +
   stat_ellipse(size=1, aes(color=temp))+
+  scale_color_manual(values = c("orange", "indianred3"), labels = c("=<35 C", ">35 C")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2")+
+  labs(color = "Temp.")
 
 #Vacancy
 ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
-  geom_point(size=5) +
+  geom_point(size=3) +
   stat_ellipse(size=1, aes(color=vac))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
-  ylab("NMDS Axis 2")
+  ylab("NMDS Axis 2")+
+  labs(color = "Vacancy")
+
+Fig <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D'), ncol = 1)
+
+ggsave("FigNMDS.jpg",width=100, height=200, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time
@@ -174,8 +191,9 @@ permutest(betadisper(dist,nbmean$vac,type="centroid"))
 #race
 race2 <- nbmean %>% 
   filter(race!= "drop")
+dist.r<-vegdist(race2[13:275])
 adonis2(race2[13:275]~race2$race)
-permutest(betadisper(dist,race2$race,type="centroid"))
+permutest(betadisper(dist.r,race2$race,type="centroid"))
 
 #inc
 adonis2(nbmean[13:275]~nbmean$inc)
@@ -185,3 +203,4 @@ permutest(betadisper(dist,nbmean$inc,type="centroid"))
 adonis2(nbmean[13:275]~nbmean$ed)
 permutest(betadisper(dist,nbmean$ed,type="centroid"))
 
+hist(Independent$avg_temp)

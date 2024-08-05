@@ -4,7 +4,7 @@ library(sf); library(tidyverse)
 
 #PM Baltimore temperature raster
 temperature <- 
-  raster::raster('../BaltimoreStreetTreeProject_Large_Data/baltimore/temperature surfaces/bal_pm.tif')
+  raster::raster('../BaltimoreStreetTreeProject_Large_Data/baltimore/temperature surfaces/bal_af.tif')
 
  
 
@@ -34,7 +34,7 @@ tictoc::tic();for(i in bmore_nb$CSA2020){
           , n_pixel = values |> as_tibble() |> tidylog::filter(!is.na(value)) |> nrow()
           ) |> 
      
-   readr::write_csv(paste0('input_data/NB_pm_temp_', Sys.Date(), '.csv') # moved to input (not Large_Data)
+   readr::write_csv(paste0('input_data/NB_af_temp_', Sys.Date(), '.csv') # moved to input (not Large_Data)
                     , append = TRUE)
   
 }; tictoc::tic()
@@ -42,7 +42,7 @@ tictoc::tic();for(i in bmore_nb$CSA2020){
 
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
-    read_csv('input_data/NB_pm_temp_2023-11-08.csv' 
+    read_csv('input_data/NB_af_temp_2024-05-07.csv' 
              , col_names = c('CSA2010', 'avg_temp', 'n_pixel'))
 )
 

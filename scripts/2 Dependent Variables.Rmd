@@ -1,0 +1,346 @@
+---
+title: "Tree data"
+author: "Trini et al"
+date: "`r format(Sys.Date())`"
+output: 
+  html_document:
+    fig_width: 8
+    fig_height: 5
+    fig_caption: true
+    toc: true
+    toc_float: true
+    self_contained: true
+---
+
+This file contains all dependent variable data for analysis
+This file CREATES .CSV WITH COMBINED NB AND STREET TREE ATTRIBUTES
+
+# 0 set up 
+```{r include=FALSE}
+# load packages
+library(tidyverse)
+library(sf) 
+library(mapview)  
+library(tidylog) 
+library(vegan)
+library(codyn)
+
+getwd()
+list.files()
+list.files('../../BaltimoreStreetTreeProject_Large_Data/')
+list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+```
+
+# 1 read in street tree data 
+```{r include=FALSE}
+street_tree <- 
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp'
+, as_tibble = TRUE) %>% 
+  filter(LOC_TYPE == "Street") 
+```
+
+# 2 combine with BNIA neighborhood boundaries
+```{r include=FALSE}
+bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas(2020)/Community_Statistical_Areas__2020_.shp') |> #BNIA community delineations
+  st_make_valid() |>
+  st_transform(crs = st_crs(street_tree))
+
+
+  street_tree %>%
+  st_join(bmore_bnia) %>%
+  st_drop_geometry() |> 
+  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv'))
+```
+
+#3 Read in street tree + neighborhood file
+```{r include=FALSE}
+bnia_street_tree <-
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+```
+
+#4 Clean combined data
+```{r}
+clean <- bnia_street_tree %>% 
+  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
+
+```
+
+#5 Filter tree data for only present tree species
+```{r include=FALSE}
+no_vacant <- clean %>% 
+  mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
+  filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
+  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Absent")%>% 
+  mutate(present=1) #for each tree make a present column with 1
+
+```
+
+#6 Unfilled Sites
+```{r}
+vacant_potential <- clean %>% 
+  mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
+  filter(Species=='Vacant Site'|Species=='Vacant Potential'|Species=='Stump'|Species=='NA'|Species=='unknown shrub'|Species=="Z Add 01"|Species=="Dead")%>% 
+  mutate(vacant_present=1) %>%   #for each vacant potential site present column with 1 
+  group_by(CSA2020) %>% 
+  summarize(sum_vacant_present =sum(vacant_present)) 
+
+
+```
+
+#7 Total Trees
+```{r}
+NBTotal <-no_vacant %>% 
+  group_by(CSA2020) %>% 
+  summarize(total_trees =sum(present)) %>% 
+  select(total_trees, CSA2020)
+```
+
+#8 Percent Filled + Total Sites 
+```{r}
+
+total_sites <- vacant_potential %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  mutate(all_sites = sum_vacant_present + total_trees) %>% 
+  select(CSA2020, all_sites, total_trees)
+
+percfilled <- total_sites %>% 
+  mutate(percent_filled = 100*(total_trees/all_sites)) %>% 
+  select(CSA2020, percent_filled)
+
+percfilled %>% 
+  ggplot(aes(percent_filled) ) +
+  geom_density()
+
+total_sites %>% summary()
+
+#histogram
+ggplot(total_sites, aes(all_sites)) +
+  geom_histogram()
+
+ggplot(total_sites, aes(total_trees)) +
+  geom_histogram()
+
+```
+
+#9 Total Abundance by neighborhood
+```{r}
+#need to exclude unknown trees
+NBabund <-no_vacant %>% 
+  filter(Species != "unknown tree") %>% 
+  group_by(CSA2020, Species) %>% 
+  summarize(abund=sum(present)) %>% 
+  select(CSA2020, Species, abund) 
+#  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
+
+
+```
+
+#10 Richness and evenness
+```{r}
+richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020")
+
+
+#norm by total trees
+rich_tot <- richeven %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  mutate(rich_tot = richness/total_trees) %>% 
+  select(CSA2020, rich_tot, Evar)
+```
+
+#11 Beta Diversity
+```{r}
+winbeta <- read_csv('../../BaltimoreStreetTreeProject/input_data/winbeta.csv')
+
+betadiv <- winbeta %>% 
+  select(CSA2020, spave)
+```
+
+#12 Average DBH by neighborhood
+```{r}
+AvgDBH <- no_vacant %>% 
+  select(CSA2020,DBH)%>% 
+  group_by(CSA2020) %>% 
+  summarise(AvgDBH = mean(DBH), .groups = 'drop')
+
+#convert conditions to numeric 
+```
+
+#14 Pit Area Calculation
+```{r}
+
+#this is at the tree level, our other calculations are at the nb level
+pit_size <- clean %>% 
+  mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
+         , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
+         , pit_area   = length*width
+         ) %>% 
+  select(CSA2020, pit_area, X_COORD, Y_COORD, DBH)
+
+ggplot(pit_size, aes(x=pit_area)) + geom_histogram()
+
+cor.test(pit_size$pit_area, pit_size$DBH)
+# r=0.342
+
+large_pit <- pit_size %>% 
+  mutate(size_threshhold = ifelse(pit_area >= 32, "great32", "less32" )) %>% 
+  group_by(CSA2020, size_threshhold) %>% 
+  summarize(n=length(size_threshhold)) %>% 
+  pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
+  left_join(total_sites, by = "CSA2020") %>% 
+  mutate(Perc32 = great32/all_sites*100) %>% 
+  select(CSA2020, Perc32)
+
+
+```
+
+#15 Tree Condition
+```{r}
+#sum for each condition in a neighborhood
+#pivot
+condition <- no_vacant %>%
+  group_by(CSA2020, CONDITION) %>% 
+  summarize(n=length(CONDITION)) %>% 
+  pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0)
+
+# numeric condition
+condition_grade <- no_vacant %>% 
+  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") %>% 
+  mutate(grade = 
+  case_when(
+    CONDITION == "Poor" ~ 1,
+    CONDITION == "Fair" ~ 2,
+    CONDITION == "Good" ~ 3,
+    )) %>% 
+  select(CSA2020,grade) 
+
+
+#Condition vs pit size
+#%>% 
+  # left_join(no_vacant_pit, by = "CSA2020")
+```
+
+#16 Condition and Pit Area
+```{r}
+
+no_vacant |> 
+  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") |>
+   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
+         , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
+         , pit_area   = length*width
+         ) |>
+  ggplot(aes(CONDITION, pit_area)) +
+  geom_boxplot()
+  
+```
+
+#17 % good/poor trees
+```{r}
+perc_condition <- NBTotal %>% 
+  left_join(condition, by = "CSA2020") %>% 
+  mutate(PercGood = 100*(Good/total_trees)) %>% 
+  mutate(PercPoor = 100*(Poor/total_trees)) %>% 
+  select(CSA2020, PercPoor, PercGood)
+```
+
+#18 Flowering Trees
+```{r}
+# read in flowering data
+flowering <- read_csv("../../BaltimoreStreetTreeProject_Large_Data/Flowering Data.csv", show_col_types = FALSE)
+
+#select for flowering yes/no
+flower_y_n <- flowering %>% 
+  select(CSA2020, Flowering) %>% 
+  filter(Flowering =="yes" | Flowering == "no")
+
+PercFlower <- flower_y_n %>%
+  group_by(CSA2020, Flowering) %>% 
+  summarize(n=length(Flowering)) %>%
+  pivot_wider(names_from = Flowering, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  mutate(PercFlor = (yes/total_trees)*100) %>% 
+  select(CSA2020, PercFlor)
+
+
+```
+
+#19 Showy
+```{r}
+#select for showy = 2 (most showy)
+showiness <- flowering %>% 
+  select(CSA2020, Visibility)
+
+PercShowy <- showiness %>% 
+  group_by(CSA2020, Visibility) %>% 
+  summarize(n=length(Visibility)) %>%
+  pivot_wider(names_from = Visibility, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  rename("showy" = '2') %>% 
+  mutate(PercShowy = (showy/total_trees)*100) %>% 
+  select(CSA2020, PercShowy)
+
+raw_showy <- showiness %>% 
+  filter(Visibility == 2) %>% 
+  group_by(CSA2020) %>% 
+  summarize(num_showy=length(Visibility))
+```
+
+#20 Color abundance
+```{r}
+
+color_abund <- flowering %>% 
+  filter(Visibility>=2) %>% 
+  group_by(CSA2020, Color) %>% 
+  summarize(abund=length(Color))  
+
+
+```
+
+#21 Color Richness
+```{r}
+color_rich <- community_diversity(color_abund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020")
+```
+
+#22 Average Showiness
+```{r}
+
+avgShowy <- showiness %>% 
+  filter(Visibility != "NA") %>% 
+  group_by(CSA2020) %>% 
+  summarise(AvgShowy = mean(Visibility), .groups = 'drop')
+
+```
+
+#23 Combine all dependent variables
+```{r}
+ DepVar <- percfilled %>% 
+  left_join(total_sites) %>%  
+  left_join(rich_tot, by = "CSA2020") %>% 
+  left_join(betadiv, by = "CSA2020") %>% 
+  
+  left_join(AvgDBH, by = "CSA2020") %>% 
+  
+  left_join(perc_condition, by = "CSA2020") %>% 
+  left_join(large_pit, by = "CSA2020") %>% 
+  
+  left_join(color_rich, by = "CSA2020")%>% 
+  left_join(PercShowy, by = "CSA2020")
+
+  
+write_csv(DepVar,'../input_data/Dependent_variable.csv')  
+```
+
+#Abundance overall 
+```{r}
+bmore_abund <- no_vacant %>% 
+  filter(Species != "unknown tree") %>% 
+  group_by(Species) %>% 
+  summarize(bmore_abund=sum(present)) %>% 
+  select(Species, bmore_abund)
+```
+
+#Descriptive Statistics
+```{r}
+summary(DepVar)
+```
+
