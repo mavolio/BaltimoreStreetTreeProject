@@ -85,7 +85,7 @@ nbmean<-subsetCSA %>%
   left_join(Independent) %>% 
   filter(!is.na(CSA2020)) %>% 
   drop_na() %>% 
-  mutate(inc=ifelse(mhhi20<=40000, 'low', ifelse(40000<mhhi20&mhhi20<80000,'middle' ,'high' )),
+  mutate(inc=ifelse(40000<mhhi20&mhhi20<80000,'middle',ifelse(mhhi20<=40000, 'low','high')),
          vac=ifelse(vacant20<10, 'low', 'high'),
          temp=ifelse(avg_temp>35, '>35', '=<35'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
@@ -98,6 +98,8 @@ mds<-metaMDS(nbmean[13:275])
 nbinfo<-nbmean[1:12]
 
 #plotting the NMDS results
+
+
 scores<-mds$points %>% 
   bind_cols(nbinfo) 
 
@@ -106,17 +108,19 @@ scores<-mds$points %>%
 A <- ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))+
   geom_point(size=2)+
   stat_ellipse(size=1, aes(color=race))+
-  scale_color_manual(values = c("deepskyblue", "deeppink"), labels = c("Predom.\nBlack", "Predom.\nWhite"))+
+ scale_color_manual(values = c("deepskyblue", "deeppink"), labels = c("Predom.\nBlack", "Predom.\nWhite")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
   labs(color = "Race")
 
+
+
 #Income
 B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   geom_point(size=2)+
   stat_ellipse(size=1, aes(color=inc))+
-  scale_color_manual(values = c("cyan3", "blue3", "coral1"), labels = c("Low", "Middle", "High"))+
+  scale_color_manual(values = c("cyan3", "blue3", "coral1"), labels = c("High", "Low", "Middle"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
@@ -144,7 +148,7 @@ D <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
   labs(color = "Temp.")
 
 #Vacancy
-ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
+E <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   geom_point(size=3) +
   stat_ellipse(size=1, aes(color=vac))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -152,7 +156,7 @@ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   ylab("NMDS Axis 2")+
   labs(color = "Vacancy")
 
-Fig <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D'), ncol = 1)
+Fig <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D', 'E'), ncol = 1, vjust = 1)
 
 ggsave("FigNMDS.jpg",width=100, height=200, unit="mm", plot=Fig, dpi=300 )
 
@@ -184,3 +188,4 @@ adonis2(nbmean[13:275]~nbmean$ed)
 permutest(betadisper(dist,nbmean$ed,type="centroid"))
 
 hist(Independent$avg_temp)
+

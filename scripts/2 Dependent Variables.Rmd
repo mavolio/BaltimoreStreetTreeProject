@@ -132,8 +132,6 @@ NBabund <-no_vacant %>%
   summarize(abund=sum(present)) %>% 
   select(CSA2020, Species, abund) 
 #  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
-
-
 ```
 
 #10 Richness and evenness
@@ -336,7 +334,8 @@ bmore_abund <- no_vacant %>%
   filter(Species != "unknown tree") %>% 
   group_by(Species) %>% 
   summarize(bmore_abund=sum(present)) %>% 
-  select(Species, bmore_abund)
+  select(Species, bmore_abund) %>% 
+  filter(bmore_abund < 5)
 ```
 
 #Descriptive Statistics
