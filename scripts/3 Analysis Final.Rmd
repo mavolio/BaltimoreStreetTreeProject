@@ -21,6 +21,8 @@ library(tidylog)
 
 library(grid)
 library(gridExtra)
+
+library(cowplot)
 #working directory
 getwd()
 list.files()
@@ -333,13 +335,6 @@ avgshowy_r <- p_filtered_0.05 %>%
 view(avgshowy_r)
 ```
 
-## color richness
-```{r}
-color_rich_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "Shannon" | Variable2 == "Shannon")
-
-view(color_rich_r)
-```
 
 # r value matrix
 ```{r}
@@ -357,7 +352,7 @@ write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.x
 
 # scatter plots
 ```{r}
-# stocking vs education
+# stocking vs % black
 A<- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
   labs(x = "Bachelor's", y = "Stocking") + 
@@ -365,37 +360,39 @@ A<- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
 
+#%poor vs % black
+B <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
+  geom_point(color = "#a55aa4", size=2.5)+
+  labs(x = "% Black", y = "Poor Condition") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
+
 #richness vs temperature
-B <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
-  geom_point(color = "#ffd919", size=2.5)+
-  labs(x = "Temperature (C)", y = "Richness") + 
+C <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
+  geom_point(color = "#ff794c", size=2.5)+
+  labs(x = "Temperature (C)", y = "Relative Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
 #richness vs % black
-C <- ggplot(Combined, aes(x = PercBlk, y = rich_tot))+
-  geom_point(color = "#00afff", size=2.5)+
+D <- ggplot(Combined, aes(x = PercBlk, y = rich_tot))+
+  geom_point(color = "#ff794c", size=2.5)+
   labs(x = "% Black", y = "Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
 #DBH vs temp
-D <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
-  geom_point(color = "#ff794c", size=2.5)+
+E <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
+  geom_point(color = "#00afff", size=2.5)+
   labs(x = "Temperature (C)", y = "Average DBH") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
-#%poor vs % black
-E <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
-  geom_point(color = "#e95789", size=2.5)+
-  labs(x = "% Black", y = "Poor Condition") + 
-  theme_bw()+
-    theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+
 #showy vs %white
 G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
-  geom_point(color = "#a55aa4", size=2.5)+
+  geom_point(color = "#e95789", size=2.5)+
   labs(x = "% White", y = "% Showy") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
@@ -406,7 +403,7 @@ G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
 ```{r}
 library(gtable)
 
-Fig_grid <- grid.arrange(C, E, B, D, G, A, nrow=3)
+Fig_grid <- plot_grid(A, B, C, D,E, G, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2,vjust =1)
 
 
 ggsave("scatterplot grid.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )

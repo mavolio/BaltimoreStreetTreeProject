@@ -123,7 +123,7 @@ ggplot(data = map_ind_vars) +
 
 #12 arrange maps
 ```{r}
-Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2)
+Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2, vjust =1)
 
 ggsave("Maps.jpg",width=180, height=200, unit="mm", plot=Maps, dpi=300 )
 ```

@@ -73,6 +73,7 @@ for (i in 1:length(nblist)){
     bind_rows(rac) 
   
 }
+
 ##Looking into how within NB similarity relates to independent variables
 winbeta<-outrac %>% 
   group_by(CSA2020) %>% 
