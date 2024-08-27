@@ -9,10 +9,30 @@ install.packages("cowplot")
 library(cowplot)
 
 getwd()
-theme_set(theme_bw(12))
+theme_set(theme_bw(20))
 
 
 Independent<- read_csv('input_data/Independent_variable.csv')
+dep<-read.csv("input_data/Dependent_variable.csv")
+
+sites<-Independent %>% 
+  left_join(dep) %>% 
+  select(CSA2020, PercBlk, PercWhite, mhhi20, bahigher20, avg_temp, vacant20, all_sites) %>%
+  pivot_longer(PercBlk:vacant20, names_to = "ind", values_to = "value")
+
+labs=c('avg_temp'='Temperature',
+       'bahigher20'='Education*',
+       'mhhi20'='Income', 
+       'PercBlk'= '% Black',
+       'PercWhite'= '% White', 
+       'vacant20'='% Vacant')
+
+ggplot(data=sites, aes(x=value, y=all_sites))+
+  geom_point(size=3)+
+  facet_wrap(~ind, scales='free_x', labeller = labeller(ind=labs))+
+  xlab('Socio-Environmental Value')+
+  ylab('Number of Street Tree Sites')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 
