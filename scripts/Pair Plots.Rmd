@@ -11,7 +11,9 @@ output: html_document
 library(GGally)
 
 Dependent_pair <- read_csv('../input_data/Dependent_variable.csv') %>% 
+  select(-Shannon) %>% 
   drop_na()
+
 Independent_pair <- read_csv('../input_data/Independent_variable.csv') %>% 
   drop_na()
 
@@ -38,7 +40,7 @@ ggsave("indep var pairplot.png",width=6, height=8, plot=ind_pair)
 
 # Dep ggpairs
 ```{r}
-dep_pair <- ggpairs(Dependent, columns = 2:13, columnLabels = 
+dep_pair <- ggpairs(Dependent_pair, columns = 2:12, columnLabels = 
           c("Stocking","Potential Sites","Total Trees", "Rel. Richness", "Evenness", "Beta Diversity", "Average DBH", "Poor Condition", "Good Condition", "Pit Size", "Showy"), #set titles
           aes(alpha = 0.05), 
           upper = list(continuous = wrap("cor", size = 2.5)),
@@ -46,7 +48,7 @@ dep_pair <- ggpairs(Dependent, columns = 2:13, columnLabels =
         theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
 
 #save as jpg
-ggsave("dep var pairplot.jpg",width=10, height=8, plot=dep_pair, dpi=600 )
+ggsave("dep var pairplot.jpg",width=12, height=12, plot=dep_pair, dpi=600 )
 ```
 
 # pairs plots
