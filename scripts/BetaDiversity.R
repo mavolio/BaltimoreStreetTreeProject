@@ -168,18 +168,27 @@ D <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=temp))+
   ylab("NMDS Axis 2")+
   labs(color = "Temp.")
 
-#Vacancy
-E <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
+E <-#Vacancy
+ ggplot(data=scores, aes(x=MDS1, y=MDS2, color=vac))+
   geom_point(size=3) +
   stat_ellipse(size=1, aes(color=vac))+
+  scale_color_manual(values = c("purple", "gold"), labels = c("High", "Low")) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
   labs(color = "Vacancy")
 
-Fig <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D', 'E'), ncol = 1, vjust = 1)
 
-ggsave("FigNMDS.jpg",width=100, height=200, unit="mm", plot=Fig, dpi=300 )
+Fig <- plot_grid(A, B, C, D, E, labels = c('A', 'B', 'C', 'D', 'E'), nrow = 3,
+                 label_size = 14,          # Increase size of the labels
+                 label_x = -0.01,            # Adjust horizontal position (moves labels slightly to the right)
+##                 label_y = 1,              # Adjust vertical position (moves labels slightly upward)
+##                 hjust = -0.5,             # Adjust horizontal alignment
+                 vjust = 0.25               # Adjust vertical alignment
+                 ) +
+  theme(plot.margin = margin(t = 10, r = 5, b = 5, l = 5, unit = "mm"))
+
+ggsave("FigNMDS.jpg",width=300, height=220, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time

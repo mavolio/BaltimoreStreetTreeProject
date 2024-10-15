@@ -34,8 +34,7 @@ var_names <- as_labeller(
        `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
 
 var_names_2 <- as_labeller(
-     c(`AvgDBH` = "Average DBH", `Evar` = "Evenness",`Perc32` = "Ideal Pits", 
-       `PercNat` = "Nativity", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `richness` = "Richness"))
+     c(`AvgDBH` = "Average DBH", `Evar` = "Evenness",`Perc32` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `richness` = "Richness"))
 ```
 
 #1 Combined dep+ind
@@ -353,9 +352,9 @@ write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.x
 # scatter plots
 ```{r}
 # stocking vs % black
-A<- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
+A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
-  labs(x = "Bachelor's", y = "Stocking") + 
+  labs(x = "% Black", y = "Stocking") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
@@ -378,7 +377,7 @@ C <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
 #richness vs % black
 D <- ggplot(Combined, aes(x = PercBlk, y = rich_tot))+
   geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "% Black", y = "Richness") + 
+  labs(x = "% Black", y = "Relative Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
@@ -403,7 +402,8 @@ G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
 ```{r}
 library(gtable)
 
-Fig_grid <- plot_grid(A, B, C, D,E, G, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2,vjust =1)
+Fig_grid <- plot_grid(A, B, C, D,E, G, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2,vjust =1) +
+  theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "mm"))
 
 
 ggsave("scatterplot grid.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
