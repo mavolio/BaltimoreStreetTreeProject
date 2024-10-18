@@ -360,7 +360,7 @@ A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
         text=element_text(size=15))
 
 #%poor vs % black
-B <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
+D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
   geom_point(color = "#a55aa4", size=2.5)+
   labs(x = "% Black", y = "Poor Condition") + 
   theme_bw()+
@@ -370,14 +370,14 @@ B <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
 #richness vs temperature
 C <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
   geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "Temperature (C)", y = "Relative Richness") + 
+  labs(x = "Temperature (C)", y = "Rel. Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
-#richness vs % black
-D <- ggplot(Combined, aes(x = PercBlk, y = rich_tot))+
-  geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "% Black", y = "Relative Richness") + 
+#Bachelors vs Stocking
+B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
+  geom_point(color = "#00e293", size=2.5)+
+  labs(x = "% Bachelor's", y = "Stocking") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
@@ -406,6 +406,6 @@ Fig_grid <- plot_grid(A, B, C, D,E, G, labels = c('A', 'B', 'C', 'D', 'E', 'F'),
   theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "mm"))
 
 
-ggsave("scatterplot grid.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
+ggsave("scatterplot grid_Oct18.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
 ```
 
