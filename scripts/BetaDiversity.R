@@ -188,7 +188,7 @@ Fig <- plot_grid(A, B, C, D, E, labels = c('A', 'B', 'C', 'D', 'E'), nrow = 3,
                  ) +
   theme(plot.margin = margin(t = 10, r = 5, b = 5, l = 5, unit = "mm"))
 
-ggsave("FigNMDS.jpg",width=300, height=220, unit="mm", plot=Fig, dpi=300 )
+ggsave("FigNMDS.jpg",width=300, height=250, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time
