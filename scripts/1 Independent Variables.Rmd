@@ -84,7 +84,14 @@ NBtemperature <- temperature_by_neigh %>%
   select(-n_pixel)
 ```
 
-#5 Land Cover BNIA total NB area
+#5 % Vacant and abandoned residential properties
+```{r}
+PercVacant <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
+  select(CSA2020, vacant20)
+```
+
+#6 Land Cover BNIA total NB area
 ```{r}
 LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
            , col_names = c('CSA2020'
@@ -96,21 +103,60 @@ LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.
   mutate(total_area_in_pixels = rowSums(.[,-1]))
 ```
 
-#6 % canopy tree cover
+#7 % canopy tree cover
 ```{r}
 PercentCanopy <- LandCover %>% 
   mutate(PercCanopy = (`Tree Canopy`/total_area_in_pixels)*100) %>% 
   select(CSA2020, PercCanopy)
 ```
 
-#7 % vacant and abandoned residential properties
+#8 % Impervious
 ```{r}
-PercVacant <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
-  select(CSA2020, vacant20)
+PercentLand <- LandCover %>% 
+  mutate(Imperv = Structures + `Other Impervious`+ Roads + `Tree Canopy over Structures` + `Tree Canopy over Other Impervious` + `Tree Canopy over Roads` ) %>% 
+  mutate(PercentImp = (Imperv/total_area_in_pixels)*100) %>% 
+  mutate(Pervious = Water + `Tree Canopy`+ `Scrub\\Shrub`  
+         + Herbaceous+ Barren + `Emergent Wetlands`) %>% 
+  mutate(PercPervious = (Pervious/total_area_in_pixels)*100) %>% 
+  select(CSA2020, PercentImp)
 ```
 
-#8 join all independent variables 
+#9 Population Density
+```{r}
+TotalPop <- 
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% #NEED FILE WITH 2020 boundaries
+  select(CSA2020, tpop20)
+
+PopDensity <- LandCover %>% 
+  left_join(TotalPop) %>%  
+  mutate(PopDensity = tpop20/total_area_in_pixels) %>% 
+  select(CSA2020, PopDensity)
+```
+
+#10 Street Length
+```{r}
+
+bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+  st_make_valid()
+
+
+roads <- 
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\Baltimore Roads/MDOT_Know_Your_Roads.shp'
+, as_tibble = TRUE) %>% 
+   st_make_valid() |> 
+   st_transform(crs = st_crs(bmore_bnia))
+
+NBRoads <- bmore_bnia %>%
+  select(CSA2020, Community) %>% 
+  st_intersection(roads %>% mutate(road_length_ft = as.double(st_length(.)))) %>% 
+  st_drop_geometry() %>% 
+  group_by(CSA2020) %>% 
+  summarize(sum_road_length_ft = sum(road_length_ft))
+
+```
+
+
+# join all independent variables 
 ```{r}
 IndVar <- PercentBlk %>% 
   left_join(PercentWhite, by = "CSA2020") %>%

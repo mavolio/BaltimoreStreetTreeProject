@@ -34,7 +34,8 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 # 1 read in street tree data 
 ```{r include=FALSE}
 street_tree <- 
-  st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp', as_tibble = TRUE) %>% 
+  st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp'
+, as_tibble = TRUE) %>% 
   filter(LOC_TYPE == "Street") 
 ```
 
@@ -70,7 +71,7 @@ clean <- bnia_street_tree %>%
 no_vacant <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
   filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
-  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Absent")%>% #keep dead and stump now?
+  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Absent")%>% 
   mutate(present=1) #for each tree make a present column with 1
 
 ```
@@ -79,7 +80,7 @@ no_vacant <- clean %>%
 ```{r}
 vacant_potential <- clean %>% 
   mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
-  filter(Species=='Vacant Site'|Species=='Vacant Potential'|Species=='Stump'|Species=='NA'|Species=='unknown shrub'|Species=="Z Add 01"|Species=="Dead")%>% #Stumps and dead no longer considered vacant?
+  filter(Species=='Vacant Site'|Species=='Vacant Potential'|Species=='Stump'|Species=='NA'|Species=='unknown shrub'|Species=="Z Add 01"|Species=="Dead")%>% 
   mutate(vacant_present=1) %>%   #for each vacant potential site present column with 1 
   group_by(CSA2020) %>% 
   summarize(sum_vacant_present =sum(vacant_present)) 
@@ -155,19 +156,10 @@ betadiv <- winbeta %>%
 
 #12 Average DBH by neighborhood
 ```{r}
-#read in size classes 
-#created a .csv from .xlsx Nancy sent
-#assign size classes in excel instead of R perhaps
-
-size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv')
-
-
 AvgDBH <- no_vacant %>% 
   select(CSA2020,DBH)%>% 
-  mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
   group_by(CSA2020) %>% 
-  summarise(AvgDBH = mean(DBH_SI), .groups = 'drop')
-  
+  summarise(AvgDBH = mean(DBH), .groups = 'drop')
 
 #convert conditions to numeric 
 ```
@@ -179,9 +171,6 @@ AvgDBH <- no_vacant %>%
 pit_size <- clean %>% 
   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
-         ) %>% 
-  mutate(  length_SI = length*0.3048 #convert to SI
-         , width_SI = width*0.3048 #convert to SI
          , pit_area   = length*width
          ) %>% 
   select(CSA2020, pit_area, X_COORD, Y_COORD, DBH)
@@ -207,11 +196,10 @@ large_pit <- pit_size %>%
 ```{r}
 #sum for each condition in a neighborhood
 #pivot
-condition <- clean %>%
+condition <- no_vacant %>%
   group_by(CSA2020, CONDITION) %>% 
   summarize(n=length(CONDITION)) %>% 
-  pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0) %>% 
-  select(CSA2020,Dead,Fair,Good,Poor,Stump)
+  pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0)
 
 # numeric condition
 condition_grade <- no_vacant %>% 
@@ -225,6 +213,9 @@ condition_grade <- no_vacant %>%
   select(CSA2020,grade) 
 
 
+#Condition vs pit size
+#%>% 
+  # left_join(no_vacant_pit, by = "CSA2020")
 ```
 
 #16 Condition and Pit Area
@@ -246,12 +237,79 @@ no_vacant |>
 perc_condition <- NBTotal %>% 
   left_join(condition, by = "CSA2020") %>% 
   mutate(PercGood = 100*(Good/total_trees)) %>% 
-  mutate(PercPoor = 100*((Poor + Dead + Stump)/total_trees)) %>% 
+  mutate(PercPoor = 100*(Poor/total_trees)) %>% 
   select(CSA2020, PercPoor, PercGood)
+```
+
+#18 Flowering Trees
+```{r}
+# read in flowering data
+flowering <- read_csv("../../BaltimoreStreetTreeProject_Large_Data/Flowering Data.csv", show_col_types = FALSE)
+
+#select for flowering yes/no
+flower_y_n <- flowering %>% 
+  select(CSA2020, Flowering) %>% 
+  filter(Flowering =="yes" | Flowering == "no")
+
+PercFlower <- flower_y_n %>%
+  group_by(CSA2020, Flowering) %>% 
+  summarize(n=length(Flowering)) %>%
+  pivot_wider(names_from = Flowering, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  mutate(PercFlor = (yes/total_trees)*100) %>% 
+  select(CSA2020, PercFlor)
+
 
 ```
 
-# Combine all dependent variables
+#19 Showy
+```{r}
+#select for showy = 2 (most showy)
+showiness <- flowering %>% 
+  select(CSA2020, Visibility)
+
+PercShowy <- showiness %>% 
+  group_by(CSA2020, Visibility) %>% 
+  summarize(n=length(Visibility)) %>%
+  pivot_wider(names_from = Visibility, values_from = n, values_fill = 0) %>% 
+  left_join(NBTotal, by = "CSA2020") %>% 
+  rename("showy" = '2') %>% 
+  mutate(PercShowy = (showy/total_trees)*100) %>% 
+  select(CSA2020, PercShowy)
+
+raw_showy <- showiness %>% 
+  filter(Visibility == 2) %>% 
+  group_by(CSA2020) %>% 
+  summarize(num_showy=length(Visibility))
+```
+
+#20 Color abundance
+```{r}
+
+color_abund <- flowering %>% 
+  filter(Visibility>=2) %>% 
+  group_by(CSA2020, Color) %>% 
+  summarize(abund=length(Color))  
+
+
+```
+
+#21 Color Richness
+```{r}
+color_rich <- community_diversity(color_abund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020")
+```
+
+#22 Average Showiness
+```{r}
+
+avgShowy <- showiness %>% 
+  filter(Visibility != "NA") %>% 
+  group_by(CSA2020) %>% 
+  summarise(AvgShowy = mean(Visibility), .groups = 'drop')
+
+```
+
+#23 Combine all dependent variables
 ```{r}
  DepVar <- percfilled %>% 
   left_join(total_sites) %>%  
