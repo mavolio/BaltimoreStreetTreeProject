@@ -67,7 +67,7 @@ neigh_path <- '..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statisti
 neigh_path <- '../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
 
 #This runs now. I still need to double check all the vars are selected! - TF
-#also note: 
+#also note: DBH and Perc32 will be changed
 neighs <- 
   read_sf(  neigh_path
           , as_tibble = TRUE) |> 
