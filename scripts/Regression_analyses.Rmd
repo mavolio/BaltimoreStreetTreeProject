@@ -23,6 +23,7 @@ library(mapview)
 library(tidylog) 
 library(sfdep)
 
+
 #working directory
 getwd()
 list.files()
@@ -65,6 +66,8 @@ neigh_path <- '..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statisti
 # Dexter path
 neigh_path <- '../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
 
+#This runs now. I still need to double check all the vars are selected! - TF
+#also note: 
 neighs <- 
   read_sf(  neigh_path
           , as_tibble = TRUE) |> 
@@ -74,29 +77,21 @@ neighs <-
   left_join(Combined, by = 'CSA2020') |> 
   select(
     # dependent variables
-      richness
+      rich_tot
     , Evar
-    , AvgDBH
-    , richness_SM # small
-    , Evar_SM
-    , sm_rich_tot # small normalized by total trees
-    , richness_L  # large
-    , Evar_L
-    , L_rich_tot      # normalized by total trees
-    , PercNat         # native
+    , AvgDBH          #TO BE CHANGED ONCE I CREATE SIZE CATEGORIES - TF
     , percent_filled  # occupancy
     , all_sites       # all tree pits (filled or not)
     , PercGood        # % of trees in good condition
-    , PercPoor
-    , PercSmall       # < 5 in
-    , PercMedium      # 5 to 20
-    , PercLarge       # > 20
+    , PercPoor        # % trees poor + dead + stump
+    , spave           #beta diversity
+    , Perc32          #TO BE CHANGED TO SI
     
     # independent
     , PercBlk
     , PercWhite
     , mhhi20
-    , bahigher19
+    , bahigher20
     , avg_temp
     
     # ids
@@ -591,173 +586,6 @@ evenness <- Combined %>%
 cor.test(evenness$avg_temp, evenness$Evar)
 ```
 
-# 7 Richness SM
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-var_names <- as_labeller(
-     c(`PercBlk` = "% Black", `PercWhite` = "% White",`mhhi20` = "Median Household Income", 
-       `bahigher19` = "Bachelor's or higher"))
-
-Combined |> 
-  tidylog::select(
-                    richness_SM  # depend 
-                  , PercBlk
-                  , PercWhite
-                  , mhhi20
-                  , bahigher19
-                  ) |> 
-  pivot_longer(-richness_SM) |> 
-  ggplot(aes(value, richness_SM)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2, labeller = var_names
-             ) +
-  labs(
-        x = 'Predictor'
-       , y = 'SM Trees Richness'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20)) +
-  NULL
-
-cor.test(Combined$PercBlk, Combined$richness_SM)
-cor.test(Combined$PercWhite, Combined$richness_SM)
-cor.test(Combined$mhhi20, Combined$richness_SM)
-cor.test(Combined$bahigher19, Combined$richness_SM)
-```
-
-# 8 Norm S Richness  
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-#normalized by total number of trees
-Combined |> 
-  tidylog::select(
-                    sm_rich_tot  # depend
-                  , avg_temp
-                  ) |>
-  pivot_longer(-sm_rich_tot) |> 
-  ggplot(aes(value, sm_rich_tot)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(
-        x = 'Average Temperature'
-       , y = 'SM Trees Richness'
-       ) +   theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20))+
-  NULL
-
-#dataset with no outliers
-
-norm_rich_SM <- Combined %>% 
-  filter(sm_rich_tot< 0.1) %>% 
-  select(sm_rich_tot  # depend
-                  , avg_temp)
-
-ggplot(norm_rich_SM, aes(avg_temp, sm_rich_tot)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(
-        x = 'Average Temperature'
-       , y = 'SM Trees Richness'
-       ) +   theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20))+
-  NULL
-
-cor.test(norm_rich_SM$avg_temp, norm_rich_SM$sm_rich_tot)
-```
-
-# 9 SM Evenness
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Combined |> 
-  tidylog::select(
-                   Evar_SM  # depend
-                  , avg_temp
-                  ) |> 
-  pivot_longer(-Evar_SM) |> 
-  ggplot(aes(value, Evar_SM)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(title = 'Small Trees Evenness'
-       , x = 'Average Temperature'
-       , y = 'Richness'
-       ) + 
-  theme_bw(12) +
-  theme(plot.title = element_text(hjust = 0.5))
-  NULL
-
-cor.test(Combined$avg_temp, Combined$Evar_SM)
-```
-
-# 10 Richness L
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Combined |> 
-  tidylog::select(
-                   richness_L  # depend
-                  , avg_temp
-                  ) |> 
-  pivot_longer(-richness_L) |> 
-  ggplot(aes(value, richness_L)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(title = 'Large Trees Richness'
-       , x = 'Average Temperature'
-       , y = 'L Richness'
-       ) + 
-  theme_bw(12) +
-  theme(plot.title = element_text(hjust = 0.5))
-  NULL
-
-cor.test(Combined$avg_temp, Combined$richness_L)
-```
-
-# 11 Richness L Normalized
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-#normalized by total number of trees
-Combined |> 
-  tidylog::select(
-                   L_rich_tot  # depend
-                  , avg_temp
-                  
-                  ) |> 
-  pivot_longer(-L_rich_tot) |> 
-  ggplot(aes(value, L_rich_tot)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  # facet_wrap(~name, scales = 'free_x'
-  #            , ncol = 3
-  #            ) +
-  labs(title = 'Large Trees Richness'
-       , subtitle = 'Normalized by Total Trees'
-       , x = 'Predictor'
-       , y = 'L Richness'
-       ) + 
-  theme_bw(12) +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(plot.subtitle = element_text(hjust = 0.5))
-  NULL
-
-cor.test(Combined$avg_temp, Combined$L_rich_tot)
-
-```
-
 # 12 Avg DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -923,7 +751,6 @@ cor.test(Combined$mhhi20, Combined$PercPoor)
 cor.test(Combined$bahigher19, Combined$PercPoor)
 ```
 
-
 # 20 Perc Filled vs Richness 
 ```{r}
 #SM Richness
@@ -974,32 +801,6 @@ ggplot(filled_richness, aes(percent_filled, sm_rich_tot)) +
   NULL
 ```
   
-# 21 Perc Filled vs Norm SM Richness
-```{r}
-  Combined |> 
-  tidylog::select(
-                    richness_SM  # depend 
-                  , percent_filled
-                  ) |> 
-  pivot_longer(-richness_SM) |> 
-  ggplot(aes(value, richness_SM)) + 
-  geom_point() +
-  geom_smooth(method = 'lm') + # forces a linear model
-  facet_wrap(~name, scales = 'free_x'
-             , ncol = 2
-             ) +
-  labs(
-        x = 'Percent Filled'
-       , y = 'SM Trees Richness'
-       ) + 
-  
-  theme_bw() +
-  theme(panel.grid=element_blank(),
-        text=element_text(size=20))
-  NULL
-  
-(cor.test(Combined$percent_filled, Combined$richness_SM))
-```
 
 # 22 Perc Canopy vs Temperature
 ```{r}

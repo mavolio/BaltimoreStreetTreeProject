@@ -155,9 +155,9 @@ betadiv <- winbeta %>%
 
 #12 Average DBH by neighborhood
 ```{r}
-#read in size classes 
-#created a .csv from .xlsx Nancy sent
-#assign size classes in excel instead of R perhaps
+#read in size classes - TF
+#created a .csv from .xlsx Nancy sent - TF
+#assign size classes in excel instead of R perhaps - TF
 
 size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv')
 
@@ -261,10 +261,7 @@ perc_condition <- NBTotal %>%
   left_join(AvgDBH, by = "CSA2020") %>% 
   
   left_join(perc_condition, by = "CSA2020") %>% 
-  left_join(large_pit, by = "CSA2020") %>% 
-  
-  left_join(color_rich, by = "CSA2020")%>% 
-  left_join(PercShowy, by = "CSA2020")
+  left_join(large_pit, by = "CSA2020")
 
   
 write_csv(DepVar,'../input_data/Dependent_variable.csv')  
