@@ -157,9 +157,12 @@ betadiv <- winbeta %>%
 ```{r}
 #read in size classes - TF
 #created a .csv from .xlsx Nancy sent - TF
-#assign size classes in excel instead of R perhaps - TF
+#TO DO: PUT CSV INTO GOOGLE DRIVE
 
-size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv')
+#work in progress! -TF
+size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
+  mutate(Species = paste(`Genus Name`, `Species Name`, sep = " " )) %>% 
+  left_join(no_vacant, by = "Species") 
 
 
 AvgDBH <- no_vacant %>% 
