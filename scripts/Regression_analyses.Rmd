@@ -66,8 +66,9 @@ neigh_path <- '..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statisti
 # Dexter path
 neigh_path <- '../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
 
-#This runs now. I still need to double check all the vars are selected! - TF
-#also note: DBH and Perc32 will be changed
+# This runs now. I still need to double check all the vars are selected! - TF
+# also note: DBH and Perc32 will be changed
+# https://docs.google.com/document/d/1WIrD624US7UB5cLVfrwTaP8y3QPF0mW7GIHc1mYNmf8/edit?tab=t.0
 neighs <- 
   read_sf(  neigh_path
           , as_tibble = TRUE) |> 
