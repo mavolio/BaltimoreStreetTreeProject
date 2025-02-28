@@ -23,6 +23,7 @@ library(grid)
 library(gridExtra)
 
 library(cowplot)
+
 #working directory
 getwd()
 list.files()
@@ -34,7 +35,7 @@ var_names <- as_labeller(
        `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
 
 var_names_2 <- as_labeller(
-     c(`AvgDBH` = "Average DBH", `Evar` = "Evenness",`Perc32` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `richness` = "Richness"))
+     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`Perc2.97` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rich_tot` = "Richness", `PercDead` ="Dead Stock"))
 ```
 
 #1 Combined dep+ind
@@ -113,6 +114,8 @@ print(cor_results)
 p_filtered_0.05 <- cor_results %>% 
   filter(PValue<0.05) 
 
+view(p_filtered_0.05)
+
 ```
 
 # Filtered p < 0.001
@@ -120,6 +123,7 @@ p_filtered_0.05 <- cor_results %>%
 p_filtered_0.001 <- cor_results %>% 
   filter(PValue<0.001)
 
+view(p_filtered_0.001)
 ```
 
 #4 Total Tree Pits
@@ -213,16 +217,16 @@ betadiv_r2 <- p_filtered_0.001 %>%
 view(betadiv_r2)
 ```
 
-#9 Average DBH
+#9 Small DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-dbh_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
+small_dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH_small" | Variable2 == "AvgDBH_small")
 
-view(dbh_r)
+view(small_dbh_r)
 
 dbh_plot <- Combined |> 
   tidylog::select(
-                    AvgDBH  # depend 
+                    AvgDBH_small  # depend 
                   , PercBlk
                   , avg_temp
                   ) |> 
@@ -235,7 +239,7 @@ dbh_plot <- Combined |>
              ) +
   labs(
         x = 'Predictor'
-       , y = 'Average DBH'
+       , y = 'Small Average DBH'
        ) + 
   
   theme_bw() +
@@ -249,7 +253,23 @@ dbh_r2 <- p_filtered_0.001 %>%
 view(dbh_r2)
 ```
 
-#10 Poor Condition
+#10 Medium DBH
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+med_dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH_med" | Variable2 == "AvgDBH_med")
+
+view(med_dbh_r)
+```
+
+#11 Large DBH
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+large_dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH_large" | Variable2 == "AvgDBH_large")
+
+view(large_dbh_r)
+```
+
+#12 Poor Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 poor_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
@@ -262,7 +282,7 @@ poor_r2 <- p_filtered_0.001 %>%
 view(poor_r2)
 ```
 
-#11 Good Condition
+#13 Good Condition
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 good_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercGood" | Variable2 == "PercGood")
@@ -275,65 +295,33 @@ good_r2 <- p_filtered_0.001 %>%
 view(good_r2)
 ```
 
-#12 Target Pit Size
+#14 Dead Stock 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-perc32_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "Perc32" | Variable2 == "Perc32")
+deadstock_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "PercDead" | Variable2 == "PercDead")
 
-view(perc32_r)
+view(deadstock_r)
+
+good_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "PercDead" | Variable2 == "PercDead")
+
+view(good_r2)
+```
+
+#15 Target Pit Size
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+perc2.97_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "Perc2.97" | Variable2 == "Perc2.97")
+
+view(perc2.97_r)
 
 # p<0.001
-perc32_r2 <- p_filtered_0.001 %>% 
-  filter(Variable1 == "Perc32" | Variable2 == "Perc32")
+perc2.97_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "Perc2.97" | Variable2 == "Perc2.97")
 
-view(perc32_r2)
-
-```
-
-#13 % Flowering 
-```{r}
-percflor_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
-
-view(percflor_r)
-
-percflor_r2 <- p_filtered_0.001 %>% 
-  filter(Variable1 == "PercFlor" | Variable2 == "PercFlor")
-
-view(percflor_r2)
-```
-
-#14 % Showy
-```{r}
-percshow_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
-
-view(percshow_r)
-
-percshow_r2 <- p_filtered_0.001 %>% 
-  filter(Variable1 == "PercShowy" | Variable2 == "PercShowy")
-
-view(percshow_r2)
-```
-
-#15 Average Showiness
-```{r}
-avgshow_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "AvgShowy" | Variable2 == "AvgShowy")
-
-view(avgshow_r)
-
+view(perc2.97_r2)
 
 ```
-
-#18 Avg showy
-```{r}
-avgshowy_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "avgShowy" | Variable2 == "AvgShowy")
-
-view(avgshowy_r)
-```
-
 
 # r value matrix
 ```{r}
@@ -343,9 +331,6 @@ cor_matrix <- cor_results %>%
   column_to_rownames(var = "Variable1")
 
 print(cor_matrix)
-
-
-write_xlsx(cor_matrix, '..\\..\\BaltimoreStreetTreeProject_Large_Data\\Rmatrix.xlsx')
 
 ```
 
@@ -381,28 +366,31 @@ B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
-#DBH vs temp
-E <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
-  geom_point(color = "#00afff", size=2.5)+
-  labs(x = "Temperature (C)", y = "Average DBH") + 
-  theme_bw()+
-    theme(panel.grid=element_blank(),
-        text=element_text(size=15))
 
-#showy vs %white
-G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
-  geom_point(color = "#e95789", size=2.5)+
-  labs(x = "% White", y = "% Showy") + 
-  theme_bw()+
-    theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+#WE SHOULD DECIDE WHAT TO PLOT INSTEAD - TF 
+# #DBH vs temp
+# E <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
+#   geom_point(color = "#00afff", size=2.5)+
+#   labs(x = "Temperature (C)", y = "Average DBH") + 
+#   theme_bw()+
+#     theme(panel.grid=element_blank(),
+#         text=element_text(size=15))
+
+#SAME HERE
+# #showy vs %white
+# G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
+#   geom_point(color = "#e95789", size=2.5)+
+#   labs(x = "% White", y = "% Showy") + 
+#   theme_bw()+
+#     theme(panel.grid=element_blank(),
+#         text=element_text(size=15))
 ```
 
 # arrange in grid
 ```{r}
 library(gtable)
 
-Fig_grid <- plot_grid(A, B, C, D,E, G, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2,vjust =1) +
+Fig_grid <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D'), ncol = 2,vjust =1) +
   theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "mm"))
 
 

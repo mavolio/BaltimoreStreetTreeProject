@@ -159,28 +159,61 @@ betadiv <- winbeta %>%
 #created a .csv from .xlsx Nancy sent - TF
 #TO DO: PUT CSV INTO GOOGLE DRIVE
 
+missingSPP <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/MissingSpp.csv')
+
 #work in progress! -TF
 size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
   mutate(Species = paste(`Genus Name`, `Species Name`, sep = " " )) %>% 
-  left_join(no_vacant, by = "Species") 
+  select(`Size Class`, Species) %>% 
+    rbind(missingSPP)
 
+street_tree_size_classes <- no_vacant %>% 
+  left_join(size_classes, by = "Species") 
 
-AvgDBH <- no_vacant %>% 
+#list of species with no size class in iTree data
+unclassified_species <- street_tree_size_classes %>%
+  filter(is.na(`Size Class`)) %>% 
+  distinct(Species)
+
+#small trees
+AvgDBH_small <- street_tree_size_classes %>% 
+  filter(`Size Class` == "Small") %>% 
   select(CSA2020,DBH)%>% 
   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
   group_by(CSA2020) %>% 
-  summarise(AvgDBH = mean(DBH_SI), .groups = 'drop')
-  
+  summarise(AvgDBH_small = mean(DBH_SI), .groups = 'drop')
 
-#convert conditions to numeric 
+#medium trees
+AvgDBH_med <- street_tree_size_classes %>% 
+  filter(`Size Class` == "Medium") %>% 
+  select(CSA2020,DBH)%>% 
+  mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
+  group_by(CSA2020) %>% 
+  summarise(AvgDBH_med = mean(DBH_SI), .groups = 'drop')
+
+#large trees
+AvgDBH_large <- street_tree_size_classes %>% 
+  filter(`Size Class` == "Large") %>% 
+  select(CSA2020,DBH)%>% 
+  mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
+  group_by(CSA2020) %>% 
+  summarise(AvgDBH_large = mean(DBH_SI), .groups = 'drop')
+
+#OLD - no size classes
+# AvgDBH <- no_vacant %>% 
+#   select(CSA2020,DBH)%>% 
+#   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
+#   group_by(CSA2020) %>% 
+#   summarise(AvgDBH = mean(DBH_SI), .groups = 'drop')
+  
 ```
 
-#14 Pit Area Calculation
+#13 Pit Area Calculation
 ```{r}
 
 #this is at the tree level, our other calculations are at the nb level
 pit_size <- clean %>% 
-  mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
+  mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH)) 
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
          ) %>% 
   mutate(  length_SI = length*0.3048 #convert to SI
@@ -195,18 +228,18 @@ cor.test(pit_size$pit_area, pit_size$DBH)
 # r=0.342
 
 large_pit <- pit_size %>% 
-  mutate(size_threshhold = ifelse(pit_area >= 32, "great32", "less32" )) %>% 
+  mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% 
   group_by(CSA2020, size_threshhold) %>% 
   summarize(n=length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
   left_join(total_sites, by = "CSA2020") %>% 
-  mutate(Perc32 = great32/all_sites*100) %>% 
-  select(CSA2020, Perc32)
+  mutate(Perc2.97 = greater/all_sites*100) %>% 
+  select(CSA2020, Perc2.97)
 
 
 ```
 
-#15 Tree Condition
+#14 Tree Condition
 ```{r}
 #sum for each condition in a neighborhood
 #pivot
@@ -230,7 +263,7 @@ condition_grade <- no_vacant %>%
 
 ```
 
-#16 Condition and Pit Area
+#15 Condition and Pit Area
 ```{r}
 
 no_vacant |> 
@@ -244,40 +277,33 @@ no_vacant |>
   
 ```
 
-#17 % good/poor trees
+#16 % good/poor trees
 ```{r}
 perc_condition <- NBTotal %>% 
   left_join(condition, by = "CSA2020") %>% 
   mutate(PercGood = 100*(Good/total_trees)) %>% 
-  mutate(PercPoor = 100*((Poor + Dead + Stump)/total_trees)) %>% 
-  select(CSA2020, PercPoor, PercGood)
+  mutate(PercPoor = 100*((Poor)/total_trees)) %>% 
+  mutate(PercDead = 100*((Dead + Stump/total_trees))) %>% 
+  select(CSA2020, PercPoor, PercGood, PercDead)
 
 ```
 
-# Combine all dependent variables
+#17 Combine all dependent variables
 ```{r}
  DepVar <- percfilled %>% 
   left_join(total_sites) %>%  
   left_join(rich_tot, by = "CSA2020") %>% 
   left_join(betadiv, by = "CSA2020") %>% 
   
-  left_join(AvgDBH, by = "CSA2020") %>% 
+  left_join(AvgDBH_small, by = "CSA2020") %>% 
+  left_join(AvgDBH_med, by = "CSA2020") %>% 
+  left_join(AvgDBH_large, by = "CSA2020") %>% 
   
   left_join(perc_condition, by = "CSA2020") %>% 
   left_join(large_pit, by = "CSA2020")
 
   
 write_csv(DepVar,'../input_data/Dependent_variable.csv')  
-```
-
-#Abundance overall 
-```{r}
-bmore_abund <- no_vacant %>% 
-  filter(Species != "unknown tree") %>% 
-  group_by(Species) %>% 
-  summarize(bmore_abund=sum(present)) %>% 
-  select(Species, bmore_abund) %>% 
-  filter(bmore_abund < 5)
 ```
 
 #Descriptive Statistics

@@ -124,7 +124,7 @@ PercentLand <- LandCover %>%
 #9 Population Density
 ```{r}
 TotalPop <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>% #NEED FILE WITH 2020 boundaries
+  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>%
   select(CSA2020, tpop20)
 
 PopDensity <- LandCover %>% 
@@ -151,7 +151,8 @@ NBRoads <- bmore_bnia %>%
   st_intersection(roads %>% mutate(road_length_ft = as.double(st_length(.)))) %>% 
   st_drop_geometry() %>% 
   group_by(CSA2020) %>% 
-  summarize(sum_road_length_ft = sum(road_length_ft))
+  summarize(sum_road_length_ft = sum(road_length_ft)) %>% 
+  mutate(road_length_m = sum_road_length_ft * 0.3048)#convert to meters/SI
 
 ```
 
@@ -163,6 +164,9 @@ IndVar <- PercentBlk %>%
   left_join(Edu, by = "CSA2020") %>%  
   left_join(NBtemperature, by = "CSA2020") %>% 
   left_join(PercVacant, by = "CSA2020") %>% 
+  left_join(PercentLand, by = "CSA2020") %>% 
+  left_join(PopDensity, by = "CSA2020") %>% 
+  left_join(NBRoads, by = "CSA2020") %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
   
 write_csv(IndVar,'../input_data/Independent_variable.csv')  

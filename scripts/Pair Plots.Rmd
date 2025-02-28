@@ -11,7 +11,6 @@ output: html_document
 library(GGally)
 
 Dependent_pair <- read_csv('../input_data/Dependent_variable.csv') %>% 
-  select(-Shannon) %>% 
   drop_na()
 
 Independent_pair <- read_csv('../input_data/Independent_variable.csv') %>% 
