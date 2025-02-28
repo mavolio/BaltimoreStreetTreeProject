@@ -37,8 +37,52 @@ ggplot(data=sites, aes(x=value, y=all_sites))+
 dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 
 dat_trees<-dat %>% 
-  filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!='unknown shrub'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
-filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout")
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% 
+  filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
+  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout") %>% 
+  mutate(Species=case_when(
+    SPP=='Acer spp.' ~ 'unk999'
+    ,SPP=='Amelanchier spp.' ~ 'Amelanchier canadensis'
+    ,SPP=='Carya spp.' ~ 'unk999'
+    ,SPP=='Chamaecyparis spp.' ~ 'unk999'
+    ,SPP=='Cornus spp.' ~ 'unk999'
+    ,SPP=='Crataegus spp.' ~ 'Crataegus laevigata'
+    ,SPP=='Euonymus spp.'~ 'unknown shrub'
+    ,SPP=='Ficus spp.' ~ 'unk999'
+    ,SPP=='Fraxinus spp.' ~ 'unk999'
+    ,SPP=='Hydrangea spp.' ~ 'unknown shurb'
+    ,SPP=='Ilex spp.' ~ 'unk999'
+    ,SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
+    ,SPP=='Juniperus spp.' ~ 'unk999'
+    ,SPP=='Lonicera spp.' ~ 'unknown shrub'
+    ,SPP=='Magnolia spp.' ~ 'unk999'
+    ,SPP=='Magnolia x' ~ 'Magnolia x soulangiana'
+    ,SPP=='Malus spp.' ~ 'Malus sylvestris'
+    ,SPP=='Photinia spp.' ~ 'unknown shrub'
+    ,SPP=='Picea spp.' ~ 'unk999'
+    ,SPP=='Populus spp.' ~ 'unk999'
+    ,SPP=="Prunus spp." ~ 'AssignPrunus'
+    ,SPP=='Quercus spp.' ~ 'unk999'
+    ,SPP=='Quercus x' ~ 'unk999'
+    ,SPP=='Rhus spp.' ~ 'unk999'
+    ,SPP=='Salix spp.' ~ 'unk999'
+    ,SPP=='Taxus spp.' ~ 'Taxus baccata'
+    ,SPP=='Thuja spp.' ~ 'Thuja occidentalis'
+    ,SPP=='Ulmus spp.' ~ 'unk999'
+    ,SPP=='Ulmus x' ~ 'Ulmus hybrid'
+    ,SPP=='Viburnum spp.' ~ 'unknown shrub'
+    ,SPP=='unknown shrub' ~ 'unknown shrub'
+    ,.default = SPP ), .after='SPP') %>% 
+  filter(Species!='unknown shurb'& Species!='unk999') %>% 
+  mutate(Species = ifelse(Species=='AssignPrunus', 
+                          sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis'), size=dat_trees %>% filter(Species=='AssignPrunus') %>% nrow(), replace=T),Species))
+
+
+splist<-dat %>% 
+  group_by(SPP) %>% 
+  summarize(n=length(SPP))
+
+sum(dat_trees$Genera)
 
 common<-dat_trees %>% 
   group_by(SPP) %>% 
