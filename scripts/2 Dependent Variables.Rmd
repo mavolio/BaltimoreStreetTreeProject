@@ -24,6 +24,7 @@ library(mapview)
 library(tidylog) 
 library(vegan)
 library(codyn)
+library(janitor)
 
 getwd()
 list.files()
@@ -101,20 +102,25 @@ clean <- bnia_street_tree %>%
 
 #5 Filter tree data for only present tree species
 ```{r include=FALSE}
-no_vacant <- clean %>% 
-  # mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
-  %>% 
-  filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
-  filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Absent")%>% #keep dead and stump now?
-  mutate(present=1) #for each tree make a present column with 1
+site_status <- clean %>% 
+  mutate(tree_present=case_when(
+    Species %in% c('Vacant Site', 'Vacant Potential','Stump','Vacant Site Not Suitable','NA', "Z Add 01", "Dead") ~ 0
+    , CONDITION %in%c('Dead', "Stump", "Absent") ~ 0
+    ,.default = 1)) #keep dead and stump now?
+
+perc_filled<-site_status %>% 
+  group_by(CSA2020, tree_present) %>%
+  summarise(n=length(Species)) %>% 
+  pivot_wider(id_cols=CSA2020, names_from=tree_present, values_from=n, names_prefix="T") %>% 
+  mutate(totsites=T1+T0,
+         percent_filled=(T1/totsites)*100)
 
 ```
 
 #6 Potential Sites
 ```{r}
 vacant_potential <- clean %>% 
-  mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
-  filter(Species=='Vacant Site'|Species=='Vacant Potential'|Species=='Stump'|Species=='NA'|Species=='unknown shrub'|Species=="Z Add 01"|Species=="Dead")%>% #Stumps and dead no longer considered vacant?
+  filter(Species=='Vacant Site'|Species=='Vacant Potential'|Species=='Stump'|Species=='NA'|Species=="Z Add 01"|Species=="Dead")%>% #Stumps and dead no longer considered vacant?
   mutate(vacant_present=1) %>%   #for each vacant potential site present column with 1 
   group_by(CSA2020) %>% 
   summarize(sum_vacant_present =sum(vacant_present)) 
