@@ -23,7 +23,7 @@ library(mapview)
 library(tidylog) 
 library(sfdep)
 
-install.packages("sfdep")
+# install.packages("sfdep")
 
 #working directory
 getwd()
@@ -77,17 +77,17 @@ neighs <-
   left_join(Combined, by = 'CSA2020') |> 
   select(
     # dependent variables
-      rich_tot        #Richness normalized by total trees
-    , Evar            #Evenness
-    , AvgDBH_small    #Small Tree Average DBH
-    , AvgDBH_med    #Small Tree Average DBH
-    , AvgDBH_large    #Small Tree Average DBH
+      rich_tot        # Richness normalized by total trees
+    , Evar            # Evenness
+    , AvgDBH_small    # Small Tree Average DBH
+    , AvgDBH_med      # Small Tree Average DBH
+    , AvgDBH_large    # Small Tree Average DBH
     , percent_filled  # occupancy/stocking/percentage of filled sites
     , all_sites       # all tree sites (filled or not)
     , PercGood        # % of trees in good condition
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
-    , spave           #beta diversity
+    , spave           # beta diversity
     , Perc2.97        # % of trees above threshold 
     
     # independent
@@ -168,7 +168,18 @@ neighs |>
   select(
       CSA2020
     # , all_sites
-    , percent_filled, richness, Evar, sm_rich_tot, L_rich_tot, PercGood
+    # , percent_filled, richness, Evar, sm_rich_tot, L_rich_tot, PercGood
+    , Evar            # Evenness
+    , AvgDBH_small    # Small Tree Average DBH
+    , AvgDBH_med      # Small Tree Average DBH
+    , AvgDBH_large    # Small Tree Average DBH
+    , percent_filled  # occupancy/stocking/percentage of filled sites
+    , all_sites       # all tree sites (filled or not)
+    , PercGood        # % of trees in good condition
+    , PercPoor        # % trees in poor condition
+    , PercDead        # % trees dead or stump
+    , spave           # beta diversity
+    , Perc2.97        # % of trees above threshold 
     ) |> 
   pivot_longer(-CSA2020) |> 
   ggplot(aes(value)) +
@@ -185,57 +196,83 @@ neighs |>
 ```{r}
 
 # TODO updated to use , percent_filled, richness, Evar, sm_rich_tot, L_rich_tot, PercGood
-mods <- 
-  neighs |> 
-  nest() |> 
-  mutate(
-    # some mods
-      ols_all_sites      = map(data, ~lm(all_sites      ~ PercBlk + PercWhite + mhhi20 + bahigher19 + avg_temp, .x))
-    , ols_percent_filled = map(data, ~lm(percent_filled ~ PercBlk + PercWhite + mhhi20 + bahigher19 + avg_temp, .x))
-    , ols_sm_rich_tot    = map(data, ~lm(sm_rich_tot    ~ PercBlk + PercWhite + mhhi20 + bahigher19 + avg_temp, .x))
-    , ols_L_rich_tot     = map(data, ~lm(L_rich_tot     ~ PercBlk + PercWhite + mhhi20 + bahigher19 + avg_temp, .x))
-    , ols_PercGood       = map(data, ~lm(PercGood       ~ PercBlk + PercWhite + mhhi20 + bahigher19 + avg_temp, .x))
-    
-    # spatial neighbors, etc.
-    , nbs = map(data, ~st_contiguity(st_geometry(.x)))
-    , wts = map(nbs, st_weights) # , allow_zero = TRUE)
-    # , list_w = map2(nbs, wts, recreate_listw)
-    
-    # some summaries
-    , ols_all_sites_smry      = map(ols_all_sites     , summary)
-    , ols_percent_filled_smry = map(ols_percent_filled, summary)
-    , ols_sm_rich_tot_smry    = map(ols_sm_rich_tot   , summary)
-    , ols_L_rich_tot_smry     = map(ols_L_rich_tot    , summary)
-    , ols_PercGood_smry       = map(ols_PercGood      , summary)
 
-    # residuals
-    , ols_all_sites_resid      = map(ols_all_sites     , residuals)
-    , ols_percent_filled_resid = map(ols_percent_filled, residuals)
-    , ols_sm_rich_tot_resid    = map(ols_sm_rich_tot   , residuals)
-    , ols_L_rich_tot_resid     = map(ols_L_rich_tot    , residuals)
-    , ols_PercGood_resid       = map(ols_PercGood      , residuals)
-    
-    # test residuals for spatial autocorrelation
-    , ols_all_sites_resid_mi      = pmap(list(ols_all_sites_resid     , nbs, wts), global_moran_perm)
-    , ols_percent_filled_resid_mi = pmap(list(ols_percent_filled_resid, nbs, wts), global_moran_perm)
-    , ols_sm_rich_tot_resid_mi    = pmap(list(ols_sm_rich_tot_resid   , nbs, wts), global_moran_perm)
-    , ols_L_rich_tot_resid_mi     = pmap(list(ols_L_rich_tot_resid    , nbs, wts), global_moran_perm)
-    , ols_PercGood_resid_mi       = pmap(list(ols_PercGood_resid      , nbs, wts), global_moran_perm)
-    )
+#     # dependent variables
+#       rich_tot        # Richness normalized by total trees
+#     , Evar            # Evenness
+#     , AvgDBH_small    # Small Tree Average DBH
+#     , AvgDBH_med      # Small Tree Average DBH
+#     , AvgDBH_large    # Small Tree Average DBH
+#     , percent_filled  # occupancy/stocking/percentage of filled sites
+#     , all_sites       # all tree sites (filled or not)
+#     , PercGood        # % of trees in good condition
+#     , PercPoor        # % trees in poor condition
+#     , PercDead        # % trees dead or stump
+#     , spave           # beta diversity
+#     , Perc2.97        # % of trees above threshold 
+#     
+#     # independent
+#     , PercBlk
+#     , PercWhite
+#     , mhhi20
+#     , bahigher20
+#     , avg_temp
+#     , PercentImp
+#     , PopDensity
+#     , road_length_m
 
-
-mods$ols_all_sites_smry
-mods$ols_percent_filled_smry
-mods$ols_sm_rich_tot_smry
-mods$ols_L_rich_tot_smry
-mods$ols_PercGood_smry
-
-mods |> 
-  select(ends_with('mi')) |> 
-  rowid_to_column() |> 
-  pivot_longer(-rowid) |> 
-  mutate(mi_test = map(value, broom::tidy)) |> 
-  unnest(mi_test)
+# # TOO MANY PREDICTORS
+# mods <- 
+#   neighs |> 
+#   nest() |> 
+#   mutate(
+#     # some mods
+#       ols_all_sites      = map(data, ~lm(all_sites      ~ PercBlk + PercWhite + mhhi20 + bahigher20 + avg_temp, .x))
+#     , ols_percent_filled = map(data, ~lm(percent_filled ~ PercBlk + PercWhite + mhhi20 + bahigher20 + avg_temp, .x))
+#     , ols_sm_rich_tot    = map(data, ~lm(sm_rich_tot    ~ PercBlk + PercWhite + mhhi20 + bahigher20 + avg_temp, .x))
+#     , ols_L_rich_tot     = map(data, ~lm(L_rich_tot     ~ PercBlk + PercWhite + mhhi20 + bahigher20 + avg_temp, .x))
+#     , ols_PercGood       = map(data, ~lm(PercGood       ~ PercBlk + PercWhite + mhhi20 + bahigher20 + avg_temp, .x))
+#     
+#     # spatial neighbors, etc.
+#     , nbs = map(data, ~st_contiguity(st_geometry(.x)))
+#     , wts = map(nbs, st_weights) # , allow_zero = TRUE)
+#     # , list_w = map2(nbs, wts, recreate_listw)
+#     
+#     # some summaries
+#     , ols_all_sites_smry      = map(ols_all_sites     , summary)
+#     , ols_percent_filled_smry = map(ols_percent_filled, summary)
+#     , ols_sm_rich_tot_smry    = map(ols_sm_rich_tot   , summary)
+#     , ols_L_rich_tot_smry     = map(ols_L_rich_tot    , summary)
+#     , ols_PercGood_smry       = map(ols_PercGood      , summary)
+# 
+#     # residuals
+#     , ols_all_sites_resid      = map(ols_all_sites     , residuals)
+#     , ols_percent_filled_resid = map(ols_percent_filled, residuals)
+#     , ols_sm_rich_tot_resid    = map(ols_sm_rich_tot   , residuals)
+#     , ols_L_rich_tot_resid     = map(ols_L_rich_tot    , residuals)
+#     , ols_PercGood_resid       = map(ols_PercGood      , residuals)
+#     
+#     # test residuals for spatial autocorrelation
+#     , ols_all_sites_resid_mi      = pmap(list(ols_all_sites_resid     , nbs, wts), global_moran_perm)
+#     , ols_percent_filled_resid_mi = pmap(list(ols_percent_filled_resid, nbs, wts), global_moran_perm)
+#     , ols_sm_rich_tot_resid_mi    = pmap(list(ols_sm_rich_tot_resid   , nbs, wts), global_moran_perm)
+#     , ols_L_rich_tot_resid_mi     = pmap(list(ols_L_rich_tot_resid    , nbs, wts), global_moran_perm)
+#     , ols_PercGood_resid_mi       = pmap(list(ols_PercGood_resid      , nbs, wts), global_moran_perm)
+#     )
+# 
+# 
+# mods$ols_all_sites_smry
+# mods$ols_percent_filled_smry
+# mods$ols_sm_rich_tot_smry
+# mods$ols_L_rich_tot_smry
+# mods$ols_PercGood_smry
+# 
+# mods |> 
+#   select(ends_with('mi')) |> 
+#   rowid_to_column() |> 
+#   pivot_longer(-rowid) |> 
+#   mutate(mi_test = map(value, broom::tidy)) |> 
+#   unnest(mi_test)
 
 
 
@@ -264,19 +301,91 @@ mods |>
 
 # bivariate regression
 ```{r}
+#     # dependent variables
+#       rich_tot        # Richness normalized by total trees
+#     , Evar            # Evenness
+#     , AvgDBH_small    # Small Tree Average DBH
+#     , AvgDBH_med      # Small Tree Average DBH
+#     , AvgDBH_large    # Small Tree Average DBH
+#     , percent_filled  # occupancy/stocking/percentage of filled sites
+#     , all_sites       # all tree sites (filled or not)
+#     , PercGood        # % of trees in good condition
+#     , PercPoor        # % trees in poor condition
+#     , PercDead        # % trees dead or stump
+#     , spave           # beta diversity
+#     , Perc2.97        # % of trees above threshold 
+#     
+#     # independent
+#     , PercBlk
+#     , PercWhite
+#     , mhhi20
+#     , bahigher20
+#     , avg_temp
+#     , PercentImp
+#     , PopDensity
+#     , road_length_m
 
-mods_bi$data[[1]]
-
+# TK Trini there are missing values 
+  neighs |> 
+  select(  CSA2020
+          # dependent variables
+         , rich_tot        # Richness normalized by total trees
+         , Evar            # Evenness
+         , AvgDBH_small    # Small Tree Average DBH
+         , AvgDBH_med      # Small Tree Average DBH
+         , AvgDBH_large    # Small Tree Average DBH
+         , percent_filled  # occupancy/stocking/percentage of filled sites
+         , all_sites       # all tree sites (filled or not)
+         , PercGood        # % of trees in good condition
+         , PercPoor        # % trees in poor condition
+         , PercDead        # % trees dead or stump
+         , spave           # beta diversity
+         , Perc2.97
+         
+         # independent
+         , PercBlk
+         , PercWhite
+         , mhhi20
+         , bahigher20
+         , avg_temp
+         , PercentImp
+         , PopDensity
+         , road_length_m
+         ) |> 
+  map(~sum(is.na(.))) |> 
+  bind_rows() |> 
+  t() # missing PercentImp, PopDensity, road_length_m
 
 mods_bi <- 
   neighs |> 
   select(  CSA2020
-         # , all_sites
-         , percent_filled, richness, Evar, sm_rich_tot, L_rich_tot, PercGood # dep vars
-         , PercBlk, PercWhite, mhhi20, bahigher19, avg_temp # ind vars
+          # dependent variables
+         , rich_tot        # Richness normalized by total trees
+         , Evar            # Evenness
+         , AvgDBH_small    # Small Tree Average DBH
+         , AvgDBH_med      # Small Tree Average DBH
+         , AvgDBH_large    # Small Tree Average DBH
+         , percent_filled  # occupancy/stocking/percentage of filled sites
+         , all_sites       # all tree sites (filled or not)
+         , PercGood        # % of trees in good condition
+         , PercPoor        # % trees in poor condition
+         , PercDead        # % trees dead or stump
+         , spave           # beta diversity
+         , Perc2.97
+         
+         # independent
+         , PercBlk
+         , PercWhite
+         , mhhi20
+         , bahigher20
+         , avg_temp
+         # , PercentImp    # temporarily turned off due to missingness
+         # , PopDensity    # temporarily turned off due to missingness
+         # , road_length_m # temporarily turned off due to missingness
          ) |> 
-  pivot_longer(cols = c(PercBlk : avg_temp), names_to = 'ind', values_to = 'ind_value') |> 
-  pivot_longer(cols = percent_filled : PercGood, names_to = 'dep', values_to = 'dep_value') |> 
+  # pivot_longer(cols = PercBlk : road_length_m, names_to = 'ind', values_to = 'ind_value') |> # temporarily turned off due to missingness
+  pivot_longer(cols = PercBlk : avg_temp, names_to = 'ind', values_to = 'ind_value') |>
+  pivot_longer(cols = rich_tot : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value) |> # just moving geom col to end, reorder
   group_by(ind, dep) |> 
   nest() |> 
@@ -305,6 +414,9 @@ mods_bi <-
     # calculate 
     ) |> 
   ungroup()
+
+
+mods_bi$data[[1]]
 
 # extract p-values for autocorrelation
 mods_bi |> 
