@@ -61,14 +61,49 @@ bnia_street_tree <-
 ```{r}
 clean <- bnia_street_tree %>% 
   select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
-  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% mutate(Species=case_when(
+    SPP=='Acer spp.' ~ 'unk999'
+    ,SPP=='Amelanchier spp.' ~ 'Amelanchier canadensis'
+    ,SPP=='Carya spp.' ~ 'unk999'
+    ,SPP=='Chamaecyparis spp.' ~ 'unk999'
+    ,SPP=='Cornus spp.' ~ 'unk999'
+    ,SPP=='Crataegus spp.' ~ 'Crataegus laevigata'
+    ,SPP=='Euonymus spp.'~ 'unknown shrub'
+    ,SPP=='Ficus spp.' ~ 'unk999'
+    ,SPP=='Fraxinus spp.' ~ 'unk999'
+    ,SPP=='Hydrangea spp.' ~ 'unknown shurb'
+    ,SPP=='Ilex spp.' ~ 'unk999'
+    ,SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
+    ,SPP=='Juniperus spp.' ~ 'unk999'
+    ,SPP=='Lonicera spp.' ~ 'unknown shrub'
+    ,SPP=='Magnolia spp.' ~ 'unk999'
+    ,SPP=='Magnolia x' ~ 'Magnolia x soulangiana'
+    ,SPP=='Malus spp.' ~ 'Malus sylvestris'
+    ,SPP=='Photinia spp.' ~ 'unknown shrub'
+    ,SPP=='Picea spp.' ~ 'unk999'
+    ,SPP=='Populus spp.' ~ 'unk999'
+    ,SPP=="Prunus spp." ~ 'AssignPrunus'
+    ,SPP=='Quercus spp.' ~ 'unk999'
+    ,SPP=='Quercus x' ~ 'unk999'
+    ,SPP=='Rhus spp.' ~ 'unk999'
+    ,SPP=='Salix spp.' ~ 'unk999'
+    ,SPP=='Taxus spp.' ~ 'Taxus baccata'
+    ,SPP=='Thuja spp.' ~ 'Thuja occidentalis'
+    ,SPP=='Ulmus spp.' ~ 'unk999'
+    ,SPP=='Ulmus x' ~ 'Ulmus hybrid'
+    ,SPP=='Viburnum spp.' ~ 'unknown shrub'
+    ,SPP=='unknown shrub' ~ 'unknown shrub'
+    ,.default = SPP ), .after='SPP') %>% 
+  mutate(Species = ifelse(Species=='AssignPrunus', #this is to randomly assign prunus
+                          sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis'), size=dat_trees %>% filter(Species=='AssignPrunus') %>% nrow(), replace=T), Species)) 
 
 ```
 
 #5 Filter tree data for only present tree species
 ```{r include=FALSE}
 no_vacant <- clean %>% 
-  mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
+  # mutate(Species=ifelse(SPP=='Acer spp.'|SPP=='Carya spp.'|SPP=='Cornus spp.'|SPP=='Cornus x'|SPP=='Ficus spp.'|SPP=='Fraxinus spp.'|SPP=='Hydrangea spp.'|SPP=='Ilex spp.'|SPP=='Ilex x'|SPP=='Juniperus spp.'|SPP=='Magnolia spp.'|SPP=='Magnolia x'|SPP=='Photinia spp.'|SPP=='Picea spp.'|SPP=='Populus spp.'|SPP=='Quercus spp.'|SPP=='Quercus x'|SPP=='Rhus spp.'|SPP=='Salix spp.'|SPP=='Ulmus spp.', "unknown tree", SPP))%>%
+  %>% 
   filter(Species!='Vacant Site'&Species!='Vacant Potential'&Species!='Stump'&Species!='Vacant Site Not Suitable'&Species!='NA'&Species!='unknown shrub'&Species!="Z Add 01"&Species!=" "&Species!="Dead")%>%
   filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Absent")%>% #keep dead and stump now?
   mutate(present=1) #for each tree make a present column with 1
