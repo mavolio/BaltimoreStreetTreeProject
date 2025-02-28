@@ -166,10 +166,11 @@ ggplot(total_sites, aes(total_trees)) +
 #9 Total Abundance by neighborhood
 ```{r}
 #need to exclude unknown trees
-NBabund <-no_vacant %>% 
-  filter(Species != "unknown tree") %>% 
+NBabund <-site_status %>% 
+  filter(tree_present==1) %>% 
+  filter(Species != "unk999"& Species!='unknown shrub') %>% 
   group_by(CSA2020, Species) %>% 
-  summarize(abund=sum(present)) %>% 
+  summarize(abund=length(Species)) %>% 
   select(CSA2020, Species, abund) 
 #  pivot_wider(names_from = Species, values_from = abund, values_fill = 0)
 ```
