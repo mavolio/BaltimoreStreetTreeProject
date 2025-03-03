@@ -35,13 +35,13 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 # 1 read in street tree data 
 ```{r include=FALSE}
 street_tree <- 
-  st_read('../../BaltimoreStreetTreeProject_Large_Data\\bc_forestry_trees_20190319\\bc_forestry_trees_20190319.shp', as_tibble = TRUE) %>% 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp', as_tibble = TRUE) %>% 
   filter(LOC_TYPE == "Street") 
 ```
 
 # 2 combine with BNIA neighborhood boundaries
 ```{r include=FALSE}
-bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas(2020)/Community_Statistical_Areas__2020_.shp') |> #BNIA community delineations
+bmore_bnia <- st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> #BNIA community delineations
   st_make_valid() |>
   st_transform(crs = st_crs(street_tree))
 
@@ -53,14 +53,15 @@ bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_St
 ```
 
 #3 Read in street tree + neighborhood file
-```{r include=FALSE}
+```{r}
 bnia_street_tree <-
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
 ```
 
 #4 Clean combined data
 ```{r}
-clean <- bnia_street_tree %>% 
+clean <- 
+  bnia_street_tree %>% 
   select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% mutate(Species=case_when(
     SPP=='Acer spp.' ~ 'unk999'
@@ -95,42 +96,67 @@ clean <- bnia_street_tree %>%
     ,SPP=='Viburnum spp.' ~ 'unknown shrub'
     ,SPP=='unknown shrub' ~ 'unknown shrub'
     ,.default = SPP ), .after='SPP') %>% 
-  mutate(Species = ifelse(Species=='AssignPrunus', #this is to randomly assign prunus
-                          sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis'), size=dat_trees %>% filter(Species=='AssignPrunus') %>% nrow(), replace=T), Species)) 
+  mutate(Species = ifelse(  Species=='AssignPrunus'  # this is to randomly assign prunus
+                          , sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis')
+                                   , size = bnia_street_tree %>% 
+                                     filter(SPP=='AssignPrunus') %>% 
+                                     nrow()
+                                   , replace=T)
+                          , Species)) 
 
 ```
 
 #5 Filter tree data for only present tree species
 ```{r include=FALSE}
-site_status <- clean %>% 
-  mutate(tree_present=case_when(
-    Species %in% c('Vacant Site', 'Vacant Potential','Stump','Vacant Site Not Suitable','NA', "Z Add 01", "Dead") ~ 0
-    , CONDITION %in%c('Dead', "Stump", "Absent") ~ 0
-    ,.default = 1)) #keep dead and stump now?
+site_status <- 
+  clean %>% 
+  mutate(tree_present=
+           case_when(
+             Species %in% c(  'Vacant Site'
+                            , 'Vacant Potential'
+                            , 'Stump'
+                            , 'Vacant Site Not Suitable'
+                            , 'NA'
+                            , "Z Add 01"
+                            , "Dead") ~ 0
+             , CONDITION %in%c('Dead', "Stump", "Absent") ~ 0
+             , .default = 1)) #keep dead and stump now?
 
-perc_filled<-site_status %>% 
+perc_filled <-
+  site_status %>% 
   group_by(CSA2020, tree_present) %>%
-  summarise(n=length(Species)) %>% 
-  pivot_wider(id_cols=CSA2020, names_from=tree_present, values_from=n, names_prefix="T") %>% 
-  mutate(totsites=T1+T0,
-         percent_filled=(T1/totsites)*100)
+  summarise(n= length(Species)) %>% 
+  pivot_wider(  id_cols = CSA2020
+              , names_from = tree_present
+              , values_from = n
+              , names_prefix = "T") %>% 
+  mutate(  totsites = T1 + T0
+         , percent_filled=(T1/totsites)*100)
 
 ```
 
 #6 Potential Sites
 ```{r}
-vacant_potential <- clean %>% 
-  filter(Species=='Vacant Site'|Species=='Vacant Potential'|Species=='Stump'|Species=='NA'|Species=="Z Add 01"|Species=="Dead")%>% #Stumps and dead no longer considered vacant?
-  mutate(vacant_present=1) %>%   #for each vacant potential site present column with 1 
+vacant_potential <- 
+  clean %>% 
+  filter(
+      Species=='Vacant Site'
+    | Species=='Vacant Potential'
+    | Species=='Stump'
+    | Species=='NA'
+    | Species=="Z Add 01"
+    | Species=="Dead") %>% #Stumps and dead no longer considered vacant? 
+  mutate(vacant_present = 1) %>%   #for each vacant potential site present column with 1 
   group_by(CSA2020) %>% 
-  summarize(sum_vacant_present =sum(vacant_present)) 
+  summarize(sum_vacant_present = sum(vacant_present)) 
 
 
 ```
 
 #7 Total Trees
 ```{r}
-NBTotal <-no_vacant %>% 
+NBTotal <-
+  no_vacant %>% 
   group_by(CSA2020) %>% 
   summarize(total_trees =sum(present)) %>% 
   select(total_trees, CSA2020)
@@ -139,12 +165,14 @@ NBTotal <-no_vacant %>%
 #8 Percent Filled + Total Sites 
 ```{r}
 
-total_sites <- vacant_potential %>% 
+total_sites <- 
+  vacant_potential %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
   mutate(all_sites = sum_vacant_present + total_trees) %>% 
   select(CSA2020, all_sites, total_trees)
 
-percfilled <- total_sites %>% 
+percfilled <- 
+  total_sites %>% 
   mutate(percent_filled = 100*(total_trees/all_sites)) %>% 
   select(CSA2020, percent_filled)
 
@@ -166,9 +194,10 @@ ggplot(total_sites, aes(total_trees)) +
 #9 Total Abundance by neighborhood
 ```{r}
 #need to exclude unknown trees
-NBabund <-site_status %>% 
-  filter(tree_present==1) %>% 
-  filter(Species != "unk999"& Species!='unknown shrub') %>% 
+NBabund <-
+  site_status %>% 
+  filter(tree_present == 1) %>% 
+  filter(Species != "unk999" & Species!= 'unknown shrub') %>% 
   group_by(CSA2020, Species) %>% 
   summarize(abund=length(Species)) %>% 
   select(CSA2020, Species, abund) 
@@ -181,7 +210,8 @@ richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, 
 
 
 #norm by total trees
-rich_tot <- richeven %>% 
+rich_tot <-
+  richeven %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
   mutate(rich_tot = richness/total_trees) %>% 
   select(CSA2020, rich_tot, Evar)
@@ -189,9 +219,10 @@ rich_tot <- richeven %>%
 
 #11 Beta Diversity
 ```{r}
-winbeta <- read_csv('../../BaltimoreStreetTreeProject/input_data/winbeta.csv')
+winbeta <- read_csv('../BaltimoreStreetTreeProject/input_data/winbeta.csv')
 
-betadiv <- winbeta %>% 
+betadiv <- 
+  winbeta %>% 
   select(CSA2020, spave)
 ```
 
@@ -207,34 +238,39 @@ missingSPP <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/MissingSpp.c
 size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
   mutate(Species = paste(`Genus Name`, `Species Name`, sep = " " )) %>% 
   select(`Size Class`, Species) %>% 
-    rbind(missingSPP)
+  rbind(missingSPP)
 
-street_tree_size_classes <- no_vacant %>% 
+street_tree_size_classes <- 
+  no_vacant %>% 
   left_join(size_classes, by = "Species") 
 
 #list of species with no size class in iTree data
-unclassified_species <- street_tree_size_classes %>%
+unclassified_species <- 
+  street_tree_size_classes %>%
   filter(is.na(`Size Class`)) %>% 
   distinct(Species)
 
 #small trees
-AvgDBH_small <- street_tree_size_classes %>% 
+AvgDBH_small <- 
+  street_tree_size_classes %>% 
   filter(`Size Class` == "Small") %>% 
-  select(CSA2020,DBH)%>% 
+  select(CSA2020,DBH) %>% 
   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
   group_by(CSA2020) %>% 
   summarise(AvgDBH_small = mean(DBH_SI), .groups = 'drop')
 
 #medium trees
-AvgDBH_med <- street_tree_size_classes %>% 
+AvgDBH_med <-
+  street_tree_size_classes %>% 
   filter(`Size Class` == "Medium") %>% 
-  select(CSA2020,DBH)%>% 
+  select(CSA2020,DBH) %>% 
   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
   group_by(CSA2020) %>% 
   summarise(AvgDBH_med = mean(DBH_SI), .groups = 'drop')
 
 #large trees
-AvgDBH_large <- street_tree_size_classes %>% 
+AvgDBH_large <- 
+  street_tree_size_classes %>% 
   filter(`Size Class` == "Large") %>% 
   select(CSA2020,DBH)%>% 
   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
@@ -254,7 +290,8 @@ AvgDBH_large <- street_tree_size_classes %>%
 ```{r}
 
 #this is at the tree level, our other calculations are at the nb level
-pit_size <- clean %>% 
+pit_size <- 
+  clean %>% 
   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH)) 
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
          ) %>% 
@@ -269,13 +306,14 @@ ggplot(pit_size, aes(x=pit_area)) + geom_histogram()
 cor.test(pit_size$pit_area, pit_size$DBH)
 # r=0.342
 
-large_pit <- pit_size %>% 
+large_pit <- 
+  pit_size %>% 
   mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% 
   group_by(CSA2020, size_threshhold) %>% 
-  summarize(n=length(size_threshhold)) %>% 
+  summarize(n = length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
   left_join(total_sites, by = "CSA2020") %>% 
-  mutate(Perc2.97 = greater/all_sites*100) %>% 
+  mutate(Perc2.97 = greater / all_sites*100) %>% 
   select(CSA2020, Perc2.97)
 
 
@@ -285,20 +323,22 @@ large_pit <- pit_size %>%
 ```{r}
 #sum for each condition in a neighborhood
 #pivot
-condition <- clean %>%
+condition <- 
+  clean %>%
   group_by(CSA2020, CONDITION) %>% 
   summarize(n=length(CONDITION)) %>% 
   pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0) %>% 
-  select(CSA2020,Dead,Fair,Good,Poor,Stump)
+  select(CSA2020, Dead ,Fair ,Good, Poor ,Stump)
 
 # numeric condition
-condition_grade <- no_vacant %>% 
-  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") %>% 
+condition_grade <- 
+  no_vacant %>% 
+  filter(CONDITION!="Sprout" & CONDITION!="Sprouts") %>% 
   mutate(grade = 
-  case_when(
-    CONDITION == "Poor" ~ 1,
-    CONDITION == "Fair" ~ 2,
-    CONDITION == "Good" ~ 3,
+           case_when(
+               CONDITION == "Poor" ~ 1
+             , CONDITION == "Fair" ~ 2
+             , CONDITION == "Good" ~ 3
     )) %>% 
   select(CSA2020,grade) 
 
@@ -309,11 +349,11 @@ condition_grade <- no_vacant %>%
 ```{r}
 
 no_vacant |> 
-  filter(CONDITION!="Sprout"&CONDITION!="Sprouts") |>
+  filter(CONDITION != "Sprout" & CONDITION != "Sprouts") |>
    mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
-         , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
-         , pit_area   = length*width
-         ) |>
+          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
+          , pit_area   = length*width
+          ) |>
   ggplot(aes(CONDITION, pit_area)) +
   geom_boxplot()
   
@@ -321,7 +361,8 @@ no_vacant |>
 
 #16 % good/poor trees
 ```{r}
-perc_condition <- NBTotal %>% 
+perc_condition <- 
+  NBTotal %>% 
   left_join(condition, by = "CSA2020") %>% 
   mutate(PercGood = 100*(Good/total_trees)) %>% 
   mutate(PercPoor = 100*((Poor)/total_trees)) %>% 

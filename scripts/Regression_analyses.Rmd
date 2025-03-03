@@ -38,15 +38,16 @@ This file will conduct correlational analyses on combined data of demographics a
 ```{r include=FALSE}
 
 # # Dexter
-# Dependent <- read_csv('input_data/Dependent_variable.csv')
-# Independent<- read_csv('input_data/Independent_variable.csv')
+Dependent <- read_csv('input_data/Dependent_variable.csv')
+Independent<- read_csv('input_data/Independent_variable.csv')
 
 
 # Trini
 Dependent <- read_csv('../input_data/Dependent_variable.csv')
 Independent<- read_csv('../input_data/Independent_variable.csv')
 
-Combined <- Dependent %>% 
+Combined <- 
+  Dependent %>% 
   left_join(Independent, by = "CSA2020") %>% 
   drop_na(CSA2020) |> 
   filter(CSA2020 != "Unassigned -- Jail") |> 
@@ -102,8 +103,13 @@ neighs <-
     
     # ids
     , CSA2020
-    )
+    ) %>%
+  mutate(area_km2 = st_area(.) / 1e+6)
 
+Combined |> 
+  select(CSA2020 : total_trees, sum_road_length_ft) |> 
+  left_join(neighs |> select(CSA2020, area_km2), by = 'CSA2020') |> 
+  correlation::correlation()
 
 ```
 
