@@ -32,70 +32,69 @@ list.files('../BaltimoreStreetTreeProject_Large_Data/')
 list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
-# 1 read in street tree data 
+# 1 read in street tree data and combine with neighborhoods
 ```{r include=FALSE}
-street_tree <- 
-  st_read('../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp', as_tibble = TRUE) %>% 
-  filter(LOC_TYPE == "Street") 
-```
-
-# 2 combine with BNIA neighborhood boundaries
-```{r include=FALSE}
-bmore_bnia <- st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> #BNIA community delineations
+bmore_bnia <- 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> #BNIA community delineations
   st_make_valid() |>
   st_transform(crs = st_crs(street_tree))
 
-
-  street_tree %>%
-  st_join(bmore_bnia) %>%
+  st_read('../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp', as_tibble = TRUE) %>% 
+  filter(LOC_TYPE == "Street") |> 
+  st_join(bmore_bnia |> select(CSA2020)) %>%
   st_drop_geometry() |> 
-  write_csv(paste0('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv'))
+  write_csv(paste0('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_'
+                   , Sys.Date()
+                   , '.csv'))
 ```
 
-#3 Read in street tree + neighborhood file
+# 2 Read in street tree + neighborhood file
 ```{r}
 bnia_street_tree <-
-  read_csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+  # read_csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2025-03-05.csv')
 ```
 
-#4 Clean combined data
+# 3 Clean combined data
 ```{r}
 clean <- 
   bnia_street_tree %>% 
-  select(-ID,-OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
-  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% mutate(Species=case_when(
-    SPP=='Acer spp.' ~ 'unk999'
-    ,SPP=='Amelanchier spp.' ~ 'Amelanchier canadensis'
-    ,SPP=='Carya spp.' ~ 'unk999'
-    ,SPP=='Chamaecyparis spp.' ~ 'unk999'
-    ,SPP=='Cornus spp.' ~ 'unk999'
-    ,SPP=='Crataegus spp.' ~ 'Crataegus laevigata'
-    ,SPP=='Euonymus spp.'~ 'unknown shrub'
-    ,SPP=='Ficus spp.' ~ 'unk999'
-    ,SPP=='Fraxinus spp.' ~ 'unk999'
-    ,SPP=='Hydrangea spp.' ~ 'unknown shurb'
-    ,SPP=='Ilex spp.' ~ 'unk999'
-    ,SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
-    ,SPP=='Juniperus spp.' ~ 'unk999'
-    ,SPP=='Lonicera spp.' ~ 'unknown shrub'
-    ,SPP=='Magnolia spp.' ~ 'unk999'
-    ,SPP=='Magnolia x' ~ 'Magnolia x soulangiana'
-    ,SPP=='Malus spp.' ~ 'Malus sylvestris'
-    ,SPP=='Photinia spp.' ~ 'unknown shrub'
-    ,SPP=='Picea spp.' ~ 'unk999'
-    ,SPP=='Populus spp.' ~ 'unk999'
-    ,SPP=="Prunus spp." ~ 'AssignPrunus'
-    ,SPP=='Quercus spp.' ~ 'unk999'
-    ,SPP=='Quercus x' ~ 'unk999'
-    ,SPP=='Rhus spp.' ~ 'unk999'
-    ,SPP=='Salix spp.' ~ 'unk999'
-    ,SPP=='Taxus spp.' ~ 'Taxus baccata'
-    ,SPP=='Thuja spp.' ~ 'Thuja occidentalis'
-    ,SPP=='Ulmus spp.' ~ 'unk999'
-    ,SPP=='Ulmus x' ~ 'Ulmus hybrid'
-    ,SPP=='Viburnum spp.' ~ 'unknown shrub'
-    ,SPP=='unknown shrub' ~ 'unknown shrub'
-    ,.default = SPP ), .after='SPP') %>% 
+  select(-ID, -OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>%
+  mutate(Species=case_when(
+     SPP=='Acer spp.' ~ 'unk999'
+    , SPP=='Amelanchier spp.' ~ 'Amelanchier canadensis'
+    , SPP=='Carya spp.' ~ 'unk999'
+    , SPP=='Chamaecyparis spp.' ~ 'unk999'
+    , SPP=='Cornus spp.' ~ 'unk999'
+    , SPP=='Crataegus spp.' ~ 'Crataegus laevigata'
+    , SPP=='Euonymus spp.'~ 'unknown shrub'
+    , SPP=='Ficus spp.' ~ 'unk999'
+    , SPP=='Fraxinus spp.' ~ 'unk999'
+    , SPP=='Hydrangea spp.' ~ 'unknown shurb'
+    , SPP=='Ilex spp.' ~ 'unk999'
+    , SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
+    , SPP=='Juniperus spp.' ~ 'unk999'
+    , SPP=='Lonicera spp.' ~ 'unknown shrub'
+    , SPP=='Magnolia spp.' ~ 'unk999'
+    , SPP=='Magnolia x' ~ 'Magnolia x soulangiana'
+    , SPP=='Malus spp.' ~ 'Malus sylvestris'
+    , SPP=='Photinia spp.' ~ 'unknown shrub'
+    , SPP=='Picea spp.' ~ 'unk999'
+    , SPP=='Populus spp.' ~ 'unk999'
+    , SPP=="Prunus spp." ~ 'AssignPrunus'
+    , SPP=='Quercus spp.' ~ 'unk999'
+    , SPP=='Quercus x' ~ 'unk999'
+    , SPP=='Rhus spp.' ~ 'unk999'
+    , SPP=='Salix spp.' ~ 'unk999'
+    , SPP=='Taxus spp.' ~ 'Taxus baccata'
+    , SPP=='Thuja spp.' ~ 'Thuja occidentalis'
+    , SPP=='Ulmus spp.' ~ 'unk999'
+    , SPP=='Ulmus x' ~ 'Ulmus hybrid'
+    , SPP=='Viburnum spp.' ~ 'unknown shrub'
+    , SPP=='unknown shrub' ~ 'unknown shrub'
+    , .default = SPP )
+    , .after='SPP') %>% 
   mutate(Species = ifelse(  Species=='AssignPrunus'  # this is to randomly assign prunus
                           , sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis')
                                    , size = bnia_street_tree %>% 
@@ -106,7 +105,7 @@ clean <-
 
 ```
 
-#5 Filter tree data for only present tree species
+# 4 Filter tree data for only present tree species
 ```{r include=FALSE}
 site_status <- 
   clean %>% 

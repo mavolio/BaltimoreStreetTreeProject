@@ -38,17 +38,19 @@ lc@data@attributes
 #   st_transform(crs = st_crs(lc))
 
 bmore_nb <- 
-  st_read("../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp") |> 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> 
+  st_make_valid() |> 
+  # st_read("../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp") |> 
   # st_make_valid() |> 
   st_transform(crs = st_crs(lc))
 
 # tictoc::tic(); for(i in bmore_nb$Name){
-tictoc::tic(); for(i in bmore_nb$Community){
+tictoc::tic(); for(i in bmore_nb$CSA2020){
   print(i)
   
   vals <- 
     # terra::mask(terra::crop(lc, bmore_nb |> filter(Name == i)), bmore_nb |> filter(Name == i)) |> 
-    terra::mask(terra::crop(lc, bmore_nb |> filter(Community == i)), bmore_nb |> filter(Community == i)) |> 
+    terra::mask(terra::crop(lc, bmore_nb |> filter(CSA2020 == i)), bmore_nb |> filter(CSA2020 == i)) |> 
     raster::getValues()
   
   vals |>
@@ -74,14 +76,15 @@ tictoc::tic(); for(i in bmore_nb$Community){
              ) |> 
     select(id, n, lc_class) |>  # names should be id, n, lc_class
     # readr::write_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs.csv' # TODO move to regular folder
-    readr::write_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia.csv' # TODO move to regular folder
+    readr::write_csv(paste0('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia_', Sys.Date(), '.csv') # TODO move to regular folder
                        , append = TRUE)
     }; tictoc::tic()
 
 # read neighborhood land cover summaries in long-form
 (test <- 
     # read_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs.csv' # TODO and update here.
-    read_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia.csv' # TODO and update here.
+    # read_csv('../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia.csv' # TODO and update here.
+    read_csv("../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia_2025-03-05.csv"
              , col_names = c('id', 'n', 'lc_class')) |> 
     tidylog::filter(lc_class != 0) |> 
     tidylog::filter(!is.na(lc_class)) |> 

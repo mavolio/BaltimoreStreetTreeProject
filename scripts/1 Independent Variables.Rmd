@@ -41,16 +41,15 @@ Read in BNIA csv files with demographic data
 #   select(CSA2020, phisp20) %>% 
 #   rename(PercLatino = phisp20)
 
-
 PercentBlk <- 
-  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
   select(CSA2020, paa20) %>% 
   rename(PercBlk = paa20)
 
 ggplot(data = PercentBlk, aes(x = PercBlk)) + geom_histogram()
 
 PercentWhite <- 
-  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
   select(CSA2020, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
 
@@ -60,7 +59,7 @@ ggplot(data = PercentWhite, aes(x = PercWhite)) + geom_histogram()
 #2 Median income
 ```{r}
 Income <- 
-  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/Median_Household_Income.csv') %>% 
   select(CSA2020, mhhi20) 
 
 ggplot(data = Income, aes(x = mhhi20)) + geom_histogram()
@@ -69,7 +68,7 @@ ggplot(data = Income, aes(x = mhhi20)) + geom_histogram()
 #3 Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
-  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
   select(CSA2020, bahigher20) 
 
 ```
@@ -79,23 +78,24 @@ Edu <-
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
     read_csv('input_data/NB_af_temp_2024-05-07.csv' 
-             , col_names = c('CSA2020', 'avg_temp', 'n_pixel'))
+             , col_names = c('CSA2020', 'avg_temp', 'n_pixel')) |> 
+   select(-n_pixel)
 )
-
-NBtemperature <- temperature_by_neigh %>% 
-  select(-n_pixel)
+  
 ```
 
 #5 % Vacant and abandoned residential properties
 ```{r}
 PercVacant <- 
-  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
   select(CSA2020, vacant20)
 ```
 
 #6 Land Cover BNIA total NB area
 ```{r}
-LandCover <- read_csv('../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
+LandCover <- 
+  # read_csv('../BaltimoreStreetTreeProject_Large_Data/neighs_bnia.csv'
+  read_csv("../BaltimoreStreetTreeProject_Large_Data/lc_neigh_summaries/neighs_bnia_2025-03-05.csv"
            , col_names = c('CSA2020'
                            , 'n'
                            , 'lc_class')) %>%
@@ -125,53 +125,89 @@ PercentLand <- LandCover %>%
 
 #9 Population Density
 ```{r}
-TotalPop <- 
-  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>%
-  select(CSA2020, tpop20)
+# TotalPop <- 
+#   read_csv('../BaltimoreStreetTreeProject_Large_Data/Total_Population.csv') %>%
+#   select(CSA2020, tpop20)
+# 
+# PopDensity <- LandCover %>% 
+#   left_join(TotalPop) %>%  
+#   mutate(PopDensity = tpop20/total_area_in_pixels) %>% 
+#   select(CSA2020, PopDensity)
 
-PopDensity <- LandCover %>% 
-  left_join(TotalPop) %>%  
-  mutate(PopDensity = tpop20/total_area_in_pixels) %>% 
+TotalPop <- readxl::read_xlsx('/Users/dlocke/VPRM/input_data/CSA/CSA Data 2020 and 2021.xlsx') |> 
+  select(CSA2020, tpop20 = `Total Population`)
+
+bmore_bnia <- 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> 
+  st_make_valid()
+
+PopDensity <- 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> 
+  mutate(CSA2020 = ifelse(CSA2020 == 'Oliver/Johnston Square', 'Oliver/Johnson Square', CSA2020)) %>% 
+  mutate(area_m2 = as.double(st_area(.))) |> 
+  left_join(TotalPop, by = 'CSA2020')  |> 
+  mutate(PopDensity = tpop20/area_m2) |> 
   select(CSA2020, PopDensity)
+
 ```
 
 #10 Street Length
 ```{r}
 
-bmore_bnia <- st_read('../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
-  st_make_valid()
+# bmore_bnia <- st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+#   st_make_valid()
 
+bmore_bnia
+city_clipper <- bmore_bnia |> st_buffer(5) |> summarise() |> st_make_valid()
+city_clipper |> mapview()
 
+# added various performance improvements
 roads <- 
-  st_read('../BaltimoreStreetTreeProject_Large_Data\\Baltimore Roads/MDOT_Know_Your_Roads.shp'
-, as_tibble = TRUE) %>% 
-   st_make_valid() |> 
-   st_transform(crs = st_crs(bmore_bnia))
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Baltimore Roads/MDOT_Know_Your_Roads.shp'
+, as_tibble = TRUE) |> 
+  select(COUNTY_NAM) |> 
+  st_zm(drop = TRUE) |>
+  st_transform(crs = st_crs(bmore_bnia)) |> 
+  st_make_valid() |>
+  st_intersection(city_clipper) %>% # go from state extent to city plus a little
+  mutate(road_length_m = as.double(st_length(.)))
 
-NBRoads <- bmore_bnia %>%
-  select(CSA2020, Community) %>% 
-  st_intersection(roads %>% mutate(road_length_ft = as.double(st_length(.)))) %>% 
-  st_drop_geometry() %>% 
-  group_by(CSA2020) %>% 
-  summarize(sum_road_length_ft = sum(road_length_ft)) %>% 
-  mutate(road_length_m = sum_road_length_ft * 0.3048)#convert to meters/SI
+# 2x check
+roads |> mapview()
+
+# kinda slow.
+tictoc::tic(); NBRoads <- 
+  bmore_bnia  |> 
+  select(CSA2020) |> 
+  st_intersection(roads) |> 
+  st_drop_geometry() |>  
+  group_by(CSA2020) |> 
+  summarize(sum_road_length_m = sum(road_length_m)); tictoc::toc() # ~3.5 mins
 
 ```
 
 # join all independent variables 
 ```{r}
-IndVar <- PercentBlk %>% 
+IndVar <- 
+  PercentBlk %>% 
   left_join(PercentWhite, by = "CSA2020") %>%
   left_join(Income, by = "CSA2020") %>%
   left_join(Edu, by = "CSA2020") %>%  
-  left_join(NBtemperature, by = "CSA2020") %>% 
+  left_join(temperature_by_neigh, by = "CSA2020") %>% 
   left_join(PercVacant, by = "CSA2020") %>% 
   left_join(PercentLand, by = "CSA2020") %>% 
   left_join(PopDensity, by = "CSA2020") %>% 
   left_join(NBRoads, by = "CSA2020") %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
-  
-write_csv(IndVar,'input_data/Independent_variable.csv')  
+
+IndVar |> summary()
+IndVar |> map(~sum(is.na(.))) |> 
+  bind_rows() |> 
+  t() 
+
+IndVar |> 
+  st_drop_geometry() |> 
+  write_csv(paste0('input_data/Independent_variable_', Sys.Date(), '.csv'))  
 ```
 
 # Descriptive Statistics
