@@ -155,9 +155,10 @@ vacant_potential <-
 #7 Total Trees
 ```{r}
 NBTotal <-
-  no_vacant %>% 
+  clean %>% 
   group_by(CSA2020) %>% 
-  summarize(total_trees =sum(present)) %>% 
+  # summarize(total_trees =sum(present)) %>% 
+  summarize(total_trees = n()) %>% 
   select(total_trees, CSA2020)
 ```
 
@@ -170,16 +171,16 @@ total_sites <-
   mutate(all_sites = sum_vacant_present + total_trees) %>% 
   select(CSA2020, all_sites, total_trees)
 
-percfilled <- 
-  total_sites %>% 
-  mutate(percent_filled = 100*(total_trees/all_sites)) %>% 
-  select(CSA2020, percent_filled)
-
-percfilled %>% 
-  ggplot(aes(percent_filled) ) +
-  geom_density()
-
-total_sites %>% summary()
+# percfilled <- 
+#   total_sites %>% 
+#   mutate(percent_filled = 100*(total_trees/all_sites)) %>% 
+#   select(CSA2020, percent_filled)
+# 
+# percfilled %>% 
+#   ggplot(aes(percent_filled) ) +
+#   geom_density()
+# 
+# total_sites %>% summary()
 
 #histogram
 ggplot(total_sites, aes(all_sites)) +
