@@ -28,8 +28,8 @@ library(janitor)
 
 getwd()
 list.files()
-list.files('../../BaltimoreStreetTreeProject_Large_Data/')
-list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+list.files('../BaltimoreStreetTreeProject_Large_Data/')
+list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
 # 1 read in street tree data 
@@ -49,7 +49,7 @@ bmore_bnia <- st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statis
   street_tree %>%
   st_join(bmore_bnia) %>%
   st_drop_geometry() |> 
-  write_csv(paste0('../../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv'))
+  write_csv(paste0('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv'))
 ```
 
 #3 Read in street tree + neighborhood file
@@ -234,7 +234,6 @@ betadiv <-
 
 missingSPP <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/MissingSpp.csv')
 
-#work in progress! -TF
 size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
   mutate(Species = paste(`Genus Name`, `Species Name`, sep = " " )) %>% 
   select(`Size Class`, Species) %>% 

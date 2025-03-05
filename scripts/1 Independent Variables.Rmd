@@ -19,8 +19,8 @@ library(tidylog) #makes dplyr and tidyr verbose
 #working directory
 getwd()
 list.files()
-list.files('../../BaltimoreStreetTreeProject_Large_Data/')
-list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
+list.files('../BaltimoreStreetTreeProject_Large_Data/')
+list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 
 #`%nin%` <- Negate(in)
 
@@ -43,14 +43,14 @@ Read in BNIA csv files with demographic data
 
 
 PercentBlk <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_Black_African-American_(Non-Hispanic).csv') %>% 
   select(CSA2020, paa20) %>% 
   rename(PercBlk = paa20)
 
 ggplot(data = PercentBlk, aes(x = PercBlk)) + geom_histogram()
 
 PercentWhite <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percent_of_Residents_-_White_Caucasian_(Non-Hispanic).csv') %>% 
   select(CSA2020, pwhite20) %>% 
   rename(PercWhite = pwhite20) 
 
@@ -60,7 +60,7 @@ ggplot(data = PercentWhite, aes(x = PercWhite)) + geom_histogram()
 #2 Median income
 ```{r}
 Income <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Median_Household_Income.csv') %>% 
   select(CSA2020, mhhi20) 
 
 ggplot(data = Income, aes(x = mhhi20)) + geom_histogram()
@@ -69,7 +69,7 @@ ggplot(data = Income, aes(x = mhhi20)) + geom_histogram()
 #3 Education - percent of population 25 and over with a Bachelor's Degree or above
 ```{r}
 Edu <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percent_Population_(25_Years_and_over)_with_a_Bachelor_s_Degree_or_Above.csv') %>% 
   select(CSA2020, bahigher20) 
 
 ```
@@ -78,7 +78,7 @@ Edu <-
 ```{r}
 #read in temperature by neighborhood csv 
 (temperature_by_neigh <- 
-    read_csv('../input_data/NB_af_temp_2024-05-07.csv' 
+    read_csv('input_data/NB_af_temp_2024-05-07.csv' 
              , col_names = c('CSA2020', 'avg_temp', 'n_pixel'))
 )
 
@@ -89,13 +89,13 @@ NBtemperature <- temperature_by_neigh %>%
 #5 % Vacant and abandoned residential properties
 ```{r}
 PercVacant <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Percentage_of_Residential_Properties_that_are_Vacant_and_Abandoned.csv') %>% 
   select(CSA2020, vacant20)
 ```
 
 #6 Land Cover BNIA total NB area
 ```{r}
-LandCover <- read_csv('../../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
+LandCover <- read_csv('../BaltimoreStreetTreeProject_Large_Data\\neighs_bnia.csv'
            , col_names = c('CSA2020'
                            , 'n'
                            , 'lc_class')) %>%
@@ -126,7 +126,7 @@ PercentLand <- LandCover %>%
 #9 Population Density
 ```{r}
 TotalPop <- 
-  read_csv('../../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>%
+  read_csv('../BaltimoreStreetTreeProject_Large_Data\\Total_Population.csv') %>%
   select(CSA2020, tpop20)
 
 PopDensity <- LandCover %>% 
@@ -138,12 +138,12 @@ PopDensity <- LandCover %>%
 #10 Street Length
 ```{r}
 
-bmore_bnia <- st_read('../../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
+bmore_bnia <- st_read('../BaltimoreStreetTreeProject_Large_Data\\Community_Statistical_Areas_(CSAs)__Reference_Boundaries/Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
   st_make_valid()
 
 
 roads <- 
-  st_read('../../BaltimoreStreetTreeProject_Large_Data\\Baltimore Roads/MDOT_Know_Your_Roads.shp'
+  st_read('../BaltimoreStreetTreeProject_Large_Data\\Baltimore Roads/MDOT_Know_Your_Roads.shp'
 , as_tibble = TRUE) %>% 
    st_make_valid() |> 
    st_transform(crs = st_crs(bmore_bnia))
@@ -171,7 +171,7 @@ IndVar <- PercentBlk %>%
   left_join(NBRoads, by = "CSA2020") %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail")
   
-write_csv(IndVar,'../input_data/Independent_variable.csv')  
+write_csv(IndVar,'input_data/Independent_variable.csv')  
 ```
 
 # Descriptive Statistics

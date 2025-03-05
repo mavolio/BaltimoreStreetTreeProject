@@ -37,14 +37,8 @@ This file will conduct correlational analyses on combined data of demographics a
 #1 Combine dep+ind
 ```{r include=FALSE}
 
-# # Dexter
 Dependent <- read_csv('input_data/Dependent_variable.csv')
 Independent<- read_csv('input_data/Independent_variable.csv')
-
-
-# Trini
-Dependent <- read_csv('../input_data/Dependent_variable.csv')
-Independent<- read_csv('../input_data/Independent_variable.csv')
 
 Combined <- 
   Dependent %>% 
@@ -143,7 +137,7 @@ neighs |>
     , PercBlk
     , PercWhite
     , mhhi20
-    , bahigher19
+    , bahigher20
     , avg_temp
     ) |> 
   pivot_longer(PercBlk : avg_temp) |> 
@@ -156,7 +150,7 @@ neighs |>
 m1 <- neighs |> mapview::mapview(zcol = 'PercBlk') 
 m2 <- neighs |> mapview::mapview(zcol = 'PercWhite') 
 m3 <- neighs |> mapview::mapview(zcol = 'mhhi20')
-m4 <- neighs |> mapview::mapview(zcol = 'bahigher19')
+m4 <- neighs |> mapview::mapview(zcol = 'bahigher20')
 m5 <- neighs |> mapview::mapview(zcol = 'avg_temp')
 
 
