@@ -57,6 +57,7 @@ bnia_street_tree <-
 
 # 3 Clean combined data
 ```{r}
+
 clean <- 
   bnia_street_tree %>% 
   select(-ID, -OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
@@ -154,17 +155,17 @@ vacant_potential <-
 
 #7 Total Trees
 ```{r}
-NBTotal <-
-  clean %>% 
-  group_by(CSA2020) %>% 
-  # summarize(total_trees =sum(present)) %>% 
-  summarize(total_trees = n()) %>% 
-  select(total_trees, CSA2020)
+# NBTotal <-
+#   clean %>% 
+#   group_by(CSA2020) %>% 
+#   # summarize(total_trees =sum(present)) %>% 
+#   summarize(total_trees = n()) %>% 
+#   select(total_trees, CSA2020)
 ```
 
 #8 Percent Filled + Total Sites 
 ```{r}
-
+# not sure this is needed now that perc_filled uses the pivot method
 total_sites <- 
   vacant_potential %>% 
   left_join(NBTotal, by = "CSA2020") %>% 
@@ -208,17 +209,17 @@ NBabund <-
 ```{r}
 richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020")
 
-
 #norm by total trees
 rich_tot <-
   richeven %>% 
-  left_join(NBTotal, by = "CSA2020") %>% 
+  left_join(NBTotal, by = "CSA2020") %>% # change to perc_filled
   mutate(rich_tot = richness/total_trees) %>% 
   select(CSA2020, rich_tot, Evar)
 ```
 
 #11 Beta Diversity
 ```{r}
+# where does this come from and does it need to be updated?
 winbeta <- read_csv('../BaltimoreStreetTreeProject/input_data/winbeta.csv')
 
 betadiv <- 
@@ -232,9 +233,10 @@ betadiv <-
 #created a .csv from .xlsx Nancy sent - TF
 #TO DO: PUT CSV INTO GOOGLE DRIVE
 
-missingSPP <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/MissingSpp.csv')
+missingSPP <- read_csv('../BaltimoreStreetTreeProject_Large_Data/MissingSpp.csv')
 
-size_classes <- read_csv('../../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
+size_classes <- 
+  read_csv('../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
   mutate(Species = paste(`Genus Name`, `Species Name`, sep = " " )) %>% 
   select(`Size Class`, Species) %>% 
   rbind(missingSPP)
@@ -295,14 +297,14 @@ pit_size <-
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
          ) %>% 
   mutate(  length_SI = length*0.3048 #convert to SI
-         , width_SI = width*0.3048 #convert to SI
-         , pit_area   = length*width
+         , width_SI  = width*0.3048 #convert to SI
+         , pit_area  = length*width
          ) %>% 
   select(CSA2020, pit_area, X_COORD, Y_COORD, DBH)
 
 ggplot(pit_size, aes(x=pit_area)) + geom_histogram()
 
-cor.test(pit_size$pit_area, pit_size$DBH)
+cor.test(pit_size$pit_area, pit_size$DBH) |> broom::tidy()
 # r=0.342
 
 large_pit <- 
@@ -327,7 +329,7 @@ condition <-
   group_by(CSA2020, CONDITION) %>% 
   summarize(n=length(CONDITION)) %>% 
   pivot_wider(names_from = CONDITION, values_from = n, values_fill = 0) %>% 
-  select(CSA2020, Dead ,Fair ,Good, Poor ,Stump)
+  select(CSA2020, Dead, Fair, Good, Poor, Stump)
 
 # numeric condition
 condition_grade <- 
@@ -384,8 +386,12 @@ perc_condition <-
   left_join(perc_condition, by = "CSA2020") %>% 
   left_join(large_pit, by = "CSA2020")
 
-  
-write_csv(DepVar,'../input_data/Dependent_variable.csv')  
+DepVar
+DepVar |> summary()
+
+DepVar |> 
+  write_csv(paste0('../input_data/Dependent_variable_', Sys.Date(), '.csv'))
+
 ```
 
 #Descriptive Statistics
