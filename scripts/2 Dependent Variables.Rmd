@@ -33,7 +33,11 @@ list.files('../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
 # 1 read in street tree data and combine with neighborhoods
-```{r include=FALSE}
+```{r eval=FALSE, include=FALSE}
+
+street_tree <- 
+   st_read('../BaltimoreStreetTreeProject_Large_Data/bc_forestry_trees_20190319/bc_forestry_trees_20190319.shp', as_tibble = TRUE) 
+
 bmore_bnia <- 
   st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> #BNIA community delineations
   st_make_valid() |>
@@ -137,18 +141,18 @@ perc_filled <-
 
 #6 Potential Sites
 ```{r}
-vacant_potential <- 
-  clean %>% 
-  filter(
-      Species=='Vacant Site'
-    | Species=='Vacant Potential'
-    | Species=='Stump'
-    | Species=='NA'
-    | Species=="Z Add 01"
-    | Species=="Dead") %>% #Stumps and dead no longer considered vacant? 
-  mutate(vacant_present = 1) %>%   #for each vacant potential site present column with 1 
-  group_by(CSA2020) %>% 
-  summarize(sum_vacant_present = sum(vacant_present)) 
+# vacant_potential <- 
+#   clean %>% 
+#   filter(
+#       Species=='Vacant Site'
+#     | Species=='Vacant Potential'
+#     | Species=='Stump'
+#     | Species=='NA'
+#     | Species=="Z Add 01"
+#     | Species=="Dead") %>% #Stumps and dead no longer considered vacant? 
+#   mutate(vacant_present = 1) %>%   #for each vacant potential site present column with 1 
+#   group_by(CSA2020) %>% 
+#   summarize(sum_vacant_present = sum(vacant_present)) 
 
 
 ```
@@ -165,12 +169,12 @@ vacant_potential <-
 
 #8 Percent Filled + Total Sites 
 ```{r}
-# not sure this is needed now that perc_filled uses the pivot method
-total_sites <- 
-  vacant_potential %>% 
-  left_join(NBTotal, by = "CSA2020") %>% 
-  mutate(all_sites = sum_vacant_present + total_trees) %>% 
-  select(CSA2020, all_sites, total_trees)
+# # not sure this is needed now that perc_filled uses the pivot method
+# total_sites <- 
+#   vacant_potential %>% 
+#   left_join(NBTotal, by = "CSA2020") %>% 
+#   mutate(all_sites = sum_vacant_present + total_trees) %>% 
+#   select(CSA2020, all_sites, total_trees)
 
 # percfilled <- 
 #   total_sites %>% 
@@ -184,10 +188,10 @@ total_sites <-
 # total_sites %>% summary()
 
 #histogram
-ggplot(total_sites, aes(all_sites)) +
+ggplot(perc_filled, aes(totsites)) +
   geom_histogram()
 
-ggplot(total_sites, aes(total_trees)) +
+ggplot(perc_filled, aes(percent_filled)) +
   geom_histogram()
 
 ```
