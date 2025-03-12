@@ -34,7 +34,7 @@ ggplot(data=sites, aes(x=value, y=all_sites))+
   ylab('Number of Street Tree Sites')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
-dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2025-03-05.csv')
 
 dat_trees<-dat %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% 
