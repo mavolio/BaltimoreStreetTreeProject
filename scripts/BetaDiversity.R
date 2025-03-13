@@ -50,7 +50,7 @@ dat_trees<-dat %>%
     ,SPP=='Euonymus spp.'~ 'unknown shrub'
     ,SPP=='Ficus spp.' ~ 'unk999'
     ,SPP=='Fraxinus spp.' ~ 'unk999'
-    ,SPP=='Hydrangea spp.' ~ 'unknown shurb'
+    ,SPP=='Hydrangea spp.' ~ 'unknown shrub'
     ,SPP=='Ilex spp.' ~ 'unk999'
     ,SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
     ,SPP=='Juniperus spp.' ~ 'unk999'
@@ -73,30 +73,29 @@ dat_trees<-dat %>%
     ,SPP=='Viburnum spp.' ~ 'unknown shrub'
     ,SPP=='unknown shrub' ~ 'unknown shrub'
     ,.default = SPP ), .after='SPP') %>% 
-  filter(Species!='unknown shurb'& Species!='unk999') %>% 
+  filter(Species!='unknown shrub'& Species!='unk999') %>% 
   mutate(Species = ifelse(Species=='AssignPrunus', 
                           sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis'), size=dat_trees %>% filter(Species=='AssignPrunus') %>% nrow(), replace=T),Species))
 
-
-splist<-dat %>% 
-  group_by(SPP) %>% 
-  summarize(n=length(SPP))
+#check there are no unknowns
+splist<-dat_trees %>% 
+  group_by(Species) %>% 
+  summarize(n=length(Species))
 
 sum(dat_trees$Genera)
 
 common<-dat_trees %>% 
-  group_by(SPP) %>% 
+  group_by(Species) %>% 
   summarize(n=length(DBH))
 
 subsetCSA<-dat_trees %>% 
-  select(CSA2020, SPP, Street, DBH, CONDITION, MT, TREE_HT, LOC_TYPE, CULTIVAR) %>% 
-  filter(CSA2020!="Dickeyville/Franklintown"&CSA2020!='Unassigned -- Jail')
+  select(CSA2020, Species, Street, DBH, CONDITION, MT, TREE_HT, LOC_TYPE, CULTIVAR) 
 
 
 ####within a neighborhood how similar are street trees on different blocks?
 #sums number of individuals per species per block within a NB
 nbdat<-subsetCSA %>% 
-  group_by(CSA2020, Street, SPP) %>% 
+  group_by(CSA2020, Street, Species) %>% 
   summarize(n=length(DBH)) %>% 
   filter(!is.na(CSA2020)) %>% 
   drop_na()
@@ -110,7 +109,7 @@ for (i in 1:length(nblist)){
   subset<-nbdat %>% 
     filter(CSA2020==nblist[i])
   
-  rac<-RAC_difference(subset, species.var = "SPP", abundance.var = "n", replicate.var = 'Street')%>% 
+  rac<-RAC_difference(subset, species.var = "Species", abundance.var = "n", replicate.var = 'Street')%>% 
     mutate(CSA2020=nblist[i])
   
   outrac<-outrac %>% 
@@ -121,8 +120,7 @@ for (i in 1:length(nblist)){
 ##Looking into how within NB similarity relates to independent variables
 winbeta<-outrac %>% 
   group_by(CSA2020) %>% 
-  summarize(spave=mean(species_diff), rave=mean(rank_diff)) %>% 
-  left_join(Independent) 
+  summarize(spave=mean(species_diff), rave=mean(rank_diff))
 
 write_csv(winbeta,'input_data/winbeta.csv')
 
