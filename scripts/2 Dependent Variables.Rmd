@@ -76,7 +76,7 @@ clean <-
     , SPP=='Euonymus spp.'~ 'unknown shrub'
     , SPP=='Ficus spp.' ~ 'unk999'
     , SPP=='Fraxinus spp.' ~ 'unk999'
-    , SPP=='Hydrangea spp.' ~ 'unknown shurb'
+    , SPP=='Hydrangea spp.' ~ 'unknown shrub'
     , SPP=='Ilex spp.' ~ 'unk999'
     , SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
     , SPP=='Juniperus spp.' ~ 'unk999'
@@ -110,7 +110,7 @@ clean <-
 
 ```
 
-# 4 Filter tree data for only present tree species
+# 4 Filter tree data for only present tree or shrub species
 ```{r include=FALSE}
 site_status <- 
   clean %>% 
@@ -126,8 +126,12 @@ site_status <-
              , CONDITION %in%c('Dead', "Stump", "Absent") ~ 0
              , .default = 1)) #keep dead and stump now?
 
-perc_filled <-
-  site_status %>% 
+
+```
+
+#5 get percent of potential sites that have a tree or not.
+```{r}
+perc_filled <-site_status %>% 
   group_by(CSA2020, tree_present) %>%
   summarise(n= length(Species)) %>% 
   pivot_wider(  id_cols = CSA2020
@@ -139,7 +143,7 @@ perc_filled <-
 
 ```
 
-#6 Potential Sites
+#6 Potential Sites - no longer necessary
 ```{r}
 # vacant_potential <- 
 #   clean %>% 
@@ -157,7 +161,7 @@ perc_filled <-
 
 ```
 
-#7 Total Trees
+#7 Total Trees - no longer necessary
 ```{r}
 # NBTotal <-
 #   clean %>% 
@@ -167,7 +171,7 @@ perc_filled <-
 #   select(total_trees, CSA2020)
 ```
 
-#8 Percent Filled + Total Sites 
+#8 Percent Filled + Total Sites -not longer necessary
 ```{r}
 # # not sure this is needed now that perc_filled uses the pivot method
 # total_sites <- 
@@ -196,13 +200,13 @@ ggplot(perc_filled, aes(percent_filled)) +
 
 ```
 
-#9 Total Abundance by neighborhood
+#9 Total Abundance by neighborhood with unknowns excluded
 ```{r}
-#need to exclude unknown trees
+
 NBabund <-
   site_status %>% 
   filter(tree_present == 1) %>% 
-  filter(Species != "unk999" & Species!= 'unknown shrub') %>% 
+  filter(Species != "unk999" & Species!= 'unknown shrub' & Species!='unknown tree') %>% 
   group_by(CSA2020, Species) %>% 
   summarize(abund=length(Species)) %>% 
   select(CSA2020, Species, abund) 
@@ -216,9 +220,9 @@ richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, 
 #norm by total trees
 rich_tot <-
   richeven %>% 
-  left_join(NBTotal, by = "CSA2020") %>% # change to perc_filled
-  mutate(rich_tot = richness/total_trees) %>% 
-  select(CSA2020, rich_tot, Evar)
+  left_join(perc_filled, by = "CSA2020") %>% # change to perc_filled
+  mutate(rich_totsites = richness/totsites, rich_tottree=richness/T1) %>% 
+  select(CSA2020, rich_totsites, rich_tottree, Evar)
 ```
 
 #11 Beta Diversity
@@ -243,11 +247,14 @@ size_classes <-
   read_csv('../BaltimoreStreetTreeProject_Large_Data/Size classes.csv') %>% 
   mutate(Species = paste(`Genus Name`, `Species Name`, sep = " " )) %>% 
   select(`Size Class`, Species) %>% 
-  rbind(missingSPP)
+  rbind(missingSPP) %>% 
+  unique()
 
 street_tree_size_classes <- 
-  no_vacant %>% 
+  site_status %>% 
+  filter(tree_present == 1)  %>% 
   left_join(size_classes, by = "Species") 
+  
 
 #list of species with no size class in iTree data
 unclassified_species <- 
@@ -317,8 +324,8 @@ large_pit <-
   group_by(CSA2020, size_threshhold) %>% 
   summarize(n = length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
-  left_join(total_sites, by = "CSA2020") %>% 
-  mutate(Perc2.97 = greater / all_sites*100) %>% 
+  left_join(perc_filled, by = "CSA2020") %>% 
+  mutate(Perc2.97 = greater / T1*100) %>% 
   select(CSA2020, Perc2.97)
 
 
@@ -337,7 +344,8 @@ condition <-
 
 # numeric condition
 condition_grade <- 
-  no_vacant %>% 
+  site_status %>% 
+  filter(tree_present == 1)  %>% 
   filter(CONDITION!="Sprout" & CONDITION!="Sprouts") %>% 
   mutate(grade = 
            case_when(
@@ -353,7 +361,8 @@ condition_grade <-
 #15 Condition and Pit Area
 ```{r}
 
-no_vacant |> 
+site_status |> 
+  filter(tree_present == 1)  |>
   filter(CONDITION != "Sprout" & CONDITION != "Sprouts") |>
    mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH))
           , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
@@ -367,20 +376,19 @@ no_vacant |>
 #16 % good/poor trees
 ```{r}
 perc_condition <- 
-  NBTotal %>% 
+  perc_filled %>% 
   left_join(condition, by = "CSA2020") %>% 
-  mutate(PercGood = 100*(Good/total_trees)) %>% 
-  mutate(PercPoor = 100*((Poor)/total_trees)) %>% 
-  mutate(PercDead = 100*((Dead + Stump/total_trees))) %>% 
+  mutate(PercGood = 100*(Good/T1)) %>% 
+  mutate(PercPoor = 100*((Poor)/T1)) %>% 
+  mutate(PercDead = 100*((Dead + Stump)/T1)) %>% 
   select(CSA2020, PercPoor, PercGood, PercDead)
 
 ```
 
 #17 Combine all dependent variables
 ```{r}
- DepVar <- percfilled %>% 
-  left_join(total_sites) %>%  
-  left_join(rich_tot, by = "CSA2020") %>% 
+ DepVar <- perc_filled %>% 
+    left_join(rich_tot, by = "CSA2020") %>% 
   left_join(betadiv, by = "CSA2020") %>% 
   
   left_join(AvgDBH_small, by = "CSA2020") %>% 
@@ -388,7 +396,8 @@ perc_condition <-
   left_join(AvgDBH_large, by = "CSA2020") %>% 
   
   left_join(perc_condition, by = "CSA2020") %>% 
-  left_join(large_pit, by = "CSA2020")
+  left_join(large_pit, by = "CSA2020") %>% 
+  select(-T1, -T0)
 
 DepVar
 DepVar |> summary()
