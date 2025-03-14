@@ -142,10 +142,11 @@ bmore_bnia <-
   st_make_valid()
 
 PopDensity <- 
-  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') |> 
-  mutate(CSA2020 = ifelse(CSA2020 == 'Oliver/Johnston Square', 'Oliver/Johnson Square', CSA2020)) %>% 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp') %>% 
   mutate(area_m2 = as.double(st_area(.))) |> 
-  left_join(TotalPop, by = 'CSA2020')  |> 
+  left_join(TotalPop |> 
+              mutate(CSA2020 = ifelse(CSA2020 == 'Oliver/Johnston Square', 'Oliver/Johnson Square', CSA2020)
+                     , by = 'CSA2020'))  |> 
   mutate(PopDensity = tpop20/area_m2) |> 
   select(CSA2020, PopDensity)
 
