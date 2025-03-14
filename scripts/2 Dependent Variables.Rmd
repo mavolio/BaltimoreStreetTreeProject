@@ -401,9 +401,14 @@ DepVar <- perc_filled %>%
 
 DepVar
 DepVar |> summary()
+DepVar  |> 
+ map(~sum(is.na(.))) |>
+ bind_rows() |>
+ t()
+
 
 DepVar |> 
-  write_csv(paste0('../input_data/Dependent_variable_', Sys.Date(), '.csv'))
+  write_csv(paste0('input_data/Dependent_variable_', Sys.Date(), '.csv'))
 
 ```
 
