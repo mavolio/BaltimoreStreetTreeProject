@@ -26,55 +26,43 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/')
 list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```
 
-#1 read in neighborhood boundaries
+# 1 read in variables
 ```{r}
-bmore_nb <- 
-  st_read('..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statistical_Areas_(CSAs)__Reference_Boundaries//Community_Statistical_Areas_(CSAs)__Reference_Boundaries.shp') |> #BNIA community delineations
-  st_make_valid()
-```
+Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
+Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
-#2 read in street tree + neighborhoods file
-```{r}
-bnia_street_tree <-
-  read_csv('..//..//BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+Combined <- Dependent %>% 
+  left_join(Independent, by = "CSA2020") 
+
 
 ```
 
-#3 read in dependent variables
+
+# 2 read in neighborhood boundaries and join to variables
 ```{r}
-dependmap <- read_csv('..\\..\\BaltimoreStreetTreeProject\\input_data\\Dependent_variable.csv')
-
-dependmap <- read_csv('input_data/Dependent_variable.csv')
-
- indepmap <- read_csv('..\\..\\BaltimoreStreetTreeProject\\input_data\\Independent_variable.csv')
- 
- indepmap <- read_csv('input_data/Independent_variable.csv')
-```
-
-#4 combine dep with nb boundaries to use mapview
-```{r}
-map_dep_vars <- bmore_nb |> 
-  left_join(dependmap, by = 'CSA2020')
-
-map_ind_vars <- bmore_nb |> 
-  left_join(indepmap, by = 'CSA2020')
+bmore_bnia <- 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
+          , as_tibble = TRUE) |> #BNIA community delineations
+  left_join(Combined, by = 'CSA2020') # combined st_as_sf?
 
 ```
 
-# using ggplot
+
+
 
 #5 Stocking
 ```{r}
-A <- ggplot(data = map_dep_vars) + 
+A <- ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = percent_filled)) + 
   scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw() +
   guides(fill = guide_legend(title = "Stocking"))
   
 ```
 
-#6 Target Pit Size
+#6 Target Pit Size 
 ```{r}
-B <- ggplot(data = map_dep_vars) + 
+# fixme Perc2.97
+B <- ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = Perc32)) + 
   scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_bw()+
   guides(fill = guide_legend(title = "Target Pit Size"))
@@ -82,7 +70,8 @@ B <- ggplot(data = map_dep_vars) +
 
 #7 Showy 
 ```{r}
-C <- ggplot(data = map_dep_vars) + 
+# fixme AvgDBH_smallmed
+C <- ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = PercShowy)) + 
   scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw()+
   guides(fill = guide_legend(title = "Percent Showy"))
@@ -90,7 +79,8 @@ C <- ggplot(data = map_dep_vars) +
 
 #8 richness 
 ```{r}
-D <- ggplot(data = map_dep_vars) + 
+# fixme AvgDBH_large
+D <- ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = rich_tot)) + 
   scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw() +
   guides(fill = guide_legend(title = "Richness"))
@@ -98,7 +88,7 @@ D <- ggplot(data = map_dep_vars) +
 
 #9 perc poor
 ```{r}
-E <- ggplot(data = map_dep_vars) + 
+E <- ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = PercPoor)) + 
   scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_bw()+
   guides(fill = guide_legend(title = "Poor Condition"))
@@ -106,7 +96,8 @@ E <- ggplot(data = map_dep_vars) +
 
 #10 average DBH
 ```{r}
-F <- ggplot(data = map_dep_vars) + 
+# fixme rich_tottree
+F <- ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH)) + 
   scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw() +
   guides(fill = guide_legend(title = "Average DBH"))

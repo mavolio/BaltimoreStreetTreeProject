@@ -36,15 +36,13 @@ var_names <- as_labeller(
 
 var_names_2 <- as_labeller(
      c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`Perc2.97` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rich_tot` = "Richness", `PercDead` ="Dead Stock"))
-
-# https://docs.google.com/document/d/1E7EOOMfruCCCPvQYKnoOsspO_ls1wjsZvy91BuC8Rqk/edit?tab=t.0
 ```
 
 #1 Combined dep+ind
 ```{r include=FALSE}
 
-Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
-Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
+Dependent <- read_csv('input_data/Dependent_variable.csv')
+Independent<- read_csv('input_data/Independent_variable.csv')
 
 Combined <- Dependent %>% 
   left_join(Independent, by = "CSA2020") 
@@ -53,32 +51,32 @@ Combined <- Dependent %>%
 
 #2 All p values and correlations
 ```{r include=FALSE}
-#  
+ 
 #empty df to store results
 cor_results <- data.frame()
 
 # Get names of all variables in df
 
-Vars <- Combined %>%
-  select(where(is.numeric))
+Vars <- Combined %>% 
+  select(where(is.numeric)) 
 
 variables <- names(Vars)
 
 # Loop through all combinations of variables
 for (i in 1:(length(variables) - 1)) {
   for (j in (i + 1):length(variables)) {
-
+    
     # Extract the two variables for the current combination
     var1 <- Vars[[variables[i]]]
     var2 <- Vars[[variables[j]]]
-
+    
     # Run correlation test
     cor_test_result <- cor.test(var1, var2)
-
+    
     # Extract correlation coefficient and p-value
     correlation_coefficient <- cor_test_result$estimate
     p_value <- cor_test_result$p.value
-
+    
     # Create a row for the results dataframe
     result_row <- data.frame(
       Variable1 = variables[i],
@@ -86,7 +84,7 @@ for (i in 1:(length(variables) - 1)) {
       CorrelationCoefficient = correlation_coefficient,
       PValue = p_value
     )
-
+    
     # Bind row to results df
     cor_results <- rbind(cor_results, result_row)
   }
@@ -99,21 +97,12 @@ print(cor_results)
 # # like this
 # correlation::correlation(Vars)
 # 
-# # or like this,
-# cors <-
-#   Combined |>
-#   select(where(is.numeric)) |>
-#   correlation::correlation() 
-# 
-# cors |>
-#   filter(p < 0.05) |>
-#   summary()
-# 
-# 
-# Combined %$% cor.test(mhhi20, percent_filled)
-# Combined |>
-#   select(mhhi20, percent_filled) |>
-#   correlation::correlation() 
+# # # or like this,
+# pvalues <- 
+# Combined |> 
+#   select(where(is.numeric)) |> 
+#   correlation::correlation() |>
+#   tibble() # can add this 
 ```
 
 #3 Filtered p < 0.05
@@ -187,12 +176,12 @@ view(stocking_r2)
 #6 Richness
 ```{r}
 richtot_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "rich_tottree" | Variable2 == "rich_tottree")
+  filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
 
 view(richtot_r)
 
 richtot_r2 <- p_filtered_0.001 %>% 
-  filter(Variable1 == "rich_tottree" | Variable2 == "rich_tottree")
+  filter(Variable1 == "rich_tot" | Variable2 == "rich_tot")
 
 view(richtot_r2)
 ```
@@ -225,48 +214,48 @@ betadiv_r2 <- p_filtered_0.001 %>%
 view(betadiv_r2)
 ```
 
-#9 Small and Medium DBH
+#9 Small DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 small_dbh_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "AvgDBH_smallmed" | Variable2 == "AvgDBH_smallmed")
+  filter(Variable1 == "AvgDBH_small" | Variable2 == "AvgDBH_small")
 
 view(small_dbh_r)
-# 
-# dbh_plot <- Combined |> 
-#   tidylog::select(
-#                     AvgDBH_small  # depend 
-#                   , PercBlk
-#                   , avg_temp
-#                   ) |> 
-#   pivot_longer(-AvgDBH) |> 
-#   ggplot(aes(value, AvgDBH)) + 
-#   geom_point() +
-#   geom_smooth(method = 'lm') + # forces a linear model
-#   facet_wrap(~name, scales = 'free_x'
-#              , ncol = 2, labeller = var_names
-#              ) +
-#   labs(
-#         x = 'Predictor'
-#        , y = 'Small Average DBH'
-#        ) + 
-#   
-#   theme_bw() +
-#   theme(panel.grid=element_blank(),
-#         text=element_text(size=20)) +
-#   NULL
-# 
-# dbh_r2 <- p_filtered_0.001 %>% 
-#   filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
-# 
-# view(dbh_r2)
+
+dbh_plot <- Combined |> 
+  tidylog::select(
+                    AvgDBH_small  # depend 
+                  , PercBlk
+                  , avg_temp
+                  ) |> 
+  pivot_longer(-AvgDBH) |> 
+  ggplot(aes(value, AvgDBH)) + 
+  geom_point() +
+  geom_smooth(method = 'lm') + # forces a linear model
+  facet_wrap(~name, scales = 'free_x'
+             , ncol = 2, labeller = var_names
+             ) +
+  labs(
+        x = 'Predictor'
+       , y = 'Small Average DBH'
+       ) + 
+  
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        text=element_text(size=20)) +
+  NULL
+
+dbh_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "AvgDBH" | Variable2 == "AvgDBH")
+
+view(dbh_r2)
 ```
 
 #10 Medium DBH
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-# med_dbh_r <- p_filtered_0.05 %>% 
-#   filter(Variable1 == "AvgDBH_med" | Variable2 == "AvgDBH_med")
-# 
-# view(med_dbh_r)
+med_dbh_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "AvgDBH_med" | Variable2 == "AvgDBH_med")
+
+view(med_dbh_r)
 ```
 
 #11 Large DBH
@@ -330,22 +319,6 @@ perc2.97_r2 <- p_filtered_0.001 %>%
 view(perc2.97_r2)
 
 ```
-
-#16 road length
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-sum_road_length_m_r <- p_filtered_0.05 %>%
-  filter(Variable1 == "sum_road_length_m" | Variable2 == "sum_road_length_m")
-
-view(sum_road_length_m_r)
-
-# p<0.001
-sum_road_length_m_r2 <- p_filtered_0.001 %>%
-  filter(Variable1 == "sum_road_length_m" | Variable2 == "sum_road_length_m")
-
-view(sum_road_length_m_r2)
-
-```
-
 
 # r value matrix
 ```{r}
