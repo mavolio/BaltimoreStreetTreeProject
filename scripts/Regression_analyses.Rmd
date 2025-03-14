@@ -40,8 +40,10 @@ This file will conduct correlational analyses on combined data of demographics a
 Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
-Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2020") 
+Combined <- 
+  Dependent %>% 
+  left_join(Independent, by = "CSA2020") |> 
+  select(-geometry)
 
 
 Combined |> glimpse()
@@ -50,24 +52,22 @@ Combined |> glimpse()
 #2 Neighborhoods as spatial objects
 ```{r}
 
-neigh_path <- '..//..//BaltimoreStreetTreeProject_Large_Data//Community_Statistical_Areas(2020)/Community_Statistical_Areas__2020_.shp'
-
-# Dexter path
 neigh_path <- '../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
 
-# This runs now. I still need to double check all the vars are selected! - TF
 
 # https://docs.google.com/document/d/1WIrD624US7UB5cLVfrwTaP8y3QPF0mW7GIHc1mYNmf8/edit?tab=t.0
 neighs <- 
   read_sf(  neigh_path
           , as_tibble = TRUE) |> 
-  filter(CSA2020 != "Unassigned -- Jail") |> 
-  filter(CSA2020 != 'Dickeyville/Franklintown') |> 
   select(CSA2020) |> 
   left_join(Combined, by = 'CSA2020') |> 
+  drop_na() |> 
   select(
+    # ids
+    , CSA2020
+    
     # dependent variables
-      rich_tottree        # Richness normalized by total trees
+    , rich_tottree        # Richness normalized by total trees
     , Evar            # Evenness
     , AvgDBH_smallmed # Small Tree Average DBH
 #    , AvgDBH_med      # Small Tree Average DBH no longer a thing
@@ -90,9 +90,6 @@ neighs <-
     , PopDensity
     , sum_road_length_m
     , vacant20
-    
-    # ids
-    , CSA2020
     ) %>%
   mutate(area_km2 = st_area(.) / 1e+6)
 
@@ -103,7 +100,7 @@ neighs <-
 
 # 2 Exploratory Data Analyses
 ##A maps of predictors
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 
 # neighs |> 
@@ -295,92 +292,16 @@ neighs |>
 
 # bivariate regression
 ```{r}
-#     # dependent variables
-#       rich_tot        # Richness normalized by total trees
-#     , Evar            # Evenness
-#     , AvgDBH_small    # Small Tree Average DBH
-#     , AvgDBH_med      # Small Tree Average DBH
-#     , AvgDBH_large    # Small Tree Average DBH
-#     , percent_filled  # occupancy/stocking/percentage of filled sites
-#     , all_sites       # all tree sites (filled or not)
-#     , PercGood        # % of trees in good condition
-#     , PercPoor        # % trees in poor condition
-#     , PercDead        # % trees dead or stump
-#     , spave           # beta diversity
-#     , Perc2.97        # % of trees above threshold 
-#     
-#     # independent
-#     , PercBlk
-#     , PercWhite
-#     , mhhi20
-#     , bahigher20
-#     , avg_temp
-#     , PercentImp
-#     , PopDensity
-#     , road_length_m
 
-# TK Trini there are missing values 
 neighs |> 
-  select(  CSA2020
-           
-         # dependent variables
-         , rich_tottree        # Richness normalized by total trees
-         , Evar            # Evenness
-         , AvgDBH_smallmed # Small Tree Average DBH
-    #    , AvgDBH_med      # Small Tree Average DBH no longer a thing
-         , AvgDBH_large    # Large Tree Average DBH
-         , percent_filled  # occupancy/stocking/percentage of filled sites
-         , totsites        # all tree sites (filled or not)
-         , PercGood        # % of trees in good condition
-         , PercPoor        # % trees in poor condition
-         , PercDead        # % trees dead or stump
-         , spave           # beta diversity
-         , Perc2.97        # % of trees above threshold 
-             
-         # independent
-         , PercBlk
-         , PercWhite
-         , mhhi20
-         , bahigher20
-         , avg_temp
-         , PercentImp
-         , PopDensity
-         , road_length_m
-         ) |> 
   map(~sum(is.na(.))) |> 
   bind_rows() |> 
   t() # missing PercentImp, PopDensity, road_length_m
 
 mods_bi <- 
   neighs |> 
-  select(  CSA2020
-          # dependent variables
-         , rich_tot        # Richness normalized by total trees
-         , Evar            # Evenness
-         , AvgDBH_small    # Small Tree Average DBH
-         , AvgDBH_med      # Small Tree Average DBH
-         , AvgDBH_large    # Small Tree Average DBH
-         , percent_filled  # occupancy/stocking/percentage of filled sites
-         , all_sites       # all tree sites (filled or not)
-         , PercGood        # % of trees in good condition
-         , PercPoor        # % trees in poor condition
-         , PercDead        # % trees dead or stump
-         , spave           # beta diversity
-         , Perc2.97
-         
-         # independent
-         , PercBlk
-         , PercWhite
-         , mhhi20
-         , bahigher20
-         , avg_temp
-         # , PercentImp    # temporarily turned off due to missingness
-         # , PopDensity    # temporarily turned off due to missingness
-         # , road_length_m # temporarily turned off due to missingness
-         ) |> 
-  # pivot_longer(cols = PercBlk : road_length_m, names_to = 'ind', values_to = 'ind_value') |> # temporarily turned off due to missingness
-  pivot_longer(cols = PercBlk : avg_temp, names_to = 'ind', values_to = 'ind_value') |>
-  pivot_longer(cols = rich_tot : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |>
+  pivot_longer(cols = rich_tottree : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value) |> # just moving geom col to end, reorder
   group_by(ind, dep) |> 
   nest() |> 
@@ -422,11 +343,11 @@ mods_bi |>
   janitor::tabyl(sig)
 
 
-mods$ols_all_sites_smry
-mods$ols_percent_filled_smry
-mods$ols_sm_rich_tot_smry
-mods$ols_L_rich_tot_smry
-mods$ols_PercGood_smry
+# mods$ols_all_sites_smry
+# mods$ols_percent_filled_smry
+# mods$ols_sm_rich_tot_smry
+# mods$ols_L_rich_tot_smry
+# mods$ols_PercGood_smry
 
 mods_bi |>
   select(dep, ind, ols_preds) |> 
@@ -437,7 +358,9 @@ mods_bi |>
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.5) + 
   # facet_wrap(~group, scales = 'free') +
   facet_grid(dep~ind, scales = 'free') +
-  theme_bw(16) +
+  # theme_bw(16) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) +
   NULL
 
 
@@ -451,50 +374,78 @@ mods_bi_slag$data[[1]]
 
 mods_bi_slag <- 
   neighs |> 
-  select(  CSA2020
-         # , all_sites
-         , percent_filled, richness, Evar, sm_rich_tot, L_rich_tot, PercGood # dep vars
-         , PercBlk, PercWhite, mhhi20, bahigher19, avg_temp # ind vars
-         ) |> 
   mutate(
     # spatial neighbors, etc., lagged outcome variable
       nbs = st_contiguity(geometry)
     , wts = st_weights(nbs) # , allow_zero = TRUE)
-    # , list_w = map2(nbs, wts, recreate_listw)
-    , fill_lag = st_lag(percent_filled, nbs, wts)
-    , rich_lag = st_lag(richness      , nbs, wts)
-    , evar_lag = st_lag(Evar          , nbs, wts)
-    , srch_lag = st_lag(sm_rich_tot   , nbs, wts)
-    , lrch_lag = st_lag(L_rich_tot    , nbs, wts)
-    , pgood_lag= st_lag(PercGood      , nbs, wts)
-    ) |> 
+    , rich_tottree_lag    = st_lag(rich_tottree    , nbs, wts)
+    , Evar_lag            = st_lag(Evar            , nbs, wts)
+    , AvgDBH_smallmed_lag = st_lag(AvgDBH_smallmed , nbs, wts)
+    , AvgDBH_large_lag    = st_lag(AvgDBH_large    , nbs, wts)
+    , percent_filled_lag  = st_lag(percent_filled  , nbs, wts)
+    , totsites_lag        = st_lag(totsites        , nbs, wts)
+    , PercGood_lag        = st_lag(PercGood        , nbs, wts)
+    , PercPoor_lag        = st_lag(PercPoor        , nbs, wts)
+    , PercDead_lag        = st_lag(PercDead        , nbs, wts)
+    , spave_lag           = st_lag(spave           , nbs, wts)
+    , Perc2.97_lag        = st_lag(Perc2.97        , nbs, wts)
+  ) |> 
   st_drop_geometry() |> 
   select(CSA2020          # id
-         , percent_filled # dep
-         , richness
-         , Evar
-         , sm_rich_tot
-         , L_rich_tot
-         , PercGood
-         , fill_lag # lagged deps
-         , rich_lag
-         , evar_lag
-         , srch_lag
-         , lrch_lag
-         , pgood_lag
-         , PercBlk, PercWhite, mhhi20, bahigher19, avg_temp # ind vars
+         # dep 
+          , rich_tottree    
+          , Evar            
+          , AvgDBH_smallmed 
+          , AvgDBH_large    
+          , percent_filled  
+          , totsites        
+          , PercGood        
+          , PercPoor        
+          , PercDead        
+          , spave           
+          , Perc2.97     
+
+          # lagged dep
+          , rich_tottree_lag   
+          , Evar_lag           
+          , AvgDBH_smallmed_lag
+          , AvgDBH_large_lag   
+          , percent_filled_lag 
+          , totsites_lag       
+          , PercGood_lag       
+          , PercPoor_lag       
+          , PercDead_lag       
+          , spave_lag          
+          , Perc2.97_lag       
+         
+          # independent
+          , PercBlk
+          , PercWhite
+          , mhhi20
+          , bahigher20
+          , avg_temp
+          , PercentImp
+          , PopDensity
+          , sum_road_length_m
+          , vacant20
          ) |> 
-  pivot_longer(cols = PercBlk : avg_temp, names_to = 'ind', values_to = 'ind_value') |> 
-   pivot_longer(cols = fill_lag : pgood_lag, names_to = 'lag', values_to = 'lag_value') |> 
-  pivot_longer(cols = percent_filled : PercGood, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |> 
+  pivot_longer(cols = rich_tottree_lag : Perc2.97_lag, names_to = 'lag', values_to = 'lag_value') |> 
+  pivot_longer(cols = percent_filled : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value, lag, lag_value) |> # just moving geom col to end, reorder
+  # TK HERE
   filter(
-    (dep == 'percent_filled' & lag == 'fill_lag') |
-    (dep == 'richness'       & lag == 'rich_lag') |
-    (dep == 'Evar'           & lag == 'evar_lag') |
-    (dep == 'sm_rich_tot'    & lag == 'srch_lag') |
-    (dep == 'L_rich_tot'     & lag == 'lrch_lag') |
-    (dep == 'PercGood'       & lag == 'pgood_lag')
+    (dep == 'rich_tottree'    & lag == 'rich_tottree_lag')    |
+    (dep == 'Evar'            & lag == 'Evar_lag')            |
+    (dep == 'AvgDBH_smallmed' & lag == 'AvgDBH_smallmed_lag') |
+    (dep == 'AvgDBH_large'    & lag == 'AvgDBH_large_lag')    |
+    (dep == 'percent_filled'  & lag == 'percent_filled_lag')  |
+    (dep == 'totsites'        & lag == 'totsites_lag')        |
+    (dep == 'PercGood'        & lag == 'PercGood_lag')        |
+    (dep == 'PercPoor'        & lag == 'PercPoor_lag')        |
+    (dep == 'PercDead'        & lag == 'PercDead_lag')        |
+    (dep == 'spave'           & lag == 'spave_lag')           |
+    (dep == 'Perc2.97'        & lag == 'Perc2.97_lag')
     ) |> 
   group_by(ind, dep) |> 
   nest() |> 
@@ -512,13 +463,16 @@ mods_bi_slag <-
     # , ols_resid_mi = pmap(list(ols_resid, nbs, wts), global_moran_perm)
     
     # predictions
-    , ols_preds = map(ols, ggeffects::ggpredict)
+    # , ols_preds = map(ols, ggeffects::ggpredict)
     
     # 'manual' spatial lag model
     , sp_lag = map(data, ~lm(dep_value ~ lag_value + ind_value, .x))
     
     # spatial lag predictions
     , sp_lag_preds = map(sp_lag, ggeffects::ggpredict)
+    
+    # spatial lag significance
+    , sp_lag_sig = map(sp_lag, broom::tidy)
     ) |> 
   ungroup()
 
@@ -537,20 +491,42 @@ mods_bi_slag <-
 # mods$ols_L_rich_tot_smry
 # mods$ols_PercGood_smry
 
+sp_lag_sigs_tbl <-
+  mods_bi_slag |> 
+  select(dep, ind, sp_lag_sig) |> 
+  unnest(sp_lag_sig) |> 
+  filter(term == 'ind_value') |> 
+  mutate(
+    sig = 
+           case_when(
+               p.value < 0.05 & estimate > 0 ~ 'sig_pos'
+             , p.value < 0.05 & estimate < 0 ~ 'sig_neg'
+             , p.value >=0.05                ~ 'not_sig'
+             , TRUE ~ 'ERROR'
+             )
+           ) |> 
+  select(dep, ind, sig)
+
 mods_bi_slag |>
   select(dep, ind, sp_lag_preds) |> 
   unnest(sp_lag_preds) |> 
   unnest(sp_lag_preds) |> 
   filter(group != 'lag_value') |> # cut preds from neighbors
-  ggplot(aes(x, predicted)) + 
+  left_join(sp_lag_sigs_tbl, by = c('dep', 'ind')) |> 
+  ggplot(aes(x, predicted, color = sig, fill = sig)) + 
   geom_line() + 
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.5) + 
   # facet_wrap(~group, scales = 'free') +
   facet_grid(dep~ind, scales = 'free') +
-  theme_bw(16) +
+  # theme_bw(16) +
+  scale_color_manual(values = c('gray', 'red', 'blue')) +
+  scale_fill_manual(values = c('gray', 'red', 'blue')) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
+        , legend.position = 'bottom'
+        ) +
   labs(title = 'WITH Spatial lag') + 
   NULL
-
 
 ```
 
