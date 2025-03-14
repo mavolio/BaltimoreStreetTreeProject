@@ -31,8 +31,10 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
-Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2020") 
+Combined <-
+  Dependent |> 
+  left_join(Independent, by = "CSA2020") |> 
+  select(-geometry)
 
 
 ```
@@ -52,7 +54,8 @@ bmore_bnia <-
 
 #5 Stocking
 ```{r}
-A <- ggplot(data = bmore_bnia) + 
+A <- 
+  ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = percent_filled)) + 
   scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw() +
   guides(fill = guide_legend(title = "Stocking"))
@@ -62,33 +65,38 @@ A <- ggplot(data = bmore_bnia) +
 #6 Target Pit Size 
 ```{r}
 # fixme Perc2.97
-B <- ggplot(data = bmore_bnia) + 
-  geom_sf(aes(fill = Perc32)) + 
+B <-
+  ggplot(data = bmore_bnia) + 
+  geom_sf(aes(fill = Perc2.97)) + 
   scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_bw()+
-  guides(fill = guide_legend(title = "Target Pit Size"))
+  guides(fill = guide_legend(title = "Target Pit Size\nWAHTTO CALL Perc2.97"))
+
 ```
 
 #7 Showy 
 ```{r}
 # fixme AvgDBH_smallmed
-C <- ggplot(data = bmore_bnia) + 
-  geom_sf(aes(fill = PercShowy)) + 
+C <- 
+  ggplot(data = bmore_bnia) + 
+  geom_sf(aes(fill = AvgDBH_smallmed)) + 
   scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw()+
-  guides(fill = guide_legend(title = "Percent Showy"))
+  guides(fill = guide_legend(title = "change\n`AvgDBH_smallmed`\nto?"))
 ```
 
 #8 richness 
 ```{r}
 # fixme AvgDBH_large
-D <- ggplot(data = bmore_bnia) + 
-  geom_sf(aes(fill = rich_tot)) + 
+D <- 
+  ggplot(data = bmore_bnia) + 
+  geom_sf(aes(fill = AvgDBH_large)) + 
   scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw() +
-  guides(fill = guide_legend(title = "Richness"))
+  guides(fill = guide_legend(title = "AvgDBH_large is ?"))
 ```
 
 #9 perc poor
 ```{r}
-E <- ggplot(data = bmore_bnia) + 
+E <- 
+  ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = PercPoor)) + 
   scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_bw()+
   guides(fill = guide_legend(title = "Poor Condition"))
@@ -97,10 +105,11 @@ E <- ggplot(data = bmore_bnia) +
 #10 average DBH
 ```{r}
 # fixme rich_tottree
-F <- ggplot(data = bmore_bnia) + 
-  geom_sf(aes(fill = AvgDBH)) + 
+F <- 
+  ggplot(data = bmore_bnia) + 
+  geom_sf(aes(fill = rich_tottree)) + 
   scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw() +
-  guides(fill = guide_legend(title = "Average DBH"))
+  guides(fill = guide_legend(title = "rich_tottree is ???"))
 ```
 
 #11 Percent Black
@@ -116,6 +125,12 @@ ggplot(data = map_ind_vars) +
 ```{r}
 Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2, vjust =1)
 
-ggsave("Maps.jpg",width=180, height=200, unit="mm", plot=Maps, dpi=300 )
+ggsave(plot = Maps
+       , filename = paste0("Maps_", Sys.Date(), ".jpg")
+       , width=180
+       , height=200
+       , unit="mm"
+       , dpi=300 )
+
 ```
 
