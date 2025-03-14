@@ -5,37 +5,43 @@ library(gtable)
 library(grid)
 library(gridExtra)
 
-install.packages("cowplot")
 library(cowplot)
 
 getwd()
-theme_set(theme_bw(20))
+theme_set(theme_bw(12))
 
 
-Independent<- read_csv('input_data/Independent_variable.csv')
-dep<-read.csv("input_data/Dependent_variable.csv")
+Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
+dep<-read.csv("input_data/Dependent_variable_2025-03-14.csv")
 
 sites<-Independent %>% 
   left_join(dep) %>% 
-  select(CSA2020, PercBlk, PercWhite, mhhi20, bahigher20, avg_temp, vacant20, all_sites) %>%
-  pivot_longer(PercBlk:vacant20, names_to = "ind", values_to = "value")
+  select(CSA2020, totsites, PercBlk, PercWhite, mhhi20, bahigher20, avg_temp, vacant20, PercentImp, sum_road_length_m, PopDensity) %>%
+  pivot_longer(PercBlk:PopDensity, names_to = "ind", values_to = "value")
 
 labs=c('avg_temp'='Temperature',
-       'bahigher20'='Education*',
+       'bahigher20'='Education',
        'mhhi20'='Income', 
        'PercBlk'= '% Black',
        'PercWhite'= '% White', 
-       'vacant20'='% Vacant')
+       'vacant20'='% Vacant',
+       'PercentImp'='% Impervious',
+       'PopDensity'='Pop. Density',
+       'sum_road_length_m' = 'Roads*')
 
-ggplot(data=sites, aes(x=value, y=all_sites))+
+ggplot(data=sites, aes(x=value, y=totsites))+
   geom_point(size=3)+
   facet_wrap(~ind, scales='free_x', labeller = labeller(ind=labs))+
   xlab('Socio-Environmental Value')+
   ylab('Number of Street Tree Sites')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
+
+
 dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2025-03-05.csv')
 
+
+##need to run 2x to get to work, stopping before filling in the cherries
 dat_trees<-dat %>% 
   filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% 
   filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
@@ -122,11 +128,12 @@ winbeta<-outrac %>%
   group_by(CSA2020) %>% 
   summarize(spave=mean(species_diff), rave=mean(rank_diff))
 
-write_csv(winbeta,'input_data/winbeta.csv')
+#write_csv(winbeta,'input_data/winbeta.csv')
 
 #TRINI DOES STATS HERE
 
 toplot<-winbeta%>% 
+  left_join(Independent) %>% 
   pivot_longer(PercBlk:vacant20, names_to = "ind", values_to = "indval") %>% 
   pivot_longer(spave:rave, names_to = 'measure', values_to = 'measval')
 
@@ -143,7 +150,7 @@ ggplot(data=toplot, aes(x=indval, y=measval))+
 ###between neighborhoods, how similar are communities?
 ##within a NB how many inds of each species, and creates categories for independent variables
 nbmean<-subsetCSA %>% 
-  group_by(CSA2020, SPP) %>% 
+  group_by(CSA2020, Species) %>% 
   summarize(n=length(DBH)) %>% 
   left_join(Independent) %>% 
   filter(!is.na(CSA2020)) %>% 
@@ -153,12 +160,12 @@ nbmean<-subsetCSA %>%
          temp=ifelse(avg_temp>35, '>35', '=<35'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
-  pivot_wider(names_from = SPP, values_from = n, values_fill = 0) 
+  pivot_wider(names_from = Species, values_from = n, values_fill = 0) 
 
 #multivariate analyses of community composition
-mds<-metaMDS(nbmean[13:275])
+mds<-metaMDS(nbmean[17:258])
 
-nbinfo<-nbmean[1:12]
+nbinfo<-nbmean[1:16]
 
 #plotting the NMDS results
 
@@ -234,29 +241,29 @@ ggsave("FigNMDS.jpg",width=300, height=250, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time
-dist<-vegdist(nbmean[13:275])
+dist<-vegdist(nbmean[17:258])
 
 #temp
-adonis2(nbmean[13:275]~nbmean$temp)#diff in means
+adonis2(nbmean[17:258]~nbmean$temp)#diff in means
 permutest(betadisper(dist,nbmean$temp,type="centroid"))#diff in dispersion
 
 #vacant
-adonis2(nbmean[13:275]~nbmean$vac)
+adonis2(nbmean[17:258]~nbmean$vac)
 permutest(betadisper(dist,nbmean$vac,type="centroid"))
 
-#race
+0#race
 race2 <- nbmean %>% 
   filter(race!= "drop")
-dist.r<-vegdist(race2[13:275])
-adonis2(race2[13:275]~race2$race)
+dist.r<-vegdist(race2[17:258])
+adonis2(race2[17:258]~race2$race)
 permutest(betadisper(dist.r,race2$race,type="centroid"))
 
 #inc
-adonis2(nbmean[13:275]~nbmean$inc)
+adonis2(nbmean[17:258]~nbmean$inc)
 permutest(betadisper(dist,nbmean$inc,type="centroid"))
 
 #ed
-adonis2(nbmean[13:275]~nbmean$ed)
+adonis2(nbmean[17:258]~nbmean$ed)
 permutest(betadisper(dist,nbmean$ed,type="centroid"))
 
 hist(Independent$avg_temp)
