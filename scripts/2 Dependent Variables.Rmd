@@ -111,7 +111,7 @@ clean <-
 ```
 
 # 4 Filter tree data for only present tree or shrub species
-```{r include=FALSE}
+```{r}
 site_status <- 
   clean %>% 
   mutate(tree_present=
@@ -387,8 +387,8 @@ perc_condition <-
 
 #17 Combine all dependent variables
 ```{r}
- DepVar <- perc_filled %>% 
-    left_join(rich_tot, by = "CSA2020") %>% 
+DepVar <- perc_filled %>% 
+  left_join(rich_tot, by = "CSA2020") %>% 
   left_join(betadiv, by = "CSA2020") %>% 
   
   left_join(AvgDBH_small, by = "CSA2020") %>% 
