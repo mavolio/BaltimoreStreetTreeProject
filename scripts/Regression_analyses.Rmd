@@ -72,13 +72,13 @@ neighs <-
   left_join(Combined, by = 'CSA2020') |> 
   select(
     # dependent variables
-      rich_tot        # Richness normalized by total trees
+      rich_tottree        # Richness normalized by total trees
     , Evar            # Evenness
-    , AvgDBH_small    # Small Tree Average DBH
-    , AvgDBH_med      # Small Tree Average DBH
-    , AvgDBH_large    # Small Tree Average DBH
+    , AvgDBH_smallmed    # Small Tree Average DBH
+#    , AvgDBH_med      # Small Tree Average DBH no longer a thing
+    , AvgDBH_large    # Large Tree Average DBH
     , percent_filled  # occupancy/stocking/percentage of filled sites
-    , all_sites       # all tree sites (filled or not)
+    , totsites       # all tree sites (filled or not)
     , PercGood        # % of trees in good condition
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
@@ -93,7 +93,8 @@ neighs <-
     , avg_temp
     , PercentImp
     , PopDensity
-    , road_length_m
+    , sum_road_length_m
+    , vacant20
     
     # ids
     , CSA2020
@@ -130,13 +131,13 @@ bmore_bnia <-
       CSA2020
     
     # dependent variables
-    , rich_tot        # Richness normalized by total trees
+    , rich_tottree        # Richness normalized by total trees
     , Evar            # Evenness
-    , AvgDBH_small    # Small Tree Average DBH
-    , AvgDBH_med      # Small Tree Average DBH
-    , AvgDBH_large    # Small Tree Average DBH
+    , AvgDBH_smallmed    # Small Tree Average DBH
+#    , AvgDBH_med      # Small Tree Average DBH no longer a thing
+    , AvgDBH_large    # Large Tree Average DBH
     , percent_filled  # occupancy/stocking/percentage of filled sites
-    , all_sites       # all tree sites (filled or not)
+    , totsites       # all tree sites (filled or not)
     , PercGood        # % of trees in good condition
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
@@ -144,14 +145,15 @@ bmore_bnia <-
     , Perc2.97        # % of trees above threshold 
     
     # independent
-    , PercBlk
+   , PercBlk
     , PercWhite
     , mhhi20
     , bahigher20
     , avg_temp
     , PercentImp
     , PopDensity
-    , road_length_m
+    , sum_road_length_m
+    , vacant20
     ) %>%
   mutate(area_km2 = st_area(.) / 1e+6) |> 
   drop_na()
