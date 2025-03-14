@@ -1,24 +1,66 @@
 library(tidyverse)
 
-dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes.csv')
+dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2025-03-14.csv')
 
 dat_trees<-dat %>% 
-  filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!='unknown shrub'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
+  filter(CSA2020 != "Dickeyville/Franklintown" & CSA2020 != "Unassigned -- Jail") %>% 
+  filter(SPP!="unknown tree"&SPP!='Vacant Site'&SPP!='Vacant Potential'&SPP!='Stump'&SPP!='Vacant Site Not Suitable'&SPP!='NA'&SPP!="Z Add 01"&SPP!=" "&SPP!="Dead")%>%
   filter(CONDITION!="Dead"&CONDITION!="Stump"&CONDITION!="Sprout") %>% 
-  filter(CSA2020!="Dickeyville/Franklintown"&CSA2020!='Unassigned -- Jail')
-
+  mutate(Species=case_when(
+    SPP=='Acer spp.' ~ 'unk999'
+    ,SPP=='Amelanchier spp.' ~ 'Amelanchier canadensis'
+    ,SPP=='Carya spp.' ~ 'unk999'
+    ,SPP=='Chamaecyparis spp.' ~ 'unk999'
+    ,SPP=='Cornus spp.' ~ 'unk999'
+    ,SPP=='Crataegus spp.' ~ 'Crataegus laevigata'
+    ,SPP=='Euonymus spp.'~ 'unknown shrub'
+    ,SPP=='Ficus spp.' ~ 'unk999'
+    ,SPP=='Fraxinus spp.' ~ 'unk999'
+    ,SPP=='Hydrangea spp.' ~ 'unknown shrub'
+    ,SPP=='Ilex spp.' ~ 'unk999'
+    ,SPP=='Ilex x' ~ 'Ilex x attenuata-Fosteri'
+    ,SPP=='Juniperus spp.' ~ 'unk999'
+    ,SPP=='Lonicera spp.' ~ 'unknown shrub'
+    ,SPP=='Magnolia spp.' ~ 'unk999'
+    ,SPP=='Magnolia x' ~ 'Magnolia x soulangiana'
+    ,SPP=='Malus spp.' ~ 'Malus sylvestris'
+    ,SPP=='Photinia spp.' ~ 'unknown shrub'
+    ,SPP=='Picea spp.' ~ 'unk999'
+    ,SPP=='Populus spp.' ~ 'unk999'
+    ,SPP=="Prunus spp." ~ 'AssignPrunus'
+    ,SPP=='Quercus spp.' ~ 'unk999'
+    ,SPP=='Quercus x' ~ 'unk999'
+    ,SPP=='Rhus spp.' ~ 'unk999'
+    ,SPP=='Salix spp.' ~ 'unk999'
+    ,SPP=='Taxus spp.' ~ 'Taxus baccata'
+    ,SPP=='Thuja spp.' ~ 'Thuja occidentalis'
+    ,SPP=='Ulmus spp.' ~ 'unk999'
+    ,SPP=='Ulmus x' ~ 'Ulmus hybrid'
+    ,SPP=='Viburnum spp.' ~ 'unknown shrub'
+    ,SPP=='unknown shrub' ~ 'unknown shrub'
+    ,.default = SPP ), .after='SPP') %>% 
+  filter(Species!='unknown shrub'& Species!='unk999') %>% 
+  mutate(Species = ifelse(Species=='AssignPrunus', 
+                          sample(c('Prunus serrulata', 'Prunus subhirtella', 'Prunus x yedoensis'), size=dat_trees %>% filter(Species=='AssignPrunus') %>% nrow(), replace=T),Species))
 
 subsetCSA<-dat_trees %>% 
-  select(SPP, DBH, CSA2020)
+  select(Species, DBH, CSA2020) %>% 
+  filter(Species!='unknown shrub'|Species!="unk999"|Species!='unknown tree') %>% 
+  rename(SPP=Species)
 
 SPP<-subsetCSA %>% 
   select(SPP) %>% 
   unique() %>% 
   separate(SPP, into=c("Genus", "Species", 'other'), sep=" ", remove = F)
 
+raresp<-subsetCSA %>% 
+  group_by(SPP) %>% 
+  summarise(n=length(DBH)) %>% 
+  filter(n<5)
+
 # write.csv(SPP, 'species.csv', row.names = F)
 
-fam<-read.csv('\\Users/mavolio2/Documents/R projects/BaltimoreStreetTreeProject/input_data/Family.csv')
+fam<-read.csv('\\Users/mavolio2/Documents/R projects/BaltimoreStreetTreeProject/input_data/Family.csv') 
 
 tentwenty<-subsetCSA %>% 
   left_join(fam)
@@ -91,8 +133,8 @@ length(unique(subset(speciesCSA, S5==0)$CSA2020))
 
 #combining to get map
 famMap<-familyCSA %>% 
-  filter(F30==0|F20==0) %>% 
-  select(CSA2020, F30, F20) %>% 
+  filter(F30==0) %>% 
+  select(CSA2020, F30) %>% 
   unique
 
 genMap<-GeneraCSA %>% 
