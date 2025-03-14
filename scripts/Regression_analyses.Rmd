@@ -107,6 +107,62 @@ Combined |>
 
 ```
 
+
+
+# 1 read in neighborhood boundaries and join to variables
+```{r}
+Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
+Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
+
+Combined <-
+  Dependent |> 
+  left_join(Independent, by = "CSA2020") |> 
+  select(-geometry)
+
+
+bmore_bnia <- 
+  st_read('../BaltimoreStreetTreeProject_Large_Data/Community_Statistical_Areas_(2020)/Community_Statistical_Areas__2020_.shp'
+          , as_tibble = TRUE) |> #BNIA community delineations
+  left_join(Combined, by = 'CSA2020') |> # 
+  select(
+    # HELP AVOLIO
+    # ids
+      CSA2020
+    
+    # dependent variables
+    , rich_tot        # Richness normalized by total trees
+    , Evar            # Evenness
+    , AvgDBH_small    # Small Tree Average DBH
+    , AvgDBH_med      # Small Tree Average DBH
+    , AvgDBH_large    # Small Tree Average DBH
+    , percent_filled  # occupancy/stocking/percentage of filled sites
+    , all_sites       # all tree sites (filled or not)
+    , PercGood        # % of trees in good condition
+    , PercPoor        # % trees in poor condition
+    , PercDead        # % trees dead or stump
+    , spave           # beta diversity
+    , Perc2.97        # % of trees above threshold 
+    
+    # independent
+    , PercBlk
+    , PercWhite
+    , mhhi20
+    , bahigher20
+    , avg_temp
+    , PercentImp
+    , PopDensity
+    , road_length_m
+    ) %>%
+  mutate(area_km2 = st_area(.) / 1e+6) |> 
+  drop_na()
+
+bmore_bnia |> 
+  st_drop_geometry() |> 
+  correlation::correlation()
+
+```
+
+
 #3 Exploratory Data Analyses
 ##A maps of predictors
 ```{r}
