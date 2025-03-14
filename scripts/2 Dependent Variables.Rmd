@@ -263,22 +263,22 @@ unclassified_species <-
   distinct(Species)
 
 #small trees
-AvgDBH_small <- 
+AvgDBH_smallmed <- 
   street_tree_size_classes %>% 
-  filter(`Size Class` == "Small") %>% 
+  filter(`Size Class` == "Small"|`Size Class`=="Medium") %>% 
   select(CSA2020,DBH) %>% 
   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
   group_by(CSA2020) %>% 
-  summarise(AvgDBH_small = mean(DBH_SI), .groups = 'drop')
+  summarise(AvgDBH_smallmed = mean(DBH_SI), .groups = 'drop')
 
-#medium trees
-AvgDBH_med <-
-  street_tree_size_classes %>% 
-  filter(`Size Class` == "Medium") %>% 
-  select(CSA2020,DBH) %>% 
-  mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
-  group_by(CSA2020) %>% 
-  summarise(AvgDBH_med = mean(DBH_SI), .groups = 'drop')
+#medium trees - lumped medium with small
+# AvgDBH_med <-
+#   street_tree_size_classes %>% 
+#   filter(`Size Class` == "Medium") %>% 
+#   select(CSA2020,DBH) %>% 
+#   mutate(DBH_SI = DBH*2.54) %>%  #convert to SI
+#   group_by(CSA2020) %>% 
+#   summarise(AvgDBH_med = mean(DBH_SI), .groups = 'drop')
 
 #large trees
 AvgDBH_large <- 
@@ -391,8 +391,8 @@ DepVar <- perc_filled %>%
   left_join(rich_tot, by = "CSA2020") %>% 
   left_join(betadiv, by = "CSA2020") %>% 
   
-  left_join(AvgDBH_small, by = "CSA2020") %>% 
-  left_join(AvgDBH_med, by = "CSA2020") %>% 
+  left_join(AvgDBH_smallmed, by = "CSA2020") %>% 
+  #left_join(AvgDBH_med, by = "CSA2020") %>% 
   left_join(AvgDBH_large, by = "CSA2020") %>% 
   
   left_join(perc_condition, by = "CSA2020") %>% 
