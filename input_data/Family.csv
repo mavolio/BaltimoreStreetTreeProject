@@ -70,7 +70,7 @@ Cotinus coggygria,Cotinus,coggygria,Anacardiaceae
 Crataegus crusgalli,Crataegus,crusgalli,Rosaceae
 Crataegus mollis,Crataegus,mollis,Rosaceae
 Crataegus phaenopyrum,Crataegus,phaenopyrum,Rosaceae
-Crataegus spp.,Crataegus,spp.,Rosaceae
+Crataegus laevigata,Crataegus,laevigata,Rosaceae
 Crataegus viridis,Crataegus,viridis,Rosaceae
 Cryptomeria japonica,Cryptomeria,japonica,Cupressaceae
 Cupressus arizonica,Cupressus,arizonica,Cupressaceae
@@ -134,7 +134,7 @@ Magnolia x,Magnolia,x,Magnoliaceae
 Magnolia x soulangiana,Magnolia,x soulangiana,Magnoliaceae
 Malus angustifolia,Malus,angustifolia,Rosaceae
 Malus pumila,Malus,pumila,Rosaceae
-Malus spp.,Malus,spp.,Rosaceae
+Malus sylvestris,Malus,sylvestris,Rosaceae
 Metasequoia glyptostroboides,Metasequoia,glyptostroboides,Cupressaceae
 Morus alba,Morus,alba,Moraceae
 Morus rubra,Morus,rubra,Moraceae
@@ -238,7 +238,7 @@ Syringa pekinensis,Syringa,pekinensis,Oleaceae
 Syringa reticulata,Syringa,reticulata,Oleaceae
 Syringa vulgaris,Syringa,vulgaris,Oleaceae
 Taxodium distichum,Taxodium,distichum,Cupressaceae
-Taxus spp.,Taxus,spp.,Taxaceae
+Taxus baccata,Taxus,baccata,Taxaceae
 Thuja occidentalis,Thuja,occidentalis,Cupressaceae
 Thuja plicata,Thuja,plicata,Cupressaceae
 Thuja spp.,Thuja,spp.,Cupressaceae
@@ -254,7 +254,7 @@ Ulmus carpinifolia,Ulmus,carpinifolia,Ulmaceae
 Ulmus parvifolia,Ulmus,parvifolia,Ulmaceae
 Ulmus pumila,Ulmus,pumila,Ulmaceae
 Ulmus rubra,Ulmus,rubra,Ulmaceae
-Ulmus spp.,Ulmus,spp.,Ulmaceae
+Ulmus hybrid,Ulmus,spp.,Ulmaceae
 Ulmus thomasi,Ulmus,thomasi,Ulmaceae
 Ulmus x,Ulmus,x,Ulmaceae
 Viburnum lentago,Viburnum,lentago,Adoxaceae
