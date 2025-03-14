@@ -368,21 +368,6 @@ A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
 
-#%poor vs % black
-D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
-  geom_point(color = "#a55aa4", size=2.5)+
-  labs(x = "% Black", y = "Poor Condition") + 
-  theme_bw()+
-    theme(panel.grid=element_blank(),
-        text=element_text(size=15))
-
-#richness vs temperature
-C <- ggplot(Combined, aes(x = avg_temp, y = rich_tot))+
-  geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "Temperature (C)", y = "Rel. Richness") + 
-  theme_bw()+
-    theme(panel.grid=element_blank(),
-        text=element_text(size=15))
 #Bachelors vs Stocking
 B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
@@ -390,34 +375,38 @@ B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
+#richness vs temperature
+C <- ggplot(Combined, aes(x = avg_temp, y = rich_tottree))+
+  geom_point(color = "skyblue4", size=2.5)+
+  labs(x = "Temperature (C)", y = "Rel. Richness") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
 
-#WE SHOULD DECIDE WHAT TO PLOT INSTEAD - TF 
-# #DBH vs temp
-# E <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH))+
-#   geom_point(color = "#00afff", size=2.5)+
-#   labs(x = "Temperature (C)", y = "Average DBH") + 
-#   theme_bw()+
-#     theme(panel.grid=element_blank(),
-#         text=element_text(size=15))
+#%target pit size vs. vacancy
+E <- ggplot(Combined, aes(x = vacant20, y = Perc2.97))+
+  geom_point(color = 'red', size=2.5)+
+  labs(x = '% Vacant', y = "% Target Size Pits") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
 
-#SAME HERE
-# #showy vs %white
-# G <- ggplot(Combined, aes(x = PercWhite, y = PercShowy))+
-#   geom_point(color = "#e95789", size=2.5)+
-#   labs(x = "% White", y = "% Showy") + 
-#   theme_bw()+
-#     theme(panel.grid=element_blank(),
-#         text=element_text(size=15))
-```
+#large tree DBH vs temperature
+F <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH_large))+
+  geom_point(color = "#ff794c", size=2.5)+
+  labs(x = "Temperature (C)", y = "DBH Large Trees") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=15))
 
 # arrange in grid
 ```{r}
 library(gtable)
 
-Fig_grid <- plot_grid(A, B, C, D, labels = c('A', 'B', 'C', 'D'), ncol = 2,vjust =1) +
+Fig_grid <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2,vjust =1) +
   theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "mm"))
+print(Fig_grid)
 
-
-ggsave("scatterplot grid_Oct18.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
+ggsave("scatterplot grid_Mar14.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
 ```
 
