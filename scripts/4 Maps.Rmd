@@ -57,7 +57,7 @@ bmore_bnia <-
 A <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = percent_filled)) + 
-  scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw() +
+  scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw(10) +
   guides(fill = guide_legend(title = "Stocking"))
   
 ```
@@ -68,8 +68,8 @@ A <-
 B <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = Perc2.97)) + 
-  scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_bw()+
-  guides(fill = guide_legend(title = "Target Pit Size\nWAHTTO CALL Perc2.97"))
+  scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_bw(10)+
+  guides(fill = guide_legend(title = "Target Pit\nSize (%)"))
 
 ```
 
@@ -79,8 +79,8 @@ B <-
 C <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_smallmed)) + 
-  scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw()+
-  guides(fill = guide_legend(title = "change\n`AvgDBH_smallmed`\nto?"))
+  scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw(10)+
+  guides(fill = guide_legend(title = "Mean DBH*\n(small &\nmedium)"))
 ```
 
 #8 richness 
@@ -89,8 +89,8 @@ C <-
 D <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_large)) + 
-  scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw() +
-  guides(fill = guide_legend(title = "AvgDBH_large is ?"))
+  scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw(10) +
+  guides(fill = guide_legend(title = "Mean DBH*\n(large)"))
 ```
 
 #9 perc poor
@@ -98,8 +98,8 @@ D <-
 E <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = PercPoor)) + 
-  scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_bw()+
-  guides(fill = guide_legend(title = "Poor Condition"))
+  scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_bw(10)+
+  guides(fill = guide_legend(title = "Poor\nCondition (%)"))
 ```
 
 #10 average DBH
@@ -108,8 +108,8 @@ E <-
 F <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = rich_tottree)) + 
-  scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw() +
-  guides(fill = guide_legend(title = "rich_tottree is ???"))
+  scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw(10) +
+  guides(fill = guide_legend(title = "Richness\nNormalized by\ntotal trees"))
 ```
 
 #11 Percent Black
@@ -124,6 +124,8 @@ ggplot(data = map_ind_vars) +
 #12 arrange maps
 ```{r}
 Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2, vjust =1)
+
+Maps
 
 ggsave(plot = Maps
        , filename = paste0("Maps_", Sys.Date(), ".jpg")

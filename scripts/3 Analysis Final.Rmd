@@ -398,6 +398,7 @@ F <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH_large))+
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=15))
+```
 
 # arrange in grid
 ```{r}

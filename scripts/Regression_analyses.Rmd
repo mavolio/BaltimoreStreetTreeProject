@@ -369,8 +369,49 @@ mods_bi |>
 # bivariate (spatial) regression - make weights *before* nesting
 ```{r}
 
-mods_bi_slag$data[[1]]
+(var_alias_lu <- 
+  readxl::read_excel("input_data/var_alias_lookup.xlsx") |> 
+  mutate(alias = factor(alias
+                        , levels = c(
+                              'Stocking'
+                            , 'Rel. Richness'
+                            , 'Evenness'
+                            , 'Beta Diversity'
+                            , 'DBH small'
+                            , 'DBH large'
+                            , '% target pit'
+                            , 'Good Condition'
+                            , 'Poor Condition'
+                            , 'Dead'
+                            , 'Percent White'
+                            , 'Percent Black'
+                            , 'Income'
+                            , 'Educational Attainment'
+                            , 'Vacancy'
+                            , 'Percent Impervious'
+                            , 'Pop Density'
+                            , 'Road length'
+                            , 'Total NB area'
+                            , 'Temperature'
+                            )
+  )) |> 
+  arrange(alias) |> 
+  select(-alias2))
 
+# # 2x checks requires modes_bi_slag from below to be run
+# # totsites is what?
+# # what is "Potential Sites"
+# mods_bi_slag |> 
+#   left_join(
+#     var_alias_lu |> filter(var == 'dependent')
+#              , by = c('dep' = 'name')) |> 
+#   filter(is.na(var))
+# 
+# 
+# mods_bi_slag |> 
+#   anti_join(
+#     var_alias_lu |> filter(var == 'independent') |> drop_na()
+#              , by = c('ind' = 'name')) 
 
 mods_bi_slag <- 
   neighs |> 
@@ -474,7 +515,20 @@ mods_bi_slag <-
     # spatial lag significance
     , sp_lag_sig = map(sp_lag, broom::tidy)
     ) |> 
-  ungroup()
+  ungroup() |> 
+  left_join(
+      var_alias_lu |> select(name, dep_alias = alias)
+    , by = c('dep' = 'name') # PAY ATTENTION
+    ) |> 
+  left_join(
+    var_alias_lu |> select(name, ind_alias = alias)
+    , by = c('ind' = 'name') # PAY ATTENTION
+  ) #|> 
+  # drop_na()
+  
+mods_bi_slag
+
+mods_bi_slag$data[[1]]
 
 # # extract p-values for autocorrelation
 # mods_bi |> 
@@ -497,36 +551,51 @@ sp_lag_sigs_tbl <-
   unnest(sp_lag_sig) |> 
   filter(term == 'ind_value') |> 
   mutate(
-    sig = 
-           case_when(
-               p.value < 0.05 & estimate > 0 ~ 'sig_pos'
-             , p.value < 0.05 & estimate < 0 ~ 'sig_neg'
-             , p.value >=0.05                ~ 'not_sig'
-             , TRUE ~ 'ERROR'
-             )
-           ) |> 
-  select(dep, ind, sig)
+    `Sign & Significance` = factor(
+      case_when(
+          p.value < 0.05 & estimate > 0 ~ 'Positive (p > 0.05)'
+        , p.value < 0.05 & estimate < 0 ~ 'Negative (p < 0.05)'
+        , p.value >=0.05                ~ 'p > 0.05'
+        , TRUE ~ 'ERROR'
+        )
+      , levels = c('p > 0.05', 'Positive (p > 0.05)', 'Negative (p < 0.05)'))
+    ) |> 
+  select(dep, ind, `Sign & Significance`)
 
 mods_bi_slag |>
-  select(dep, ind, sp_lag_preds) |> 
+  select(dep, ind, sp_lag_preds, dep_alias, ind_alias) |> 
   unnest(sp_lag_preds) |> 
   unnest(sp_lag_preds) |> 
   filter(group != 'lag_value') |> # cut preds from neighbors
   left_join(sp_lag_sigs_tbl, by = c('dep', 'ind')) |> 
-  ggplot(aes(x, predicted, color = sig, fill = sig)) + 
+  ggplot(aes(  x
+             , predicted
+             , color = `Sign & Significance`
+             , fill = `Sign & Significance`)
+         ) + 
   geom_line() + 
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.5) + 
   # facet_wrap(~group, scales = 'free') +
-  facet_grid(dep~ind, scales = 'free') +
+  # facet_grid(dep~ind, scales = 'free') +
+  facet_grid(str_wrap(dep_alias, 10) ~ str_wrap(ind_alias, 10), scales = 'free') +
   # theme_bw(16) +
   scale_color_manual(values = c('gray', 'red', 'blue')) +
   scale_fill_manual(values = c('gray', 'red', 'blue')) +
-  theme_bw() +
+  theme_bw(8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
         , legend.position = 'bottom'
+        , strip.text.y = element_text(angle = 0)
         ) +
-  labs(title = 'WITH Spatial lag') + 
+  labs(  title = 'Relationships betwen independent and dependent variables'
+       , subtitle = 'after controling for spatial autocorrelation (spatial lag regression)'
+       , x = 'Indepent Variable'
+       , y = "Predicted Dependent Variable's Value"
+       ) + 
   NULL
+
+ggsave( filename = paste0('figures/Figure_S1_spatial_regression_', Sys.Date(), '.png')
+       , width = 6.5
+       , height = 7.5)
 
 ```
 
