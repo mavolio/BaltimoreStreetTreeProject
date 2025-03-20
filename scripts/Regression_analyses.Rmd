@@ -371,30 +371,30 @@ mods_bi |>
 
 (var_alias_lu <- 
   readxl::read_excel("input_data/var_alias_lookup.xlsx") |> 
-  mutate(alias = factor(alias
-                        , levels = c(
-                              'Stocking'
-                            , 'Rel. Richness'
-                            , 'Evenness'
-                            , 'Beta Diversity'
-                            , 'DBH small'
-                            , 'DBH large'
-                            , '% target pit'
-                            , 'Good Condition'
-                            , 'Poor Condition'
-                            , 'Dead'
-                            , 'Percent White'
-                            , 'Percent Black'
-                            , 'Income'
-                            , 'Educational Attainment'
-                            , 'Vacancy'
-                            , 'Percent Impervious'
-                            , 'Pop Density'
-                            , 'Road length'
-                            , 'Total NB area'
-                            , 'Temperature'
-                            )
-  )) |> 
+  # mutate(alias = factor(alias
+  #                       , levels = c(
+  #                             'Stocking'
+  #                           , 'Rel. Richness'
+  #                           , 'Evenness'
+  #                           , 'Beta Diversity'
+  #                           , 'DBH small'
+  #                           , 'DBH large'
+  #                           , '% target pit'
+  #                           , 'Good Condition'
+  #                           , 'Poor Condition'
+  #                           , 'Dead'
+  #                           , 'Percent White'
+  #                           , 'Percent Black'
+  #                           , 'Income'
+  #                           , 'Educational Attainment'
+  #                           , 'Vacancy'
+  #                           , 'Percent Impervious'
+  #                           , 'Pop Density'
+  #                           , 'Road length'
+  #                           , 'Total NB area'
+  #                           , 'Temperature'
+  #                           )
+  # )) |> 
   arrange(alias) |> 
   select(-alias2))
 
@@ -412,6 +412,8 @@ mods_bi |>
 #   anti_join(
 #     var_alias_lu |> filter(var == 'independent') |> drop_na()
 #              , by = c('ind' = 'name')) 
+
+# WHERE's large and small trees, NA, relative richness (rich_tottree) and evenness (Evar)
 
 mods_bi_slag <- 
   neighs |> 
