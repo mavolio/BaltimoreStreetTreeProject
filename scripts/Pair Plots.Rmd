@@ -10,10 +10,11 @@ output: html_document
 
 library(GGally)
 
-Dependent_pair <- read_csv('../input_data/Dependent_variable.csv') %>% 
+
+Dependent_pair <- read_csv('input_data/Dependent_variable_2025-03-14.csv') |> 
   drop_na()
 
-Independent_pair <- read_csv('../input_data/Independent_variable.csv') %>% 
+Independent_pair <- read_csv('input_data/Independent_variable_2025-03-14.csv') |>  
   drop_na()
 
 ```
@@ -23,63 +24,136 @@ Independent_pair <- read_csv('../input_data/Independent_variable.csv') %>%
 #options(repr.plot.width=8, repr.plot.height=4, repr.plot.res = 300) #set resolution
 
 
-ind_pair <- ggpairs(Independent_pair, columns = 2:7, columnLabels = 
-          c("% Black","% White", "Income","Education","Temp.","Vacancy"), 
-          aes(alpha = 0.05), 
-          upper = list(continuous = wrap("cor", size = 2.5)),
-          diag = list(continuous = wrap("barDiag", bins = 15))) +
-        theme(panel.grid=element_blank(),
-              axis.text.x = element_text(size =8),
-              axis.text.y = element_text(size = 8))+
-  
-  theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
+ind_pair <- 
+  Independent_pair |> 
+  select(
+  #   'Potential sites' = totsites
+  # , 'Stocking (%)' = percent_filled
+  # , 'Sites Above Target Pit Size (%)' = Perc2.97
+  # , 'Relative Species Richness' = rich_tottree
+  # , 'Evenness' = Evar
+  # , 'β Diversity' = spave
+  # , 'Average DBH of Smal Species (in.)' = AvgDBH_smallmed
+  # , 'Average DBH of Large Species (in.)' = AvgDBH_large
+  # , 'Good Condition (%)' = PercGood
+  # , 'Poor Condition (%)' = PercPoor
+  # , 'Dead (%)' = PercDead
+    'Black\npopulation\n(%) ' = PercBlk
+  , 'White\npopulation\n(%) ' = PercWhite
+  , 'Median\nhousehold\nIncome\n(USD)' = mhhi20
+  , 'Bachelor’s\nDegree\nEducational\nAttainment\n(%)' = bahigher20
+  , 'Air\nTemperature\n(°C)' = avg_temp
+  , 'Vacancy\n(%) ' = vacant20
+  , 'Impervious\nsurface\ncover (%)' = PercentImp
+  , 'Population\ndensity' = PopDensity
+  , 'Road\nlength (m)' = sum_road_length_m
+    ) |> 
+  ggpairs(
+      aes(alpha = 0.05)
+    , upper = list(continuous = wrap("cor", size = 2.5))
+    , diag = list(continuous = wrap("barDiag", bins = 15))
+    ) +
+  # theme(panel.grid=element_blank(),
+  #             axis.text.x = element_text(size =8),
+  #             axis.text.y = element_text(size = 8)) +
+  theme_bw(8) + 
+  theme(
+      panel.grid.minor = element_blank()
+    , panel.grid.major = element_blank()
+    , strip.text.y = element_text(angle = 0)
+    , axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
+    )
 
-ggsave("indep var pairplot.png",width=6, height=8, plot=ind_pair)
+
+ind_pair
+
+# ggsave( filename = paste0('figures/Figure_S1_socioenv_', Sys.Date(), '.png')
+#        , width = 6
+#        , height = 7)
+
 ```
 
 # Dep ggpairs
 ```{r}
-dep_pair <- ggpairs(Dependent_pair, columns = 2:12, columnLabels = 
-          c("Stocking","Potential Sites","Total Trees", "Rel. Richness", "Evenness", "Beta Diversity", "Average DBH", "Poor Condition", "Good Condition", "Pit Size", "Showy"), #set titles
-          aes(alpha = 0.05), 
-          upper = list(continuous = wrap("cor", size = 2.5)),
-          diag = list(continuous = wrap("barDiag", bins = 15))) +
-        theme(panel.grid=element_blank()) + theme_bw() + theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank())
 
-#save as jpg
-ggsave("dep var pairplot.jpg",width=12, height=12, plot=dep_pair, dpi=600 )
+dep_pair <- 
+  Dependent_pair |> 
+  select(
+    'Potential\nsites' = totsites
+  , 'Stocking\n(%)' = percent_filled
+  , 'Sites\nAbove\nTarget Pit\nSize (%)' = Perc2.97
+  , 'Relative\nSpecies\nRichness' = rich_tottree
+  , 'Evenness' = Evar
+  , 'β\nDiversity' = spave
+  , 'Average\nDBH of\nSmall\nSpecies\n(cm)' = AvgDBH_smallmed
+  , 'Average\nDBH of\nLarge\nSpecies\n(cm)' = AvgDBH_large
+  , 'Good\nCondition\n(%)' = PercGood
+  , 'Poor\nCondition\n(%)' = PercPoor
+  , 'Dead (%)' = PercDead
+  #   'Black\npopulation\n(%) ' = PercBlk
+  # , 'White\npopulation\n(%) ' = PercWhite
+  # , 'Median\nhousehold\nIncome\n(USD)' = mhhi20
+  # , 'Bachelor’s\nDegree\nEducational\nAttainment\n(%)' = bahigher20
+  # , 'Air\nTemperature\n(°C)' = avg_temp
+  # , 'Vacancy\n(%) ' = vacant20
+  # , 'Impervious\nsurface\ncover (%)' = PercentImp
+  # , 'Population\ndensity' = PopDensity
+  # , 'Road\nlength (m)' = sum_road_length_m
+    ) |> 
+  ggpairs(
+      aes(alpha = 0.05)
+    , upper = list(continuous = wrap("cor", size = 2.5))
+    , diag = list(continuous = wrap("barDiag", bins = 15))
+    ) +
+  # theme(panel.grid=element_blank(),
+  #             axis.text.x = element_text(size =8),
+  #             axis.text.y = element_text(size = 8)) +
+  theme_bw(8) + 
+  theme(
+      panel.grid.minor = element_blank()
+    , panel.grid.major = element_blank()
+    , strip.text.y = element_text(angle = 0)
+    , axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
+    )
+
+
+dep_pair
+
+# ggsave( filename = paste0('figures/Figure_S2_street_tree_', Sys.Date(), '.png')
+#        , width = 6
+#        , height = 7)
 ```
 
 # pairs plots
 ```{r setup, include=FALSE}
 
-panel.cor <- function(x, y){
-  usr <- par("usr"); on.exit(par(usr))
-  par(usr = c(0, 1, 0, 1))
-  r <- round(cor(x, y), digits=2)
-  txt <- paste0("r = ", r)
-  cex.cor <- 0.8/strwidth(txt)
-  text(0.5, 0.5, txt, cex = cex.cor * r)
-}
-# Customize upper panel
-upper.panel<-function(x, y){
-  points(x,y, pch = 19)
-}
-panel.hist <- function(x, ...)
-{
-  usr <- par("usr")
-  par(usr = c(usr[1:2], 0, 1.5) )
-  h <- hist(x, plot = FALSE)
-  breaks <- h$breaks; nB <- length(breaks)
-  y <- h$counts; y <- y/max(y)
-  rect(breaks[-nB], 0, breaks[-1], y, col = "darkgray", ...)
-}
-
-# Create the plots
-pairs(Combined[,2:7], 
-      lower.panel = panel.cor,
-      upper.panel = upper.panel,
-      diag.panel=panel.hist)
+# panel.cor <- function(x, y){
+#   usr <- par("usr"); on.exit(par(usr))
+#   par(usr = c(0, 1, 0, 1))
+#   r <- round(cor(x, y), digits=2)
+#   txt <- paste0("r = ", r)
+#   cex.cor <- 0.8/strwidth(txt)
+#   text(0.5, 0.5, txt, cex = cex.cor * r)
+# }
+# # Customize upper panel
+# upper.panel<-function(x, y){
+#   points(x,y, pch = 19)
+# }
+# panel.hist <- function(x, ...)
+# {
+#   usr <- par("usr")
+#   par(usr = c(usr[1:2], 0, 1.5) )
+#   h <- hist(x, plot = FALSE)
+#   breaks <- h$breaks; nB <- length(breaks)
+#   y <- h$counts; y <- y/max(y)
+#   rect(breaks[-nB], 0, breaks[-1], y, col = "darkgray", ...)
+# }
+# 
+# # Create the plots
+# pairs(Combined[,2:7], 
+#       lower.panel = panel.cor,
+#       upper.panel = upper.panel,
+#       diag.panel=panel.hist)
 
 ```
 

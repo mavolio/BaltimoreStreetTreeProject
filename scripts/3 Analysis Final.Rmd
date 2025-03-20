@@ -24,6 +24,9 @@ library(gridExtra)
 
 library(cowplot)
 
+library(gtsummary)
+library(gt)
+
 #working directory
 getwd()
 list.files()
@@ -46,10 +49,73 @@ var_names_2 <- as_labeller(
 Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
-Combined <- Dependent %>% 
-  left_join(Independent, by = "CSA2020")
+Combined <- 
+  Dependent %>% 
+  left_join(Independent, by = "CSA2020") |> 
+  select(-geometry)
 
 ```
+
+# A Table 1: Independent variables (socio-environmental)
+```{r}
+
+Independent |> 
+  select(
+      'Black population (%) '                         = PercBlk
+    , 'White population (%) '                         = PercWhite
+    , 'Median household Income (USD) '                = mhhi20
+    , 'Bachelor’s Degree Educational Attainment (%) ' = bahigher20
+    , 'Air Temperature (°C) '                         = avg_temp
+    , 'Vacancy (%) '                                  = vacant20
+    , 'Impervious surface cover (%)'                  = PercentImp
+    , 'Population density'                            = PopDensity
+    , 'Road length (m)'                               = sum_road_length_m
+    ) |> 
+  tbl_summary(
+    statistic = list(all_continuous() ~ "{median}, {mean}, ({min}, {max})")
+  ) |> 
+  as_gt() # |> 
+  # gtsave(filename = 
+  #          paste0('output_tables/Table_1_descriptives_socioenv_' , Sys.Date(), '.html'))
+
+```
+
+
+# B Table 2: Dependent variables (socio-environmental)
+```{r}
+
+Dependent |> 
+  select(
+      'Potential sites' = totsites
+    , 'Stocking (%)' = percent_filled
+    , 'Sites Above Target Pit Size (%)' = Perc2.97
+    , 'Relative Species Richness' = rich_tottree
+    , 'Evenness' = Evar
+    , 'β Diversity' = spave
+    , 'Average DBH of Small Species (cm)' = AvgDBH_smallmed
+    , 'Average DBH of Large Species (cm)' = AvgDBH_large
+    , 'Poor Condition (%)' = PercPoor
+    , 'Good Condition (%)' = PercGood
+    , 'Dead (%)' = PercDead
+# 'White population (%) ' = PercWhite
+# 'Black population (%) ' = PercBlk
+# 'Median household Income (USD) '  = mhhi20
+# 'Bachelor’s Degree Educational Attainment (%) ' = bahigher20
+# 'Vacancy (%) ' = vacant20
+# 'Population density' = PopDensity
+# 'Road length (m)' = sum_road_length_m
+# 'Impervious surface cover (%)' = PercentImp
+# 'Air Temperature (°C) ' = avg_temp
+  ) |> 
+  tbl_summary(
+    statistic = list(all_continuous() ~ "{median}, {mean}, ({min}, {max})")
+  ) |> 
+  as_gt() # |> 
+  # gtsave(filename = 
+  #          paste0('output_tables/Table_2_descriptives_street_tree_' , Sys.Date(), '.html'))
+
+```
+
 
 #2 All p values and correlations
 ```{r include=FALSE}
@@ -115,6 +181,43 @@ print(cor_results)
 #   select(mhhi20, percent_filled) |>
 #   correlation::correlation() 
 ```
+
+## updated correlations
+```{r}
+
+Combined |>
+  select(
+    'Stocking (%)' = percent_filled
+  , 'Relative Species Richness' = rich_tottree
+  , 'Evenness' = Evar
+  , 'β Diversity' = spave
+  , 'Average DBH of Smal Species (in.)' = AvgDBH_smallmed
+  , 'Average DBH of Large Species (in.)' = AvgDBH_large
+  , 'Sites Above Target Pit Size (%)' = Perc2.97
+  , 'Good Condition (%)' = PercGood
+  , 'Poor Condition (%)' = PercPoor
+  , 'Dead (%)' = PercDead
+  , 'White population (%) ' = PercWhite
+  , 'Black population (%) ' = PercBlk
+  , 'Median household Income (USD) ' = mhhi20
+  , 'Bachelor’s Degree Educational Attainment (%) ' = bahigher20
+  , 'Vacancy (%) ' = vacant20
+  , 'Population density' = PopDensity
+  , 'Road length (m)' = sum_road_length_m
+  , 'Impervious surface cover (%)' = PercentImp
+  , 'Air Temperature (°C) ' = avg_temp
+  , 'Potential sites' = totsites
+    ) |> 
+  correlate() |> 
+  shave() |> 
+  rplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
+  # ggsave(
+  #   filename = paste0('figures/Figure_Table_3_corellation_', Sys.Date(), '.png'))
+
+
+```
+
 
 #3 Filtered p < 0.05
 ```{r message=FALSE, include=FALSE}
@@ -363,41 +466,50 @@ print(cor_matrix)
 # stocking vs % black
 A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
-  labs(x = "% Black", y = "Stocking") + 
+  labs(x = "Black population (%)", y = "Stocking (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+        text=element_text(size=12))
 
 #Bachelors vs Stocking
 B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
-  labs(x = "% Bachelor's", y = "Stocking") + 
+  labs(x = "Bachelor’s Degree\nEducational Attainment (%)", y = "Stocking (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+        text=element_text(size=12))
+
 #richness vs temperature
 C <- ggplot(Combined, aes(x = avg_temp, y = rich_tottree))+
   geom_point(color = "skyblue4", size=2.5)+
-  labs(x = "Temperature (C)", y = "Rel. Richness") + 
+  labs(x = "Air Temperature (°C)", y = "Relative Species Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+        text=element_text(size=12))
+
+#%poor vs % black
+D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
+  geom_point(color = "#a55aa4", size=2.5)+
+  labs(x = "Black population (%)", y = "Poor Condition (%)") + 
+  theme_bw()+
+    theme(panel.grid=element_blank(),
+        text=element_text(size=12))
 
 #%target pit size vs. vacancy
 E <- ggplot(Combined, aes(x = vacant20, y = Perc2.97))+
   geom_point(color = 'red', size=2.5)+
-  labs(x = '% Vacant', y = "% Target Size Pits") + 
+  labs(x = 'Vacancy (%)', y = "Sites Above Target\nPit Size (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+        text=element_text(size=12))
 
 #large tree DBH vs temperature
 F <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH_large))+
   geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "Temperature (C)", y = "DBH Large Trees") + 
+  labs(x = "Air Temperature (°C)", y = "Average DBH of Large Species (in.)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
-        text=element_text(size=15))
+        text=element_text(size=12))
 ```
 
 # arrange in grid
@@ -408,6 +520,6 @@ Fig_grid <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F')
   theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "mm"))
 print(Fig_grid)
 
-ggsave("scatterplot grid_Mar14.jpg",width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
+ggsave(paste0('figures/Figure_2_scatterplot_grid_', Sys.Date(), ".jpg"),width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
 ```
 

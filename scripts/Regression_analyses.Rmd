@@ -5,7 +5,6 @@ date: "`r format(Sys.Date())`"
 output:
   pdf_document: default
   html_document:
-    fig_width: 8
     fig_height: 5
     fig_caption: true
     toc: true
@@ -371,47 +370,76 @@ mods_bi |>
 
 (var_alias_lu <- 
   readxl::read_excel("input_data/var_alias_lookup.xlsx") |> 
-  # mutate(alias = factor(alias
-  #                       , levels = c(
-  #                             'Stocking'
-  #                           , 'Rel. Richness'
-  #                           , 'Evenness'
-  #                           , 'Beta Diversity'
-  #                           , 'DBH small'
-  #                           , 'DBH large'
-  #                           , '% target pit'
-  #                           , 'Good Condition'
-  #                           , 'Poor Condition'
-  #                           , 'Dead'
-  #                           , 'Percent White'
-  #                           , 'Percent Black'
-  #                           , 'Income'
-  #                           , 'Educational Attainment'
-  #                           , 'Vacancy'
-  #                           , 'Percent Impervious'
-  #                           , 'Pop Density'
-  #                           , 'Road length'
-  #                           , 'Total NB area'
-  #                           , 'Temperature'
-  #                           )
-  # )) |> 
+  mutate(alias = factor(alias
+                        , levels = c(
+                            "Potential sites"               
+                          , "Stocking (%)"
+                          , "Sites Above Target Pit Size (%)"
+                          , "Relative Species Richness"
+                          , "Evenness"
+                          , "β Diversity"
+                          , "Average DBH of Small Species (cm)"
+                          , "Average DBH of Large Species (cm)"
+                          , "Good Condition (%)"
+                          , "Poor Condition (%)"
+                          , "Dead (%)"
+                          
+                          , "Black population (%)"
+                          , "White population (%)"
+                          , "Median household Income (USD)"
+                          , "Bachelor’s Degree Educational Attainment (%)"
+                          , "Air Temperature (°C)"
+                          , "Vacancy (%)"
+                          , "Impervious surface cover (%)"
+                          , "Population density"
+                          , "Road length (m)"
+                          )
+  )) |>
   arrange(alias) |> 
-  select(-alias2))
+  mutate(alias_wrap_10 = factor(str_wrap(alias, 10)
+                               , levels = c(
+                                   'Potential\nsites'
+                                 , 'Stocking\n(%)'
+                                 , 'Sites\nAbove\nTarget Pit\nSize (%)'
+                                 , 'Relative\nSpecies\nRichness'
+                                 , 'Evenness'
+                                 , 'β\nDiversity'
+                                 , 'Average\nDBH of\nSmall\nSpecies\n(cm)'
+                                 , 'Average\nDBH of\nLarge\nSpecies\n(cm)'
+                                 , 'Good\nCondition\n(%)'
+                                 , 'Poor\nCondition\n(%)'
+                                 , 'Dead (%)'
+                                 
+                                 , 'Black\npopulation\n(%)'
+                                 , 'White\npopulation\n(%)'
+                                 , 'Median\nhousehold\nIncome\n(USD)'
+                                 , 'Bachelor’s\nDegree\nEducational\nAttainment\n(%)'
+                                 , 'Air\nTemperature\n(°C)'
+                                 , 'Vacancy\n(%)'
+                                 , 'Impervious\nsurface\ncover (%)'
+                                 , 'Population\ndensity'
+                                 , 'Road\nlength (m)'
+                                 
+                                 )
+                               )
+        )) |> 
+  select(-alias2)
 
-# # 2x checks requires modes_bi_slag from below to be run
-# # totsites is what?
-# # what is "Potential Sites"
-# mods_bi_slag |> 
-#   left_join(
-#     var_alias_lu |> filter(var == 'dependent')
-#              , by = c('dep' = 'name')) |> 
-#   filter(is.na(var))
-# 
-# 
-# mods_bi_slag |> 
-#   anti_join(
-#     var_alias_lu |> filter(var == 'independent') |> drop_na()
-#              , by = c('ind' = 'name')) 
+# 2x checks requires modes_bi_slag from below to be run
+# totsites is what?
+# what is "Potential Sites"
+var_alias_lu |> left_join(mods_bi_slag, by = c('name' = 'dep'))
+mods_bi_slag |>
+  left_join(
+    var_alias_lu |> filter(var == 'dependent')
+             , by = c('dep' = 'name')) |>
+  filter(is.na(var))
+
+
+mods_bi_slag |>
+  left_join(
+    var_alias_lu |> filter(var == 'independent') |> drop_na()
+             , by = c('ind' = 'name'))
 
 # WHERE's large and small trees, NA, relative richness (rich_tottree) and evenness (Evar)
 
@@ -519,11 +547,11 @@ mods_bi_slag <-
     ) |> 
   ungroup() |> 
   left_join(
-      var_alias_lu |> select(name, dep_alias = alias)
+      var_alias_lu |> select(name, dep_alias = alias_wrap_10)
     , by = c('dep' = 'name') # PAY ATTENTION
     ) |> 
   left_join(
-    var_alias_lu |> select(name, ind_alias = alias)
+    var_alias_lu |> select(name, ind_alias = alias_wrap_10)
     , by = c('ind' = 'name') # PAY ATTENTION
   ) #|> 
   # drop_na()
@@ -560,7 +588,7 @@ sp_lag_sigs_tbl <-
         , p.value >=0.05                ~ 'p > 0.05'
         , TRUE ~ 'ERROR'
         )
-      , levels = c('p > 0.05', 'Positive (p > 0.05)', 'Negative (p < 0.05)'))
+      , levels = c('Positive (p > 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
     ) |> 
   select(dep, ind, `Sign & Significance`)
 
@@ -579,10 +607,11 @@ mods_bi_slag |>
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.5) + 
   # facet_wrap(~group, scales = 'free') +
   # facet_grid(dep~ind, scales = 'free') +
-  facet_grid(str_wrap(dep_alias, 10) ~ str_wrap(ind_alias, 10), scales = 'free') +
+  facet_grid(dep_alias ~ ind_alias, scales = 'free') +
+  # facet_grid(str_wrap(dep_alias, 10) ~ str_wrap(ind_alias, 10), scales = 'free') +
   # theme_bw(16) +
-  scale_color_manual(values = c('gray', 'red', 'blue')) +
-  scale_fill_manual(values = c('gray', 'red', 'blue')) +
+  scale_color_manual(values = c('red', 'blue', 'gray')) +
+  scale_fill_manual(values = c('red', 'blue', 'gray')) +
   theme_bw(8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
         , legend.position = 'bottom'
@@ -595,7 +624,7 @@ mods_bi_slag |>
        ) + 
   NULL
 
-ggsave( filename = paste0('figures/Figure_S1_spatial_regression_', Sys.Date(), '.png')
+ggsave( filename = paste0('figures/Figure_S4_spatial_regression_', Sys.Date(), '.png')
        , width = 6.5
        , height = 7.5)
 

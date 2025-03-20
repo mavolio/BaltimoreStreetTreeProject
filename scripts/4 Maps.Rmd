@@ -58,7 +58,7 @@ A <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = percent_filled)) + 
   scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw(10) +
-  guides(fill = guide_legend(title = "Stocking"))
+  guides(fill = guide_legend(title = "Stocking (%)"))
   
 ```
 
@@ -80,7 +80,7 @@ C <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_smallmed)) + 
   scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw(10)+
-  guides(fill = guide_legend(title = "Mean DBH*\n(small &\nmedium)"))
+  guides(fill = guide_legend(title = "Mean DBH*\n(small)"))
 ```
 
 #8 richness 
@@ -109,7 +109,7 @@ F <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = rich_tottree)) + 
   scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw(10) +
-  guides(fill = guide_legend(title = "Richness\nNormalized by\ntotal trees"))
+  guides(fill = guide_legend(title = "Richness\nNormalized by\nTotal Trees"))
 ```
 
 #11 Percent Black

@@ -7,35 +7,67 @@ library(gridExtra)
 
 library(cowplot)
 
-getwd()
-theme_set(theme_bw(12))
+
+# theme_set(theme_bw(12))
 
 
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 dep<-read.csv("input_data/Dependent_variable_2025-03-14.csv")
 
-sites<-Independent %>% 
+sites <-
+  Independent %>% 
   left_join(dep) %>% 
-  select(CSA2020, totsites, PercBlk, PercWhite, mhhi20, bahigher20, avg_temp, vacant20, PercentImp, sum_road_length_m, PopDensity) %>%
-  pivot_longer(PercBlk:PopDensity, names_to = "ind", values_to = "value")
+  select(
+    totsites
+    # , PercBlk, PercWhite, mhhi20, bahigher20, avg_temp, vacant20, PercentImp, sum_road_length_m, PopDensity
+    
+    # # manual wrapping
+    # , 'Black\npopulation\n(%)'                              = PercBlk
+    # , 'White\npopulation\n(%)'                              = PercWhite
+    # , 'Median\nhousehold\nIncome\n(USD)'                    = mhhi20
+    # , 'Bachelor’s\nDegree\nEducational\nAttainment\n(%)'    = bahigher20
+    # , 'Air\nTemperature\n(°C)'                              = avg_temp
+    # , 'Vacancy\n(%)'                                        = vacant20
+    # , 'Impervious\nsurface\ncover (%)'                      = PercentImp
+    # , 'Population\ndensity'                                 = PopDensity
+    # , 'Road\nlength (m)'                                    = sum_road_length_m
+    , 'Black population (%)'                            = PercBlk
+    , 'White population (%)'                            = PercWhite
+    , 'Median household Income (USD)'                   = mhhi20
+    , 'Bachelor’s Degree Educational Attainment (%)'    = bahigher20
+    , 'Air Temperature (°C)'                            = avg_temp
+    , 'Vacancy (%)'                                     = vacant20
+    , 'Impervious surface cover (%)'                    = PercentImp
+    , 'Population density'                              = PopDensity
+    , 'Road length (m)'                                 = sum_road_length_m
+    )  |> 
+  pivot_longer(-totsites, names_to = "ind", values_to = "value")
 
-labs=c('avg_temp'='Temperature',
-       'bahigher20'='Education',
-       'mhhi20'='Income', 
-       'PercBlk'= '% Black',
-       'PercWhite'= '% White', 
-       'vacant20'='% Vacant',
-       'PercentImp'='% Impervious',
-       'PopDensity'='Pop. Density',
-       'sum_road_length_m' = 'Roads*')
+# labs=c('avg_temp'='Temperature',
+#        'bahigher20'='Education',
+#        'mhhi20'='Income', 
+#        'PercBlk'= '% Black',
+#        'PercWhite'= '% White', 
+#        'vacant20'='% Vacant',
+#        'PercentImp'='% Impervious',
+#        'PopDensity'='Pop. Density',
+#        'sum_road_length_m' = 'Roads*')
 
-ggplot(data=sites, aes(x=value, y=totsites))+
-  geom_point(size=3)+
-  facet_wrap(~ind, scales='free_x', labeller = labeller(ind=labs))+
-  xlab('Socio-Environmental Value')+
-  ylab('Number of Street Tree Sites')+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+sites |> 
+  ggplot(aes(value, totsites))+
+  geom_point(
+    # size=3
+    ) + 
+  facet_wrap(~str_wrap(ind, 26), scales='free') +  #, labeller = labeller(ind=labs))+
+  xlab('Socio-Environmental Value') +
+  ylab('Number of Street Tree Sites') +
+  theme_bw() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  NULL
 
+ggsave(filename = paste0('figures/Figure_S3_street_tree_corr_soecioenv_', Sys.Date(), '.png')
+       , width = 6
+       , height = 6)
 
 
 dat<-read.csv('../BaltimoreStreetTreeProject_Large_Data/street_trees_with_neigh_attributes_2025-03-05.csv')
