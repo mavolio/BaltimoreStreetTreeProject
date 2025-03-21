@@ -57,7 +57,7 @@ bmore_bnia <-
 A <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = percent_filled)) + 
-  scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_bw(10) +
+  scale_fill_distiller(palette = "YlGn", trans = "reverse") + theme_void(10) +
   guides(fill = guide_legend(title = "Stocking (%)"))
   
 ```
@@ -68,7 +68,7 @@ A <-
 B <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = Perc2.97)) + 
-  scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_bw(10)+
+  scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_void(10)+
   guides(fill = guide_legend(title = "Target Pit\nSize (%)"))
 
 ```
@@ -79,7 +79,7 @@ B <-
 C <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_smallmed)) + 
-  scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_bw(10)+
+  scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_void(10)+
   guides(fill = guide_legend(title = "Mean DBH*\n(small)"))
 ```
 
@@ -89,7 +89,7 @@ C <-
 D <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_large)) + 
-  scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_bw(10) +
+  scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_void(10) +
   guides(fill = guide_legend(title = "Mean DBH*\n(large)"))
 ```
 
@@ -98,7 +98,7 @@ D <-
 E <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = PercPoor)) + 
-  scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_bw(10)+
+  scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_void(10)+
   guides(fill = guide_legend(title = "Poor\nCondition (%)"))
 ```
 
@@ -108,7 +108,7 @@ E <-
 F <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = rich_tottree)) + 
-  scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_bw(10) +
+  scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_void(10) +
   guides(fill = guide_legend(title = "Richness\nNormalized by\nTotal Trees"))
 ```
 
