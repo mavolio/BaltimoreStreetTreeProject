@@ -112,27 +112,182 @@ F <-
   guides(fill = guide_legend(title = "Richness\nNormalized by\nTotal Trees"))
 ```
 
-#11 Percent Black
-```{r}
-ggplot(data = map_ind_vars) + 
-  geom_sf(aes(fill = PercBlk)) +
-  scale_fill_viridis_c(option = "C") + theme_bw() +
-  guides(fill = guide_legend(title = "% Black"))
-
-```
-
-#12 arrange maps
+#11 arrange maps
 ```{r}
 Maps <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F'), ncol = 2, vjust =1)
 
 Maps
 
 ggsave(plot = Maps
-       , filename = paste0("Maps_", Sys.Date(), ".jpg")
+       , filename = paste0('figures/Figure_1_maps_street_tree_', Sys.Date(), '.png')
        , width=180
        , height=200
        , unit="mm"
        , dpi=300 )
+
+```
+
+# 12 Table 1 minus road length map series.
+```{r}
+
+bmore_bnia |> 
+  select(
+      'Black population (%)'                         = PercBlk
+    , 'White population (%)'                         = PercWhite
+    , 'Median household Income (USD)'                = mhhi20
+    , 'Bachelor’s Degree Educational Attainment (%)' = bahigher20
+    , 'Air Temperature (°C)'                         = avg_temp
+    , 'Vacancy (%)'                                  = vacant20
+    , 'Impervious surface cover (%)'                 = PercentImp
+    , 'Population density'                           = PopDensity
+    # , 'Road length (m)'                               = sum_road_length_m
+    )
+
+
+a <- 
+  bmore_bnia |> 
+  select(
+    'Black\npopulation\n(%)'                         = PercBlk
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Black\npopulation\n(%)`)) + 
+  scale_fill_distiller(
+      palette = "Blues"
+    , trans = "reverse"
+    ) + 
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+b <- 
+  bmore_bnia |> 
+  select(
+    'White\npopulation\n(%)'                         = PercWhite
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `White\npopulation\n(%)`)) + 
+  scale_fill_distiller(
+      palette = "Reds"
+    , trans = "reverse"
+    ) + 
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+c <- 
+  bmore_bnia |> 
+  select(
+    'Median\nhousehold\nIncome\n(USD)'                = mhhi20
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Median\nhousehold\nIncome\n(USD)`)) + 
+  scale_fill_viridis() +
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+
+d <- 
+  bmore_bnia |> 
+  select(
+    'Bachelor’s\nDegree\nEducational\nAttainment\n(%)' = bahigher20
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Bachelor’s\nDegree\nEducational\nAttainment\n(%)`)) + 
+  scale_fill_viridis(option = 'magma') +
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+e <- 
+  bmore_bnia |> 
+  select(
+    'Air\nTemperature\n(°C)'                         = avg_temp
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Air\nTemperature\n(°C)`)) + 
+  scale_fill_viridis(option = 'F', direction = -1) +
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+f <- 
+  bmore_bnia |> 
+  select(
+    'Vacancy\n(%)'                                  = vacant20
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Vacancy\n(%)`)) + 
+  scale_fill_distiller(
+      palette = "Purples"
+    , trans = "reverse"
+    ) + 
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+g <-
+  bmore_bnia |> 
+  select(
+    'Impervious surface\ncover (%)'                 = PercentImp
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Impervious surface\ncover (%)`)) + 
+  scale_fill_distiller(
+      palette = "Greys"
+    , trans = "reverse"
+    ) + 
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+
+h <-
+  bmore_bnia |> 
+  select(
+    'Population\ndensity'                           = PopDensity
+    ) |> 
+  ggplot() + 
+  geom_sf(aes(fill = `Population\ndensity`)) + 
+  scale_fill_distiller(
+      palette = "RdGy"
+    , trans = "reverse"
+    ) + 
+  # theme_bw(10) + 
+  theme_void(10) +
+  NULL
+
+socenv_maps <- 
+  plot_grid(
+      a
+    , b
+    , c
+    , d
+    , e
+    , f
+    , g
+    , h
+    , labels = c(
+        'A'
+      , 'B'
+      , 'C'
+      , 'D'
+      , 'E'
+      , 'F'
+      , 'G'
+      , 'H'
+      )
+    , ncol = 2
+    , vjust =1)
+
+socenv_maps
+
+ggsave(filename = paste0('figures/Figure_S5_maps_street_tree_', Sys.Date(), '.png')
+       , width=180
+       , height=220
+       , unit="mm"
+       , dpi=300 )
+
 
 ```
 
