@@ -217,12 +217,19 @@ NBabund <-
 ```{r}
 richeven <- community_structure(NBabund, abundance.var="abund", time.var= NULL, replicate.var = "CSA2020")
 
+wide<-NBabund %>% 
+  pivot_wider(names_from='Species', values_from='abund', values_fill=0)
+
+rich<-as_tibble(rarefy(wide[2:243], sample=453)) %>% 
+  bind_cols(richeven) %>% 
+  rename(rare_rich=value)
+  
 #norm by total trees
 rich_tot <-
-  richeven %>% 
+  rich %>% 
   left_join(perc_filled, by = "CSA2020") %>% # change to perc_filled
   mutate(rich_totsites = richness/totsites, rich_tottree=richness/T1) %>% 
-  select(CSA2020, rich_totsites, rich_tottree, Evar)
+  select(CSA2020, rare_rich, Evar)
 ```
 
 #11 Beta Diversity
