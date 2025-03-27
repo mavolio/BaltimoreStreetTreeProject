@@ -38,7 +38,7 @@ var_names <- as_labeller(
        `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
 
 var_names_2 <- as_labeller(
-     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`Perc2.97` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rich_tot` = "Richness", `PercDead` ="Dead Stock"))
+     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`Perc2.97` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rare_rich` = "Richness", `PercDead` ="Dead Stock"))
 
 # https://docs.google.com/document/d/1E7EOOMfruCCCPvQYKnoOsspO_ls1wjsZvy91BuC8Rqk/edit?tab=t.0
 ```
@@ -46,7 +46,7 @@ var_names_2 <- as_labeller(
 #1 Combined dep+ind
 ```{r include=FALSE}
 
-Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -188,7 +188,7 @@ print(cor_results)
 Combined |>
   select(
     'Stocking (%)' = percent_filled
-  , 'Relative Species Richness' = rich_tottree
+  , 'Relative Species Richness' = rare_rich
   , 'Evenness' = Evar
   , 'β Diversity' = spave
   , 'Average DBH of Smal Species (in.)' = AvgDBH_smallmed
@@ -290,7 +290,7 @@ view(stocking_r2)
 #6 Richness
 ```{r}
 richtot_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "rich_tottree" | Variable2 == "rich_tottree")
+  filter(Variable1 == "rare_rich" | Variable2 == "rare_rich")
 
 view(richtot_r)
 
@@ -480,9 +480,9 @@ B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
         text=element_text(size=12))
 
 #richness vs temperature
-C <- ggplot(Combined, aes(x = avg_temp, y = rich_tottree))+
+C <- ggplot(Combined, aes(x = avg_temp, y = rare_rich))+
   geom_point(color = "skyblue4", size=2.5)+
-  labs(x = "Air Temperature (°C)", y = "Relative Species Richness") + 
+  labs(x = "Air Temperature (°C)", y = "Rarefied Richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -506,7 +506,7 @@ E <- ggplot(Combined, aes(x = vacant20, y = Perc2.97))+
 #large tree DBH vs temperature
 F <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH_large))+
   geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "Air Temperature (°C)", y = "Average DBH of Large Species (in.)") + 
+  labs(x = "Air Temperature (°C)", y = "Average DBH of\nLarge Species (cm)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
