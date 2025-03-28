@@ -11,10 +11,13 @@ output: html_document
 library(GGally)
 
 
-Dependent_pair <- read_csv('input_data/Dependent_variable_2025-03-14.csv') |> 
+Dependent_pair <- 
+  # read_csv('input_data/Dependent_variable_2025-03-14.csv') |> 
+  read_csv('input_data/Dependent_variable_2025-03-27.csv') |> 
   drop_na()
 
-Independent_pair <- read_csv('input_data/Independent_variable_2025-03-14.csv') |>  
+Independent_pair <- 
+  read_csv('input_data/Independent_variable_2025-03-14.csv') |>  
   drop_na()
 
 ```
@@ -67,7 +70,7 @@ ind_pair <-
 
 ind_pair
 
-# ggsave( filename = paste0('figures/Figure_S1_socioenv_', Sys.Date(), '.png')
+# ggsave( filename = paste0('figures/Figure_S3_socioenv_', Sys.Date(), '.png')
 #        , width = 6
 #        , height = 7)
 
@@ -82,7 +85,8 @@ dep_pair <-
     'Potential\nsites' = totsites
   , 'Stocking\n(%)' = percent_filled
   , 'Sites\nAbove\nTarget Pit\nSize (%)' = Perc2.97
-  , 'Relative\nSpecies\nRichness' = rich_tottree
+  # , 'Relative\nSpecies\nRichness' = rich_tottree
+  , 'Rarefied\nRichness' = rare_rich
   , 'Evenness' = Evar
   , 'β\nDiversity' = spave
   , 'Average\nDBH of\nSmall\nSpecies\n(cm)' = AvgDBH_smallmed

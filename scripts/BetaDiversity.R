@@ -12,7 +12,8 @@ library(cowplot)
 
 
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
-dep<-read.csv("input_data/Dependent_variable_2025-03-14.csv")
+# dep<-read.csv("input_data/Dependent_variable_2025-03-14.csv")
+dep<-read.csv("input_data/Dependent_variable_2025-03-27.csv")
 
 sites <-
   Independent %>% 
@@ -65,7 +66,7 @@ sites |>
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   NULL
 
-ggsave(filename = paste0('figures/Figure_S3_street_tree_corr_soecioenv_', Sys.Date(), '.png')
+ggsave(filename = paste0('figures/Figure_S4_street_tree_corr_soecioenv_', Sys.Date(), '.png')
        , width = 6
        , height = 6)
 

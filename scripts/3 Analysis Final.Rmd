@@ -46,6 +46,7 @@ var_names_2 <- as_labeller(
 #1 Combined dep+ind
 ```{r include=FALSE}
 
+# Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
@@ -89,7 +90,8 @@ Dependent |>
       'Potential sites' = totsites
     , 'Stocking (%)' = percent_filled
     , 'Sites Above Target Pit Size (%)' = Perc2.97
-    , 'Relative Species Richness' = rich_tottree
+    # , 'Relative Species Richness' = rich_tottree
+    , 'Rarefied Richness' = rare_rich
     , 'Evenness' = Evar
     , 'β Diversity' = spave
     , 'Average DBH of Small Species (cm)' = AvgDBH_smallmed
@@ -110,7 +112,7 @@ Dependent |>
   tbl_summary(
     statistic = list(all_continuous() ~ "{median}, {mean}, ({min}, {max})")
   ) |> 
-  as_gt() # |> 
+  as_gt()  |> 
   # gtsave(filename = 
   #          paste0('output_tables/Table_2_descriptives_street_tree_' , Sys.Date(), '.html'))
 
@@ -185,36 +187,35 @@ print(cor_results)
 ## updated correlations
 ```{r}
 
+# TODO update column order
 Combined |>
   select(
-    'Stocking (%)' = percent_filled
-  , 'Relative Species Richness' = rare_rich
-  , 'Evenness' = Evar
-  , 'β Diversity' = spave
-  , 'Average DBH of Smal Species (in.)' = AvgDBH_smallmed
-  , 'Average DBH of Large Species (in.)' = AvgDBH_large
-  , 'Sites Above Target Pit Size (%)' = Perc2.97
-  , 'Good Condition (%)' = PercGood
-  , 'Poor Condition (%)' = PercPoor
-  , 'Dead (%)' = PercDead
-  , 'White population (%) ' = PercWhite
-  , 'Black population (%) ' = PercBlk
-  , 'Median household Income (USD) ' = mhhi20
-  , 'Bachelor’s Degree Educational Attainment (%) ' = bahigher20
-  , 'Vacancy (%) ' = vacant20
-  , 'Population density' = PopDensity
-  , 'Road length (m)' = sum_road_length_m
-  , 'Impervious surface cover (%)' = PercentImp
-  , 'Air Temperature (°C) ' = avg_temp
-  , 'Potential sites' = totsites
+      'Potential sites' = totsites
+    , 'Stocking (%)' = percent_filled
+    , 'Sites Above Target Pit Size (%)' = Perc2.97
+    # , 'Relative Species Richness' = rich_tottree
+    , 'Rarefied Richness' = rare_rich
+    , 'Evenness' = Evar
+    , 'β Diversity' = spave
+    , 'Average DBH of Small Species (cm)' = AvgDBH_smallmed
+    , 'Average DBH of Large Species (cm)' = AvgDBH_large
+    , 'Poor Condition (%)' = PercPoor
+    , 'Good Condition (%)' = PercGood
+    , 'Dead (%)' = PercDead
+    , 'Black population (%) '                         = PercBlk
+    , 'White population (%) '                         = PercWhite
+    , 'Median household Income (USD) '                = mhhi20
+    , 'Bachelor’s Degree Educational Attainment (%) ' = bahigher20
+    , 'Air Temperature (°C) '                         = avg_temp
+    , 'Vacancy (%) '                                  = vacant20
+    , 'Impervious surface cover (%)'                  = PercentImp
+    , 'Population density'                            = PopDensity
+    , 'Road length (m)'                               = sum_road_length_m
     ) |> 
-  correlate() |> 
-  shave() |> 
-  rplot() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
-  # ggsave(
-  #   filename = paste0('figures/Figure_Table_3_corellation_', Sys.Date(), '.png'))
+  scipub::correltable(html = TRUE) |> 
+  View()
 
+# then lots of mungingn in word
 
 ```
 
@@ -520,6 +521,12 @@ Fig_grid <- plot_grid(A, B, C, D, E, F, labels = c('A', 'B', 'C', 'D', 'E', 'F')
   theme(plot.margin = margin(t = 5, r = 5, b = 5, l = 5, unit = "mm"))
 print(Fig_grid)
 
-ggsave(paste0('figures/Figure_2_scatterplot_grid_', Sys.Date(), ".jpg"),width=180, height=200, unit="mm", plot=Fig_grid, dpi=300 )
+ggsave(paste0('figures/Figure_2_scatterplot_grid_', Sys.Date(), ".jpg")
+       , width = 180
+       , height = 200
+       , unit = "mm"
+       , plot = Fig_grid
+       , dpi = 300
+       )
 ```
 

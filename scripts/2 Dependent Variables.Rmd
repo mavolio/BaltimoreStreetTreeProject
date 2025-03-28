@@ -62,6 +62,26 @@ bnia_street_tree <-
 # 3 Clean combined data
 ```{r}
 
+neigh_counts <- 
+  bnia_street_tree |> 
+  select(-ID, -OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
+  tabyl(CSA2020) |> 
+  tibble() |> 
+  mutate(  percent = 100*percent
+         , valid_percent = 100*valid_percent) |> 
+  arrange(n)
+
+neigh_counts |> pull(n) |> mean()
+
+
+exclude_neighs <-
+  bnia_street_tree |> 
+  select(-ID, -OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 
+  filter(CSA2020 == "Dickeyville/Franklintown" | CSA2020 == "Unassigned -- Jail")
+  
+exclude_neighs |> 
+  tabyl(CSA2020)
+
 clean <- 
   bnia_street_tree %>% 
   select(-ID, -OnStr, -OBSERV2, -OBSERV3, -HARD_SCAPE, -PARCELID, -COLLECTOR, -Inv_Time, -INSPECT_DT, -Inspect_TM, -Notes, -UniqueID, -UTILITIES) %>% 

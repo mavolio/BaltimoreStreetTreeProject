@@ -36,7 +36,8 @@ This file will conduct correlational analyses on combined data of demographics a
 #1 Combine dep+ind
 ```{r include=FALSE}
 
-Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -66,7 +67,8 @@ neighs <-
     , CSA2020
     
     # dependent variables
-    , rich_tottree        # Richness normalized by total trees
+    # , rich_tottree        # Richness normalized by total trees
+    , rare_rich
     , Evar            # Evenness
     , AvgDBH_smallmed # Small Tree Average DBH
 #    , AvgDBH_med      # Small Tree Average DBH no longer a thing
@@ -158,7 +160,8 @@ neighs |>
   select(
       CSA2020
     # dependent variables
-    , rich_tottree        # Richness normalized by total trees
+    # , rich_tottree        # Richness normalized by total trees
+    , rare_rich
     , Evar            # Evenness
     , AvgDBH_smallmed # Small Tree Average DBH
 #    , AvgDBH_med      # Small Tree Average DBH no longer a thing
@@ -293,14 +296,14 @@ neighs |>
 ```{r}
 
 neighs |> 
-  map(~sum(is.na(.))) |> 
+  purrr::map(~sum(is.na(.))) |> 
   bind_rows() |> 
   t() # missing PercentImp, PopDensity, road_length_m
 
 mods_bi <- 
   neighs |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |>
-  pivot_longer(cols = rich_tottree : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = rare_rich : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value) |> # just moving geom col to end, reorder
   group_by(ind, dep) |> 
   nest() |> 
@@ -375,7 +378,8 @@ mods_bi |>
                             "Potential sites"               
                           , "Stocking (%)"
                           , "Sites Above Target Pit Size (%)"
-                          , "Relative Species Richness"
+                          # , "Relative Species Richness"
+                          , 'Rarefied Richness'
                           , "Evenness"
                           , "β Diversity"
                           , "Average DBH of Small Species (cm)"
@@ -401,7 +405,8 @@ mods_bi |>
                                    'Potential\nsites'
                                  , 'Stocking\n(%)'
                                  , 'Sites\nAbove\nTarget Pit\nSize (%)'
-                                 , 'Relative\nSpecies\nRichness'
+                                 # , 'Relative\nSpecies\nRichness'
+                                 , 'Rarefied\nRichness'
                                  , 'Evenness'
                                  , 'β\nDiversity'
                                  , 'Average\nDBH of\nSmall\nSpecies\n(cm)'
@@ -449,7 +454,8 @@ mods_bi_slag <-
     # spatial neighbors, etc., lagged outcome variable
       nbs = st_contiguity(geometry)
     , wts = st_weights(nbs) # , allow_zero = TRUE)
-    , rich_tottree_lag    = st_lag(rich_tottree    , nbs, wts)
+    # , rich_tottree_lag    = st_lag(rich_tottree    , nbs, wts)
+    , rare_rich_lag       = st_lag(rare_rich       , nbs, wts)
     , Evar_lag            = st_lag(Evar            , nbs, wts)
     , AvgDBH_smallmed_lag = st_lag(AvgDBH_smallmed , nbs, wts)
     , AvgDBH_large_lag    = st_lag(AvgDBH_large    , nbs, wts)
@@ -464,7 +470,8 @@ mods_bi_slag <-
   st_drop_geometry() |> 
   select(CSA2020          # id
          # dep 
-          , rich_tottree    
+          # , rich_tottree   
+          , rare_rich
           , Evar            
           , AvgDBH_smallmed 
           , AvgDBH_large    
@@ -477,7 +484,8 @@ mods_bi_slag <-
           , Perc2.97     
 
           # lagged dep
-          , rich_tottree_lag   
+          # , rich_tottree_lag
+          , rare_rich_lag
           , Evar_lag           
           , AvgDBH_smallmed_lag
           , AvgDBH_large_lag   
@@ -501,12 +509,13 @@ mods_bi_slag <-
           , vacant20
          ) |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |> 
-  pivot_longer(cols = rich_tottree_lag : Perc2.97_lag, names_to = 'lag', values_to = 'lag_value') |> 
-  pivot_longer(cols = percent_filled : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
-  select(CSA2020, dep, dep_value, ind, ind_value, lag, lag_value) |> # just moving geom col to end, reorder
+  pivot_longer(cols = rare_rich_lag : Perc2.97_lag, names_to = 'lag', values_to = 'lag_value') |> 
+  pivot_longer(cols = rare_rich : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
+  select(CSA2020, dep, dep_value, ind, ind_value, lag, lag_value) |> # just reorder
   # TK HERE
   filter(
-    (dep == 'rich_tottree'    & lag == 'rich_tottree_lag')    |
+    # (dep == 'rich_tottree'    & lag == 'rich_tottree_lag')    |
+    (dep == 'rare_rich'       & lag == 'rare_rich_lag')       |
     (dep == 'Evar'            & lag == 'Evar_lag')            |
     (dep == 'AvgDBH_smallmed' & lag == 'AvgDBH_smallmed_lag') |
     (dep == 'AvgDBH_large'    & lag == 'AvgDBH_large_lag')    |
@@ -557,6 +566,8 @@ mods_bi_slag <-
   # drop_na()
   
 mods_bi_slag
+
+mods_bi_slag |> janitor::tabyl(dep, ind)
 
 mods_bi_slag$data[[1]]
 
@@ -624,9 +635,9 @@ mods_bi_slag |>
        ) + 
   NULL
 
-ggsave( filename = paste0('figures/Figure_S4_spatial_regression_', Sys.Date(), '.png')
-       , width = 6.5
-       , height = 7.5)
+# ggsave( filename = paste0('figures/Figure_S5_spatial_regression_', Sys.Date(), '.png')
+#        , width = 6.5
+#        , height = 7.5)
 
 ```
 
