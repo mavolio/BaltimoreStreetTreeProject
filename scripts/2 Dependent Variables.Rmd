@@ -330,7 +330,9 @@ AvgDBH_large <-
 
 #this is at the tree level, our other calculations are at the nb level
 pit_size <- 
-  clean %>% 
+  # clean %>% 
+  site_status |> 
+  filter(tree_present == 1) |> 
   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH)) 
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
          ) %>% 
@@ -352,7 +354,7 @@ large_pit <-
   summarize(n = length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
   left_join(perc_filled, by = "CSA2020") %>% 
-  mutate(Perc2.97 = (greater / totsites)*100) %>% 
+  mutate(Perc2.97 = (greater / T1)*100) %>% 
   select(CSA2020, Perc2.97)
 
 
