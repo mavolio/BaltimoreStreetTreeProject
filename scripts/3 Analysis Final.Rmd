@@ -47,7 +47,7 @@ var_names_2 <- as_labeller(
 ```{r include=FALSE}
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -475,7 +475,7 @@ A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
 #Bachelors vs Stocking
 B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
-  labs(x = "Bachelor’s Degree\nEducational Attainment (%)", y = "Stocking (%)") + 
+  labs(x = "Bachelor’s Degree (%)", y = "Stocking (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -496,10 +496,10 @@ D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
 
-#%target pit size vs. vacancy
-E <- ggplot(Combined, aes(x = vacant20, y = Perc2.97))+
+#%target pit size vs. percent impervious
+E <- ggplot(Combined, aes(x = PercentImp, y = Perc2.97))+
   geom_point(color = 'red', size=2.5)+
-  labs(x = 'Vacancy (%)', y = "Sites Above Target\nPit Size (%)") + 
+  labs(x = 'Impervious (%)', y = "Sites Above Target\nPit Size (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
