@@ -161,7 +161,9 @@ perc_filled <-site_status %>%
   mutate(  totsites = T1 + T0
          , percent_filled=(T1/totsites)*100)
 
-```
+city_wide_filled<- site_status %>% 
+  group_by(tree_present) %>%
+  summarise(n= length(Species))
 
 #6 Potential Sites - no longer necessary
 ```{r}
@@ -338,7 +340,7 @@ pit_size <-
          ) %>% 
   mutate(  length_SI = length*0.3048 #convert to SI
          , width_SI  = width*0.3048 #convert to SI
-         , pit_area  = length*width
+         , pit_area  = length_SI*width_SI
          ) %>% 
   select(CSA2020, pit_area, X_COORD, Y_COORD, DBH)
 
@@ -356,6 +358,12 @@ large_pit <-
   left_join(perc_filled, by = "CSA2020") %>% 
   mutate(Perc2.97 = (greater / T1)*100) %>% 
   select(CSA2020, Perc2.97)
+
+citywide<-large_pit #get stop after line 354 
+  pit_size %>% 
+  mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% 
+  group_by(size_threshhold) %>% 
+  summarize(n=length(pit_area))
 
 
 ```
