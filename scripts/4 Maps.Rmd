@@ -106,7 +106,7 @@ E <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_large)) + 
   scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_void(10) +
-  guides(fill = guide_legend(title = "Mean DBH*\n(large, cm)"))
+  guides(fill = guide_legend(title = "Mean DBH\n(large, cm)"))
 ```
 
 #9 perc poor
