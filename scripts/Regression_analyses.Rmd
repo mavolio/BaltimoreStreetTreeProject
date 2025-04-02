@@ -669,7 +669,7 @@ spat_vs_corrs |>
 spat_vs_corrs |> 
   group_by(  `Sign & Significance`
            , `Sign & Significance_CORRS`) |> 
-  count()
+  count() |> arrange(desc(n))
 
 mods_bi_slag |>
   select(dep, ind, sp_lag_preds, dep_alias, ind_alias) |> 
