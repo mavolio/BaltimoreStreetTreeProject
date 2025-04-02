@@ -13,7 +13,7 @@ library(cowplot)
 
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 # dep<-read.csv("input_data/Dependent_variable_2025-03-14.csv")
-dep<-read.csv("input_data/Dependent_variable_2025-03-27.csv")
+dep<-read_csv('input_data/Dependent_variable_2025-04-01.csv')
 
 sites <-
   Independent %>% 
@@ -35,7 +35,7 @@ sites <-
     , 'Black population (%)'                            = PercBlk
     , 'White population (%)'                            = PercWhite
     , 'Median household Income (USD)'                   = mhhi20
-    , 'Bachelor’s Degree Educational Attainment (%)'    = bahigher20
+    , 'Bachelor’s Degree (%)'                           = bahigher20
     , 'Air Temperature (°C)'                            = avg_temp
     , 'Vacancy (%)'                                     = vacant20
     , 'Impervious surface cover (%)'                    = PercentImp
@@ -61,7 +61,7 @@ sites |>
     ) + 
   facet_wrap(~str_wrap(ind, 26), scales='free') +  #, labeller = labeller(ind=labs))+
   xlab('Socio-Environmental Value') +
-  ylab('Number of Street Tree Sites') +
+  ylab('Potential Street Tree Sites') +
   theme_bw() + 
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   NULL

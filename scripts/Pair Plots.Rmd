@@ -7,13 +7,14 @@ output: html_document
 
 # setup
 ```{r}
-
+library(tidyverse)
 library(GGally)
 
 
 Dependent_pair <- 
   # read_csv('input_data/Dependent_variable_2025-03-14.csv') |> 
-  read_csv('input_data/Dependent_variable_2025-03-27.csv') |> 
+  # read_csv('input_data/Dependent_variable_2025-03-27.csv') |>
+  read_csv('input_data/Dependent_variable_2025-04-01.csv')
   drop_na()
 
 Independent_pair <- 

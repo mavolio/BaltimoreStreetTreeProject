@@ -29,7 +29,8 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 # 1 read in variables
 ```{r}
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <-
