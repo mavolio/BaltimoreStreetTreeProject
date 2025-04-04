@@ -47,10 +47,6 @@ var_names_2 <- as_labeller(
 ```{r include=FALSE}
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
-<<<<<<< HEAD
-=======
-# Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
->>>>>>> 9e655851de72b10473abca0eaa63c2098e57108e
 Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
@@ -225,8 +221,9 @@ Combined |>
 #3 Filtered p < 0.05
 ```{r message=FALSE, include=FALSE}
 
+#Due to the number of tests, we are going to bonferoni correct out data. 99 correlations (0.05/99, so p< 0.005)
 p_filtered_0.05 <- cor_results %>% 
-  filter(PValue<0.05) 
+  filter(PValue<0.00051) 
 
 view(p_filtered_0.05)
 
