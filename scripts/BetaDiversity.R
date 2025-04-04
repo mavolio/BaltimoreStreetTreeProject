@@ -34,9 +34,9 @@ sites <-
     # , 'Road\nlength (m)'                                    = sum_road_length_m
     , 'Black population (%)'                            = PercBlk
     , 'White population (%)'                            = PercWhite
-    , 'Median household Income (USD)'                   = mhhi20
-    , 'Bachelor’s Degree (%)'                           = bahigher20
-    , 'Air Temperature (°C)'                            = avg_temp
+    , 'Median household income (USD)'                   = mhhi20
+    , 'Bachelor’s degree (%)'                           = bahigher20
+    , 'Air temperature (°C)'                            = avg_temp
     , 'Vacancy (%)'                                     = vacant20
     , 'Impervious surface cover (%)'                    = PercentImp
     , 'Population density'                              = PopDensity

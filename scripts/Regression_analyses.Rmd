@@ -378,22 +378,22 @@ mods_bi |>
                         , levels = c(
                             "Potential sites"               
                           , "Stocking (%)"
-                          , "Sites Above Target Pit Size (%)"
+                          , "Sites above target pit size (%)"
                           # , "Relative Species Richness"
-                          , 'Rarefied Richness'
+                          , 'Rarefied richness'
                           , "Evenness"
                           , "β Diversity"
-                          , "Average DBH of Small Species (cm)"
-                          , "Average DBH of Large Species (cm)"
-                          , "Good Condition (%)"
-                          , "Poor Condition (%)"
+                          , "Average DBH of small species (cm)"
+                          , "Average DBH of large species (cm)"
+                          , "Good condition (%)"
+                          , "Poor condition (%)"
                           , "Dead (%)"
                           
                           , "Black population (%)"
                           , "White population (%)"
-                          , "Median household Income (USD)"
-                          , "Bachelor’s Degree (%)"
-                          , "Air Temperature (°C)"
+                          , "Median household income (USD)"
+                          , "Bachelor’s degree (%)"
+                          , "Air temperature (°C)"
                           , "Vacancy (%)"
                           , "Impervious surface cover (%)"
                           , "Population density"
@@ -405,22 +405,22 @@ mods_bi |>
                                , levels = c(
                                    'Potential\nsites'
                                  , 'Stocking\n(%)'
-                                 , 'Sites\nAbove\nTarget Pit\nSize (%)'
+                                 , 'Sites\nabove\ntarget pit\nsize (%)'
                                  # , 'Relative\nSpecies\nRichness'
-                                 , 'Rarefied\nRichness'
+                                 , 'Rarefied\nrichness'
                                  , 'Evenness'
                                  , 'β\nDiversity'
-                                 , 'Average\nDBH of\nSmall\nSpecies\n(cm)'
-                                 , 'Average\nDBH of\nLarge\nSpecies\n(cm)'
-                                 , 'Good\nCondition\n(%)'
-                                 , 'Poor\nCondition\n(%)'
+                                 , 'Average\nDBH of\nsmall\nspecies\n(cm)'
+                                 , 'Average\nDBH of\nlarge\nspecies\n(cm)'
+                                 , 'Good\ncondition\n(%)'
+                                 , 'Poor\ncondition\n(%)'
                                  , 'Dead (%)'
                                  
                                  , 'Black\npopulation\n(%)'
                                  , 'White\npopulation\n(%)'
-                                 , 'Median\nhousehold\nIncome\n(USD)'
-                                 , 'Bachelor’s\nDegree (%)'
-                                 , 'Air\nTemperature\n(°C)'
+                                 , 'Median\nhousehold\nincome\n(USD)'
+                                 , 'Bachelor’s\ndegree (%)'
+                                 , 'Air\ntemperature\n(°C)'
                                  , 'Vacancy\n(%)'
                                  , 'Impervious\nsurface\ncover (%)'
                                  , 'Population\ndensity'
