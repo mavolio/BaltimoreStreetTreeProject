@@ -37,7 +37,8 @@ This file will conduct correlational analyses on combined data of demographics a
 ```{r include=FALSE}
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -391,7 +392,7 @@ mods_bi |>
                           , "Black population (%)"
                           , "White population (%)"
                           , "Median household Income (USD)"
-                          , "Bachelor’s Degree Educational Attainment (%)"
+                          , "Bachelor’s Degree (%)"
                           , "Air Temperature (°C)"
                           , "Vacancy (%)"
                           , "Impervious surface cover (%)"
@@ -418,7 +419,7 @@ mods_bi |>
                                  , 'Black\npopulation\n(%)'
                                  , 'White\npopulation\n(%)'
                                  , 'Median\nhousehold\nIncome\n(USD)'
-                                 , 'Bachelor’s\nDegree\nEducational\nAttainment\n(%)'
+                                 , 'Bachelor’s\nDegree (%)'
                                  , 'Air\nTemperature\n(°C)'
                                  , 'Vacancy\n(%)'
                                  , 'Impervious\nsurface\ncover (%)'
@@ -430,23 +431,23 @@ mods_bi |>
         )) |> 
   select(-alias2)
 
-# 2x checks requires modes_bi_slag from below to be run
-# totsites is what?
-# what is "Potential Sites"
-var_alias_lu |> left_join(mods_bi_slag, by = c('name' = 'dep'))
-mods_bi_slag |>
-  left_join(
-    var_alias_lu |> filter(var == 'dependent')
-             , by = c('dep' = 'name')) |>
-  filter(is.na(var))
-
-
-mods_bi_slag |>
-  left_join(
-    var_alias_lu |> filter(var == 'independent') |> drop_na()
-             , by = c('ind' = 'name'))
-
-# WHERE's large and small trees, NA, relative richness (rich_tottree) and evenness (Evar)
+# # 2x checks requires modes_bi_slag from below to be run
+# # totsites is what?
+# # what is "Potential Sites"
+# var_alias_lu |> left_join(mods_bi_slag, by = c('name' = 'dep'))
+# mods_bi_slag |>
+#   left_join(
+#     var_alias_lu |> filter(var == 'dependent')
+#              , by = c('dep' = 'name')) |>
+#   filter(is.na(var))
+# 
+# 
+# mods_bi_slag |>
+#   left_join(
+#     var_alias_lu |> filter(var == 'independent') |> drop_na()
+#              , by = c('ind' = 'name'))
+# 
+# # WHERE's large and small trees, NA, relative richness (rich_tottree) and evenness (Evar)
 
 mods_bi_slag <- 
   neighs |> 
@@ -594,14 +595,81 @@ sp_lag_sigs_tbl <-
   mutate(
     `Sign & Significance` = factor(
       case_when(
-          p.value < 0.05 & estimate > 0 ~ 'Positive (p > 0.05)'
+          p.value < 0.05 & estimate > 0 ~ 'Positive (p < 0.05)'
         , p.value < 0.05 & estimate < 0 ~ 'Negative (p < 0.05)'
         , p.value >=0.05                ~ 'p > 0.05'
         , TRUE ~ 'ERROR'
         )
-      , levels = c('Positive (p > 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
+      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
     ) |> 
   select(dep, ind, `Sign & Significance`)
+
+dep_vars_vec <- Dependent |> names()
+(dep_vars_vec <- dep_vars_vec[-1])
+
+spat_vs_corrs <- 
+  Combined |>
+  select(
+      totsites
+    , percent_filled
+    , Perc2.97
+    , rare_rich
+    , Evar
+    , spave
+    , AvgDBH_smallmed
+    , AvgDBH_large
+    , PercPoor
+    , PercGood
+    , PercDead
+    , PercBlk
+    , PercWhite
+    , mhhi20
+    , bahigher20
+    , avg_temp
+    , vacant20
+    , PercentImp
+    , PopDensity
+    , sum_road_length_m
+    ) |> 
+  correlation::correlation() |> 
+  tibble() |> 
+  select(p1 = Parameter1, p2 = Parameter2, r, p) |> 
+  mutate(  var_set_1 = ifelse(p1 %in% dep_vars_vec, 'dep', 'ind')
+         , var_set_2 = ifelse(p2 %in% dep_vars_vec, 'dep', 'ind')
+         ) |> 
+  filter(var_set_1 != var_set_2) |> 
+   mutate(
+    `Sign & Significance_CORRS` = factor(
+      case_when(
+          p < 0.05 & r > 0 ~ 'Positive (p < 0.05)'
+        , p < 0.05 & r < 0 ~ 'Negative (p < 0.05)'
+        , p >=0.05                ~ 'p > 0.05'
+        , TRUE ~ 'ERROR'
+        )
+      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
+    ) |> 
+  left_join(sp_lag_sigs_tbl, by = c('p1' = 'dep', 'p2' = 'ind'))
+
+# compare spatial regression to correlations
+spat_vs_corrs |> 
+  janitor::tabyl(  `Sign & Significance`       # ROWS 
+                 , `Sign & Significance_CORRS` # COLS
+                 ) |> 
+  janitor::adorn_percentages(denominator = 'all') |> 
+  janitor::adorn_pct_formatting() |> 
+  tibble()
+
+
+spat_vs_corrs |> 
+  janitor::tabyl(  `Sign & Significance`       # ROWS 
+                 , `Sign & Significance_CORRS` # COLS
+                 ) |> 
+  janitor::adorn_totals('col')
+  
+spat_vs_corrs |> 
+  group_by(  `Sign & Significance`
+           , `Sign & Significance_CORRS`) |> 
+  count() |> arrange(desc(n))
 
 mods_bi_slag |>
   select(dep, ind, sp_lag_preds, dep_alias, ind_alias) |> 
@@ -635,9 +703,9 @@ mods_bi_slag |>
        ) + 
   NULL
 
-# ggsave( filename = paste0('figures/Figure_S5_spatial_regression_', Sys.Date(), '.png')
-#        , width = 6.5
-#        , height = 7.5)
+ggsave( filename = paste0('figures/Figure_S5_spatial_regression_', Sys.Date(), '.png')
+       , width = 6.5
+       , height = 7.5)
 
 ```
 
