@@ -474,11 +474,7 @@ A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
 #Bachelors vs Stocking
 B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
-<<<<<<< HEAD
-  labs(x = "Bachelor’s Degree (%)", y = "Stocking (%)") + 
-=======
   labs(x = "Bachelor’s degree (%)", y = "Stocking (%)") + 
->>>>>>> ba9dd61bb531e64d32ed9643d422f0762da610a4
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -492,9 +488,9 @@ C <- ggplot(Combined, aes(x = avg_temp, y = rare_rich))+
         text=element_text(size=12))
 
 #%poor vs % black
-D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
-  geom_point(color = "#a55aa4", size=2.5)+
-  labs(x = "Black population (%)", y = "Poor condition (%)") + 
+D <- ggplot(Combined, aes(x = PopDensity, y = spave))+
+  geom_point(color = "lightblue", size=2.5)+
+  labs(x = "Population density", y = "Beta diversity") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -502,11 +498,7 @@ D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
 #%target pit size vs. percent impervious
 E <- ggplot(Combined, aes(x = PercentImp, y = Perc2.97))+
   geom_point(color = 'red', size=2.5)+
-<<<<<<< HEAD
-  labs(x = 'Impervious (%)', y = "Sites Above Target\nPit Size (%)") + 
-=======
-  labs(x = 'Vacancy (%)', y = "Sites above target\npit size (%)") + 
->>>>>>> ba9dd61bb531e64d32ed9643d422f0762da610a4
+  labs(x = 'Impervious surface (%)', y = "Sites above target\npit size (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
