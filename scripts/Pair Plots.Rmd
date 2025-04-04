@@ -14,7 +14,7 @@ library(GGally)
 Dependent_pair <- 
   # read_csv('input_data/Dependent_variable_2025-03-14.csv') |> 
   # read_csv('input_data/Dependent_variable_2025-03-27.csv') |>
-  read_csv('input_data/Dependent_variable_2025-04-01.csv')
+  read_csv('input_data/Dependent_variable_2025-04-01.csv') |> 
   drop_na()
 
 Independent_pair <- 
@@ -44,9 +44,9 @@ ind_pair <-
   # , 'Dead (%)' = PercDead
     'Black\npopulation\n(%) ' = PercBlk
   , 'White\npopulation\n(%) ' = PercWhite
-  , 'Median\nhousehold\nIncome\n(USD)' = mhhi20
-  , 'Bachelor’s\nDegree\nEducational\nAttainment\n(%)' = bahigher20
-  , 'Air\nTemperature\n(°C)' = avg_temp
+  , 'Median\nhousehold\nincome\n(USD)' = mhhi20
+  , 'Bachelor’s\ndegree\n(%)' = bahigher20
+  , 'Air\ntemperature\n(°C)' = avg_temp
   , 'Vacancy\n(%) ' = vacant20
   , 'Impervious\nsurface\ncover (%)' = PercentImp
   , 'Population\ndensity' = PopDensity
@@ -85,15 +85,15 @@ dep_pair <-
   select(
     'Potential\nsites' = totsites
   , 'Stocking\n(%)' = percent_filled
-  , 'Sites\nAbove\nTarget Pit\nSize (%)' = Perc2.97
+  , 'Sites\nabove\ntarget pit\nsize (%)' = Perc2.97
   # , 'Relative\nSpecies\nRichness' = rich_tottree
-  , 'Rarefied\nRichness' = rare_rich
+  , 'Rarefied\nrichness' = rare_rich
   , 'Evenness' = Evar
   , 'β\nDiversity' = spave
-  , 'Average\nDBH of\nSmall\nSpecies\n(cm)' = AvgDBH_smallmed
-  , 'Average\nDBH of\nLarge\nSpecies\n(cm)' = AvgDBH_large
-  , 'Good\nCondition\n(%)' = PercGood
-  , 'Poor\nCondition\n(%)' = PercPoor
+  , 'Average\nDBH of\nsmall\nspecies\n(cm)' = AvgDBH_smallmed
+  , 'Average\nDBH of\nlarge\nspecies\n(cm)' = AvgDBH_large
+  , 'Good\ncondition\n(%)' = PercGood
+  , 'Poor\ncondition\n(%)' = PercPoor
   , 'Dead (%)' = PercDead
   #   'Black\npopulation\n(%) ' = PercBlk
   # , 'White\npopulation\n(%) ' = PercWhite

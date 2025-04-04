@@ -474,7 +474,11 @@ A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
 #Bachelors vs Stocking
 B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
+<<<<<<< HEAD
   labs(x = "Bachelor’s Degree (%)", y = "Stocking (%)") + 
+=======
+  labs(x = "Bachelor’s degree (%)", y = "Stocking (%)") + 
+>>>>>>> ba9dd61bb531e64d32ed9643d422f0762da610a4
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -482,7 +486,7 @@ B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
 #richness vs temperature
 C <- ggplot(Combined, aes(x = avg_temp, y = rare_rich))+
   geom_point(color = "skyblue4", size=2.5)+
-  labs(x = "Air Temperature (°C)", y = "Rarefied Richness") + 
+  labs(x = "Air temperature (°C)", y = "Rarefied richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -490,7 +494,7 @@ C <- ggplot(Combined, aes(x = avg_temp, y = rare_rich))+
 #%poor vs % black
 D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
   geom_point(color = "#a55aa4", size=2.5)+
-  labs(x = "Black population (%)", y = "Poor Condition (%)") + 
+  labs(x = "Black population (%)", y = "Poor condition (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -498,7 +502,11 @@ D <- ggplot(Combined, aes(x = PercBlk, y = PercPoor))+
 #%target pit size vs. percent impervious
 E <- ggplot(Combined, aes(x = PercentImp, y = Perc2.97))+
   geom_point(color = 'red', size=2.5)+
+<<<<<<< HEAD
   labs(x = 'Impervious (%)', y = "Sites Above Target\nPit Size (%)") + 
+=======
+  labs(x = 'Vacancy (%)', y = "Sites above target\npit size (%)") + 
+>>>>>>> ba9dd61bb531e64d32ed9643d422f0762da610a4
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
@@ -506,7 +514,7 @@ E <- ggplot(Combined, aes(x = PercentImp, y = Perc2.97))+
 #large tree DBH vs temperature
 F <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH_large))+
   geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "Air Temperature (°C)", y = "Average DBH of\nLarge Species (cm)") + 
+  labs(x = "Air temperature (°C)", y = "Average DBH of\nlarge species (cm)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))

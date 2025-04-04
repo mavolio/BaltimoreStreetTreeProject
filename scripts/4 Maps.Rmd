@@ -71,7 +71,7 @@ B <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = Perc2.97)) + 
   scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_void(10)+
-  guides(fill = guide_legend(title = "Target Pit\nSize (%)"))
+  guides(fill = guide_legend(title = "Target pit\nsize (%)"))
 
 ```
 
@@ -85,7 +85,7 @@ C <-
   geom_sf(aes(fill = rare_rich)) + 
   scale_fill_distiller(palette = "Blues", trans = "reverse") + theme_void(10) +
   # guides(fill = guide_legend(title = "Richness\nNormalized by\nTotal Trees"))
-  guides(fill = guide_legend(title = "Rarefied\nRichness"))
+  guides(fill = guide_legend(title = "Rarefied\nrichness"))
 ```
 
 
@@ -116,7 +116,7 @@ F <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = PercPoor)) + 
   scale_fill_distiller(palette = "Purples", trans = "reverse") + theme_void(10)+
-  guides(fill = guide_legend(title = "Poor\nCondition (%)"))
+  guides(fill = guide_legend(title = "Poor\ncondition (%)"))
 ```
 
 #10 
@@ -187,10 +187,10 @@ b <-
 c <- 
   bmore_bnia |> 
   select(
-    'Median\nhousehold\nIncome\n(USD)'                = mhhi20
+    'Median\nhousehold\nincome\n(USD)'                = mhhi20
     ) |> 
   ggplot() + 
-  geom_sf(aes(fill = `Median\nhousehold\nIncome\n(USD)`)) + 
+  geom_sf(aes(fill = `Median\nhousehold\nincome\n(USD)`)) + 
   scale_fill_viridis() +
   # theme_bw(10) + 
   theme_void(10) +
@@ -200,10 +200,10 @@ c <-
 d <- 
   bmore_bnia |> 
   select(
-    'Bachelor’s\nDegree\nEducational\nAttainment\n(%)' = bahigher20
+    'Bachelor’s\ndegree\n(%)' = bahigher20
     ) |> 
   ggplot() + 
-  geom_sf(aes(fill = `Bachelor’s\nDegree\nEducational\nAttainment\n(%)`)) + 
+  geom_sf(aes(fill = `Bachelor’s\ndegree\n(%)`)) + 
   scale_fill_viridis(option = 'magma') +
   # theme_bw(10) + 
   theme_void(10) +
@@ -212,10 +212,10 @@ d <-
 e <- 
   bmore_bnia |> 
   select(
-    'Air\nTemperature\n(°C)'                         = avg_temp
+    'Air\ntemperature\n(°C)'                         = avg_temp
     ) |> 
   ggplot() + 
-  geom_sf(aes(fill = `Air\nTemperature\n(°C)`)) + 
+  geom_sf(aes(fill = `Air\ntemperature\n(°C)`)) + 
   scale_fill_viridis(option = 'F', direction = -1) +
   # theme_bw(10) + 
   theme_void(10) +
