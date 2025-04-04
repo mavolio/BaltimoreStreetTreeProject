@@ -47,6 +47,10 @@ var_names_2 <- as_labeller(
 ```{r include=FALSE}
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
+<<<<<<< HEAD
+=======
+# Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
+>>>>>>> 9e655851de72b10473abca0eaa63c2098e57108e
 Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
@@ -190,18 +194,18 @@ print(cor_results)
 # TODO update column order
 Combined |>
   select(
-      'Potential sites' = totsites
-    , 'Stocking (%)' = percent_filled
-    , 'Sites Above Target Pit Size (%)' = Perc2.97
+      'Potential sites'                               = totsites
+    , 'Stocking (%)'                                  = percent_filled
+    , 'Sites Above Target Pit Size (%)'               = Perc2.97
     # , 'Relative Species Richness' = rich_tottree
-    , 'Rarefied Richness' = rare_rich
-    , 'Evenness' = Evar
-    , 'β Diversity' = spave
-    , 'Average DBH of Small Species (cm)' = AvgDBH_smallmed
-    , 'Average DBH of Large Species (cm)' = AvgDBH_large
-    , 'Poor Condition (%)' = PercPoor
-    , 'Good Condition (%)' = PercGood
-    , 'Dead (%)' = PercDead
+    , 'Rarefied Richness'                             = rare_rich
+    , 'Evenness'                                      = Evar
+    , 'β Diversity'                                   = spave
+    , 'Average DBH of Small Species (cm)'             = AvgDBH_smallmed
+    , 'Average DBH of Large Species (cm)'             = AvgDBH_large
+    , 'Poor Condition (%)'                            = PercPoor
+    , 'Good Condition (%)'                            = PercGood
+    , 'Dead (%)'                                      = PercDead
     , 'Black population (%) '                         = PercBlk
     , 'White population (%) '                         = PercWhite
     , 'Median household Income (USD) '                = mhhi20
@@ -214,8 +218,6 @@ Combined |>
     ) |> 
   scipub::correltable(html = TRUE) |> 
   View()
-
-# then lots of mungingn in word
 
 ```
 
