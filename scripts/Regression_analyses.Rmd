@@ -689,12 +689,12 @@ mods_bi_slag |>
   facet_grid(dep_alias ~ ind_alias, scales = 'free') +
   # facet_grid(str_wrap(dep_alias, 10) ~ str_wrap(ind_alias, 10), scales = 'free') +
   # theme_bw(16) +
-  scale_color_manual(values = c(
-    # 'red', 
-    'blue', 'gray')) +
-  scale_fill_manual(values = c(
-    # 'red', 
-    'blue', 'gray')) +
+  scale_color_manual(values = c('red'
+                                # , 'blue'
+                                , 'gray')) +
+  scale_fill_manual(values = c('red'
+                               # , 'blue'
+                               , 'gray')) +
   theme_bw(8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
         , legend.position = 'bottom'
