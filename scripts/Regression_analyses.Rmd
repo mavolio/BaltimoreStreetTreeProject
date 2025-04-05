@@ -597,10 +597,10 @@ sp_lag_sigs_tbl <-
       case_when(
           p.value < (0.05 / 99) & estimate > 0 ~ 'Positive (p < 0.05)'
         , p.value < (0.05 / 99) & estimate < 0 ~ 'Negative (p < 0.05)'
-        , p.value >=(0.05 / 99)                ~ 'p > 0.05'
+        , p.value >=(0.05 / 99)                ~ 'p >= 0.05'
         , TRUE ~ 'ERROR'
         )
-      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
+      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
     ) |> 
   select(dep, ind, `Sign & Significance`)
 
@@ -631,7 +631,7 @@ spat_vs_corrs <-
     , PopDensity
     , sum_road_length_m
     ) |> 
-  correlation::correlation() |> 
+  correlation::correlation(p_adjust = 'bonferroni') |> 
   tibble() |> 
   select(p1 = Parameter1, p2 = Parameter2, r, p) |> 
   mutate(  var_set_1 = ifelse(p1 %in% dep_vars_vec, 'dep', 'ind')
@@ -643,10 +643,10 @@ spat_vs_corrs <-
       case_when(
           p < (0.05 / 99) & r > 0 ~ 'Positive (p < 0.05)'
         , p < (0.05 / 99) & r < 0 ~ 'Negative (p < 0.05)'
-        , p >=(0.05 / 99)         ~ 'p > 0.05'
+        , p >=(0.05 / 99)         ~ 'p >= 0.05'
         , TRUE ~ 'ERROR'
         )
-      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
+      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
     ) |> 
   left_join(sp_lag_sigs_tbl, by = c('p1' = 'dep', 'p2' = 'ind'))
 
