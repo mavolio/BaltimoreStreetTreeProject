@@ -1,7 +1,8 @@
 ---
 title: "Analysis Final"
 output:
-  pdf_document: default
+  word_document:
+    toc: true
   html_document:
     fig_width: 8
     fig_height: 5
@@ -9,6 +10,7 @@ output:
     toc: true
     toc_float: true
     self_contained: true
+  pdf_document: default
 ---
 
 #0 set up 
@@ -112,7 +114,7 @@ Dependent |>
   tbl_summary(
     statistic = list(all_continuous() ~ "{median}, {mean}, ({min}, {max})")
   ) |> 
-  as_gt()  |> 
+  as_gt()  #|> 
   # gtsave(filename = 
   #          paste0('output_tables/Table_2_descriptives_street_tree_' , Sys.Date(), '.html'))
 
@@ -120,7 +122,7 @@ Dependent |>
 
 
 #2 All p values and correlations
-```{r include=FALSE}
+```{r eval=FALSE, include=FALSE}
 #  
 #empty df to store results
 cor_results <- data.frame()
@@ -171,11 +173,12 @@ print(cor_results)
 # cors <-
 #   Combined |>
 #   select(where(is.numeric)) |>
-#   correlation::correlation() 
+#   correlation::correlation(p_adjust = 'bonferroni')
 # 
 # cors |>
 #   filter(p < 0.05) |>
-#   summary()
+#   summary() |> 
+#   knitr::kable()
 # 
 # 
 # Combined %$% cor.test(mhhi20, percent_filled)
@@ -187,50 +190,57 @@ print(cor_results)
 ## updated correlations
 ```{r}
 
-# TODO update column order
-Combined |>
+cors <- 
+  Combined |>
   select(
       'Potential sites'                               = totsites
     , 'Stocking (%)'                                  = percent_filled
-    , 'Sites Above Target Pit Size (%)'               = Perc2.97
+    , 'Sites above target pit size (%)'               = Perc2.97
     # , 'Relative Species Richness' = rich_tottree
-    , 'Rarefied Richness'                             = rare_rich
+    , 'Rarefied richness'                             = rare_rich
     , 'Evenness'                                      = Evar
     , 'β Diversity'                                   = spave
-    , 'Average DBH of Small Species (cm)'             = AvgDBH_smallmed
-    , 'Average DBH of Large Species (cm)'             = AvgDBH_large
-    , 'Poor Condition (%)'                            = PercPoor
-    , 'Good Condition (%)'                            = PercGood
+    , 'Average DBH of small species (cm)'             = AvgDBH_smallmed
+    , 'Average DBH of large species (cm)'             = AvgDBH_large
+    , 'Poor condition (%)'                            = PercPoor
+    , 'Good condition (%)'                            = PercGood
     , 'Dead (%)'                                      = PercDead
-    , 'Black population (%) '                         = PercBlk
-    , 'White population (%) '                         = PercWhite
-    , 'Median household Income (USD) '                = mhhi20
-    , 'Bachelor’s Degree Educational Attainment (%) ' = bahigher20
-    , 'Air Temperature (°C) '                         = avg_temp
-    , 'Vacancy (%) '                                  = vacant20
+    , 'Air temperature (°C)'                          = avg_temp
     , 'Impervious surface cover (%)'                  = PercentImp
-    , 'Population density'                            = PopDensity
+    
     , 'Road length (m)'                               = sum_road_length_m
+    , 'Population density'                            = PopDensity
+    , 'Vacancy (%)'                                   = vacant20
+    , "Bachelor's degree (%)"                         = bahigher20
+    , 'Median household income (USD) '                = mhhi20
+    , 'White population (%)'                          = PercWhite
+    , 'Black population (%)'                          = PercBlk
     ) |> 
-  scipub::correltable(html = TRUE) |> 
-  View()
+  # scipub::correltable(html = TRUE) |> 
+  # View()
+  correlation::correlation(p_adjust = 'bonferroni')
 
+cors |> 
+  summary() |> 
+  correlation::display(
+    # include_significance = TRUE
+    ) 
 ```
 
 
 #3 Filtered p < 0.05
-```{r message=FALSE, include=FALSE}
+```{r eval=FALSE, message=FALSE, include=FALSE}
 
 #Due to the number of tests, we are going to bonferoni correct out data. 99 correlations (0.05/99, so p< 0.005)
-p_filtered_0.05 <- cor_results %>% 
-  filter(PValue<0.00051) 
+p_filtered_0.05 <- cor_results
+  #filter(PValue<0.00051) 
 
 view(p_filtered_0.05)
 
 ```
 
 # Filtered p < 0.001
-```{r message=FALSE, warning=FALSE, include=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 p_filtered_0.001 <- cor_results %>% 
   filter(PValue<0.001)
 
@@ -238,9 +248,10 @@ view(p_filtered_0.001)
 ```
 
 #4 Total Tree Pits
-```{r}
-totpits_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "all_sites" | Variable2 == "all_sites")
+```{r eval=FALSE, include=FALSE}
+totpits_r <- p_filtered_0.05 %>%
+  filter(Variable1 == "totsites" | Variable2 == "totsites") %>% 
+  mutate(padj=p.adjust(PValue, method='BH', n=99))
 
 view(totpits_r)
 
@@ -251,9 +262,10 @@ view(totpits_r2)
 ```
 
 #5 Stocking
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 stocking_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "percent_filled" | Variable2 == "percent_filled")
+  filter(Variable1 == "percent_filled" | Variable2 == "percent_filled") %>% 
+  mutate(padj=p.adjust(PValue, method='BH', n=99))
 
 view(stocking_r)
 
@@ -288,7 +300,7 @@ view(stocking_r2)
 ```
 
 #6 Richness
-```{r}
+```{r eval=FALSE, include=FALSE}
 richtot_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "rare_rich" | Variable2 == "rare_rich")
 
@@ -301,7 +313,7 @@ view(richtot_r2)
 ```
 
 #7 Evenness
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 even_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "Evar" | Variable2 == "Evar")
 
@@ -316,7 +328,7 @@ view(even_r2)
 ```
 
 #8 Beta Diversity
-```{r}
+```{r eval=FALSE, include=FALSE}
 betadiv_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "spave" | Variable2 == "spave")
 
@@ -329,7 +341,7 @@ view(betadiv_r2)
 ```
 
 #9 Small and Medium DBH
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 small_dbh_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "AvgDBH_smallmed" | Variable2 == "AvgDBH_smallmed")
 
@@ -365,7 +377,7 @@ view(small_dbh_r)
 ```
 
 #10 Medium DBH
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # med_dbh_r <- p_filtered_0.05 %>% 
 #   filter(Variable1 == "AvgDBH_med" | Variable2 == "AvgDBH_med")
 # 
@@ -373,7 +385,7 @@ view(small_dbh_r)
 ```
 
 #11 Large DBH
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 large_dbh_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "AvgDBH_large" | Variable2 == "AvgDBH_large")
 
@@ -381,9 +393,10 @@ view(large_dbh_r)
 ```
 
 #12 Poor Condition
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 poor_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")
+  filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")%>% 
+  mutate(padj=p.adjust(PValue, method='BH', n=99))
 
 view(poor_r)
 
@@ -394,10 +407,10 @@ view(poor_r2)
 ```
 
 #13 Good Condition
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 good_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "PercGood" | Variable2 == "PercGood")
-
+  filter(Variable1 == "PercGood" | Variable2 == "PercGood")%>% 
+  mutate(padj=p.adjust(PValue, method='BH', n=99))
 view(good_r)
 
 good_r2 <- p_filtered_0.001 %>% 
@@ -407,7 +420,7 @@ view(good_r2)
 ```
 
 #14 Dead Stock 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 deadstock_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercDead" | Variable2 == "PercDead")
 
@@ -420,7 +433,7 @@ view(good_r2)
 ```
 
 #15 Target Pit Size
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 perc2.97_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "Perc2.97" | Variable2 == "Perc2.97")
 
@@ -435,7 +448,7 @@ view(perc2.97_r2)
 ```
 
 #16 road length
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 sum_road_length_m_r <- p_filtered_0.05 %>%
   filter(Variable1 == "sum_road_length_m" | Variable2 == "sum_road_length_m")
 
@@ -451,7 +464,7 @@ view(sum_road_length_m_r2)
 
 
 # r value matrix
-```{r}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 cor_matrix <- cor_results %>% 
   select(Variable1, Variable2, CorrelationCoefficient) %>% 
   spread(Variable2, CorrelationCoefficient) %>% 
@@ -474,7 +487,7 @@ A<- ggplot(Combined, aes(x = PercBlk, y = percent_filled))+
 #Bachelors vs Stocking
 B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
   geom_point(color = "#00e293", size=2.5)+
-  labs(x = "Bachelor’s degree (%)", y = "Stocking (%)") + 
+  labs(x = "Bachelor's degree (%)", y = "Stocking (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
