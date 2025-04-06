@@ -595,12 +595,12 @@ sp_lag_sigs_tbl <-
   mutate(
     `Sign & Significance` = factor(
       case_when(
-          p.value < 0.05 & estimate > 0 ~ 'Positive (p < 0.05)'
-        , p.value < 0.05 & estimate < 0 ~ 'Negative (p < 0.05)'
-        , p.value >=0.05                ~ 'p > 0.05'
+          p.value < (0.05 / 99) & estimate > 0 ~ 'Positive (p < 0.05)'
+        , p.value < (0.05 / 99) & estimate < 0 ~ 'Negative (p < 0.05)'
+        , p.value >=(0.05 / 99)                ~ 'p >= 0.05'
         , TRUE ~ 'ERROR'
         )
-      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
+      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
     ) |> 
   select(dep, ind, `Sign & Significance`)
 
@@ -631,7 +631,7 @@ spat_vs_corrs <-
     , PopDensity
     , sum_road_length_m
     ) |> 
-  correlation::correlation() |> 
+  correlation::correlation(p_adjust = 'bonferroni') |> 
   tibble() |> 
   select(p1 = Parameter1, p2 = Parameter2, r, p) |> 
   mutate(  var_set_1 = ifelse(p1 %in% dep_vars_vec, 'dep', 'ind')
@@ -641,12 +641,12 @@ spat_vs_corrs <-
    mutate(
     `Sign & Significance_CORRS` = factor(
       case_when(
-          p < 0.05 & r > 0 ~ 'Positive (p < 0.05)'
-        , p < 0.05 & r < 0 ~ 'Negative (p < 0.05)'
-        , p >=0.05                ~ 'p > 0.05'
+          p < (0.05 / 99) & r > 0 ~ 'Positive (p < 0.05)'
+        , p < (0.05 / 99) & r < 0 ~ 'Negative (p < 0.05)'
+        , p >=(0.05 / 99)         ~ 'p >= 0.05'
         , TRUE ~ 'ERROR'
         )
-      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p > 0.05'))
+      , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
     ) |> 
   left_join(sp_lag_sigs_tbl, by = c('p1' = 'dep', 'p2' = 'ind'))
 
@@ -689,8 +689,12 @@ mods_bi_slag |>
   facet_grid(dep_alias ~ ind_alias, scales = 'free') +
   # facet_grid(str_wrap(dep_alias, 10) ~ str_wrap(ind_alias, 10), scales = 'free') +
   # theme_bw(16) +
-  scale_color_manual(values = c('red', 'blue', 'gray')) +
-  scale_fill_manual(values = c('red', 'blue', 'gray')) +
+  scale_color_manual(values = c('red'
+                                # , 'blue'
+                                , 'gray')) +
+  scale_fill_manual(values = c('red'
+                               # , 'blue'
+                               , 'gray')) +
   theme_bw(8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)
         , legend.position = 'bottom'
@@ -700,6 +704,7 @@ mods_bi_slag |>
        , subtitle = 'after controling for spatial autocorrelation (spatial lag regression)'
        , x = 'Indepent Variable'
        , y = "Predicted Dependent Variable's Value"
+       , captoin = 'p values adjusted with a Bonferroni correction'
        ) + 
   NULL
 
