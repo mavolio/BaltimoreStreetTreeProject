@@ -505,8 +505,8 @@ mods_bi_slag <-
           , bahigher20
           , avg_temp
           , PercentImp
-          , PopDensity
-          , sum_road_length_m
+          # , PopDensity
+          # , sum_road_length_m
           , vacant20
          ) |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |> 
@@ -572,6 +572,7 @@ mods_bi_slag |> janitor::tabyl(dep, ind)
 
 mods_bi_slag$data[[1]]
 
+
 # # extract p-values for autocorrelation
 # mods_bi |> 
 #   select(ends_with('mi')) |> 
@@ -587,17 +588,26 @@ mods_bi_slag$data[[1]]
 # mods$ols_L_rich_tot_smry
 # mods$ols_PercGood_smry
 
+n_adjust <- 77
+
 sp_lag_sigs_tbl <-
   mods_bi_slag |> 
   select(dep, ind, sp_lag_sig) |> 
   unnest(sp_lag_sig) |> 
+  # for BH adjustment
   filter(term == 'ind_value') |> 
   mutate(
-    `Sign & Significance` = factor(
+    p_adjust_bh = p.adjust(p.value, method = 'BH', n = 77)
+    , `Sign & Significance` = factor(
       case_when(
-          p.value < (0.05 / 99) & estimate > 0 ~ 'Positive (p < 0.05)'
-        , p.value < (0.05 / 99) & estimate < 0 ~ 'Negative (p < 0.05)'
-        , p.value >=(0.05 / 99)                ~ 'p >= 0.05'
+        # # Bonferoini adjustment is the divide by 99
+        #   p.value < (0.05 / 99) & estimate > 0 ~ 'Positive (p < 0.05)'
+        # , p.value < (0.05 / 99) & estimate < 0 ~ 'Negative (p < 0.05)'
+        # , p.value >=(0.05 / 99)                ~ 'p >= 0.05'
+        # # for BH p value adjustment
+          p_adjust_bh < 0.05 & estimate > 0 ~ 'Positive (p < 0.05)'
+        , p_adjust_bh < 0.05 & estimate < 0 ~ 'Negative (p < 0.05)'
+        , p_adjust_bh >=0.05                ~ 'p >= 0.05'
         , TRUE ~ 'ERROR'
         )
       , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
@@ -606,6 +616,7 @@ sp_lag_sigs_tbl <-
 
 dep_vars_vec <- Dependent |> names()
 (dep_vars_vec <- dep_vars_vec[-1])
+
 
 spat_vs_corrs <- 
   Combined |>
@@ -628,10 +639,12 @@ spat_vs_corrs <-
     , avg_temp
     , vacant20
     , PercentImp
-    , PopDensity
-    , sum_road_length_m
+    # , PopDensity
+    # , sum_road_length_m
     ) |> 
-  correlation::correlation(p_adjust = 'bonferroni') |> 
+  # correlation::correlation(p_adjust = 'bonferroni') |> 
+  # correlation::correlation() |> # PAY ATTENTION
+  correlation::correlation(p_adjust = 'none') |> 
   tibble() |> 
   select(p1 = Parameter1, p2 = Parameter2, r, p) |> 
   mutate(  var_set_1 = ifelse(p1 %in% dep_vars_vec, 'dep', 'ind')
@@ -639,11 +652,15 @@ spat_vs_corrs <-
          ) |> 
   filter(var_set_1 != var_set_2) |> 
    mutate(
-    `Sign & Significance_CORRS` = factor(
+       p_adjust_bh = p.adjust(p, method = 'BH', n = 77)
+     ,`Sign & Significance_CORRS` = factor(
       case_when(
-          p < (0.05 / 99) & r > 0 ~ 'Positive (p < 0.05)'
-        , p < (0.05 / 99) & r < 0 ~ 'Negative (p < 0.05)'
-        , p >=(0.05 / 99)         ~ 'p >= 0.05'
+          p_adjust_bh < 0.05 & r > 0 ~ 'Positive (p < 0.05)'
+        , p_adjust_bh < 0.05 & r < 0 ~ 'Negative (p < 0.05)'
+        , p_adjust_bh >=0.05         ~ 'p >= 0.05'
+        #   p < (0.05 / 99) & r > 0 ~ 'Positive (p < 0.05)'
+        # , p < (0.05 / 99) & r < 0 ~ 'Negative (p < 0.05)'
+        # , p >=(0.05 / 99)         ~ 'p >= 0.05'
         , TRUE ~ 'ERROR'
         )
       , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
@@ -690,10 +707,10 @@ mods_bi_slag |>
   # facet_grid(str_wrap(dep_alias, 10) ~ str_wrap(ind_alias, 10), scales = 'free') +
   # theme_bw(16) +
   scale_color_manual(values = c('red'
-                                # , 'blue'
+                                , 'blue'
                                 , 'gray')) +
   scale_fill_manual(values = c('red'
-                               # , 'blue'
+                               , 'blue'
                                , 'gray')) +
   theme_bw(8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)

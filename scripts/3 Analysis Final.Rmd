@@ -190,38 +190,55 @@ print(cor_results)
 ## updated correlations
 ```{r}
 
+
+dep_vars_vec <- Dependent |> names()
+(dep_vars_vec <- dep_vars_vec[-1])
+
+
 cors <- 
   Combined |>
   select(
-      'Potential sites'                               = totsites
-    , 'Stocking (%)'                                  = percent_filled
-    , 'Sites above target pit size (%)'               = Perc2.97
-    # , 'Relative Species Richness' = rich_tottree
-    , 'Rarefied richness'                             = rare_rich
-    , 'Evenness'                                      = Evar
-    , 'β Diversity'                                   = spave
-    , 'Average DBH of small species (cm)'             = AvgDBH_smallmed
-    , 'Average DBH of large species (cm)'             = AvgDBH_large
-    , 'Poor condition (%)'                            = PercPoor
-    , 'Good condition (%)'                            = PercGood
-    , 'Dead (%)'                                      = PercDead
-    , 'Air temperature (°C)'                          = avg_temp
-    , 'Impervious surface cover (%)'                  = PercentImp
-    
-    , 'Road length (m)'                               = sum_road_length_m
-    , 'Population density'                            = PopDensity
-    , 'Vacancy (%)'                                   = vacant20
-    , "Bachelor's degree (%)"                         = bahigher20
-    , 'Median household income (USD) '                = mhhi20
-    , 'White population (%)'                          = PercWhite
-    , 'Black population (%)'                          = PercBlk
+      totsites
+    , percent_filled
+    , Perc2.97
+    , rare_rich
+    , Evar
+    , spave
+    , AvgDBH_smallmed
+    , AvgDBH_large
+    , PercPoor
+    , PercGood
+    , PercDead
+    , PercBlk
+    , PercWhite
+    , mhhi20
+    , bahigher20
+    , avg_temp
+    , vacant20
+    , PercentImp
+    # , PopDensity
+    # , sum_road_length_m
     ) |> 
-  # scipub::correltable(html = TRUE) |> 
-  # View()
-  correlation::correlation(p_adjust = 'bonferroni')
+  # correlation::correlation(p_adjust = 'bonferroni') |> 
+  # correlation::correlation() |> # PAY ATTENTION
+  correlation::correlation(p_adjust = 'none') |> 
+  tibble() |> 
+  select(p1 = Parameter1, p2 = Parameter2, r, p) |> 
+  mutate(  var_set_1 = ifelse(p1 %in% dep_vars_vec, 'dep', 'ind')
+         , var_set_2 = ifelse(p2 %in% dep_vars_vec, 'dep', 'ind')
+         ) |> 
+  filter(var_set_1 != var_set_2) |> 
+   mutate(
+       p_adjust_bh = p.adjust(p, method = 'BH', n = 77)
+   )
+
+# # save out
+# cors |> 
+#   write_csv(paste0('output_tables/correlation_bh_adjust_', Sys.Date(), '.csv'))
+
 
 cors |> 
-  summary() |> 
+  summary() |>
   correlation::display(
     # include_significance = TRUE
     ) 
@@ -249,9 +266,10 @@ view(p_filtered_0.001)
 
 #4 Total Tree Pits
 ```{r eval=FALSE, include=FALSE}
+n_adjust <- 77 # for BH
 totpits_r <- p_filtered_0.05 %>%
   filter(Variable1 == "totsites" | Variable2 == "totsites") %>% 
-  mutate(padj=p.adjust(PValue, method='BH', n=99))
+  mutate(padj=p.adjust(PValue, method='BH', n=n_adjust))
 
 view(totpits_r)
 
@@ -265,7 +283,7 @@ view(totpits_r2)
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 stocking_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "percent_filled" | Variable2 == "percent_filled") %>% 
-  mutate(padj=p.adjust(PValue, method='BH', n=99))
+  mutate(padj=p.adjust(PValue, method='BH', n=n_adjust))
 
 view(stocking_r)
 
@@ -396,7 +414,7 @@ view(large_dbh_r)
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 poor_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercPoor" | Variable2 == "PercPoor")%>% 
-  mutate(padj=p.adjust(PValue, method='BH', n=99))
+  mutate(padj=p.adjust(PValue, method='BH', n=n_adjust))
 
 view(poor_r)
 
@@ -410,7 +428,7 @@ view(poor_r2)
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 good_r <- p_filtered_0.05 %>% 
   filter(Variable1 == "PercGood" | Variable2 == "PercGood")%>% 
-  mutate(padj=p.adjust(PValue, method='BH', n=99))
+  mutate(padj=p.adjust(PValue, method='BH', n=n_adjust))
 view(good_r)
 
 good_r2 <- p_filtered_0.001 %>% 
