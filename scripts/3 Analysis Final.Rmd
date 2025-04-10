@@ -510,34 +510,34 @@ B <- ggplot(Combined, aes(x = bahigher20, y = percent_filled))+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
 
-#richness vs temperature
-C <- ggplot(Combined, aes(x = avg_temp, y = rare_rich))+
+#richness vs vacancy
+C <- ggplot(Combined, aes(x = vacant20, y = rare_rich))+
   geom_point(color = "skyblue4", size=2.5)+
-  labs(x = "Air temperature (°C)", y = "Rarefied richness") + 
+  labs(x = "Vacancy (%)", y = "Rarefied richness") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
 
-#%poor vs % black
-D <- ggplot(Combined, aes(x = PopDensity, y = spave))+
+#%beta div vs % temp
+D <- ggplot(Combined, aes(x = avg_temp, y = spave))+
   geom_point(color = "lightblue", size=2.5)+
-  labs(x = "Population density", y = "Beta diversity") + 
+  labs(x = "Air temperature (°C)", y = "Beta diversity") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
 
-#%target pit size vs. percent impervious
-E <- ggplot(Combined, aes(x = PercentImp, y = Perc2.97))+
-  geom_point(color = 'red', size=2.5)+
-  labs(x = 'Impervious surface (%)', y = "Sites above target\npit size (%)") + 
+#%good vs. white
+E <- ggplot(Combined, aes(x = PercWhite, y = PercGood))+
+  geom_point(color = 'mediumpurple1', size=2.5)+
+  labs(x = 'White population (%)', y = "Good condition (%)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
 
 #large tree DBH vs temperature
-F <- ggplot(Combined, aes(x = avg_temp, y = AvgDBH_large))+
+F <- ggplot(Combined, aes(x = PercentImp, y = AvgDBH_large))+
   geom_point(color = "#ff794c", size=2.5)+
-  labs(x = "Air temperature (°C)", y = "Average DBH of\nlarge species (cm)") + 
+  labs(x = "Impervious Surface (%)", y = "Average DBH of\nlarge species (cm)") + 
   theme_bw()+
     theme(panel.grid=element_blank(),
         text=element_text(size=12))
