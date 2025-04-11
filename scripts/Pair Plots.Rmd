@@ -49,8 +49,8 @@ ind_pair <-
   , 'Air\ntemperature\n(°C)' = avg_temp
   , 'Vacancy\n(%) ' = vacant20
   , 'Impervious\nsurface\ncover (%)' = PercentImp
-  , 'Population\ndensity' = PopDensity
-  , 'Road\nlength (m)' = sum_road_length_m
+  # , 'Population\ndensity' = PopDensity
+  # , 'Road\nlength (m)' = sum_road_length_m
     ) |> 
   ggpairs(
       aes(alpha = 0.05)

@@ -149,7 +149,7 @@ bmore_bnia |>
     , 'Air Temperature (°C)'                         = avg_temp
     , 'Vacancy (%)'                                  = vacant20
     , 'Impervious surface cover (%)'                 = PercentImp
-    , 'Population density'                           = PopDensity
+    # , 'Population density'                           = PopDensity
     # , 'Road length (m)'                               = sum_road_length_m
     )
 
@@ -276,7 +276,7 @@ socenv_maps <-
     , e
     , f
     , g
-    , h
+    # , h
     , labels = c(
         'A'
       , 'B'
@@ -285,7 +285,7 @@ socenv_maps <-
       , 'E'
       , 'F'
       , 'G'
-      , 'H'
+      # , 'H'
       )
     , ncol = 2
     , vjust =1)
