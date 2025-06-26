@@ -164,6 +164,8 @@ perc_filled <-site_status %>%
 city_wide_filled<- site_status %>% 
   group_by(tree_present) %>%
   summarise(n= length(Species))
+```
+
 
 #6 Potential Sites - no longer necessary
 ```{r}
@@ -338,8 +340,8 @@ pit_size <-
   mutate(  length = as.numeric(ifelse(SPCELENGTH == '>20', 21, SPCELENGTH)) 
          , width  = as.numeric(ifelse(SPACEWIDTH == '>20', 21, SPACEWIDTH))
          ) %>% 
-  mutate(  length_SI = length*0.3048 #convert to SI
-         , width_SI  = width*0.3048 #convert to SI
+  mutate(  length_SI = length / 3.281 # *0.3048 #convert to SI
+         , width_SI  = width / 3.281 # *0.3048 #convert to SI
          , pit_area  = length_SI*width_SI
          ) %>% 
   select(CSA2020, pit_area, X_COORD, Y_COORD, DBH)
@@ -349,9 +351,13 @@ ggplot(pit_size, aes(x=pit_area)) + geom_histogram()
 cor.test(pit_size$pit_area, pit_size$DBH) |> broom::tidy()
 # r=0.342
 
+# pit_size |>  
+#   mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) |>
+#   tabyl(size_threshhold)
+
 large_pit <- 
   pit_size %>% 
-  mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% 
+  mutate(size_threshhold = ifelse(pit_area >= 9, "greater", "less" )) %>% #2.97
   group_by(CSA2020, size_threshhold) %>% 
   summarize(n = length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
@@ -359,9 +365,11 @@ large_pit <-
   mutate(Perc2.97 = (greater / T1)*100) %>% 
   select(CSA2020, Perc2.97)
 
+large_pit |> ggplot(aes(Perc2.97)) + geom_histogram() #geom_density()
+
 citywide<-large_pit #get stop after line 354 
   pit_size %>% 
-  mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% 
+  mutate(size_threshhold = ifelse(pit_area >= 9, "greater", "less" )) %>% # 2.97
   group_by(size_threshhold) %>% 
   summarize(n=length(pit_area))
 
