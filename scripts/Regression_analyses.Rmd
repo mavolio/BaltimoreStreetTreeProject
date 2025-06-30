@@ -38,7 +38,8 @@ This file will conduct correlational analyses on combined data of demographics a
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -80,7 +81,7 @@ neighs <-
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
     , spave           # beta diversity
-    , Perc2.97        # % of trees above threshold 
+    , pct_9m2         # % of trees above threshold 
     
     # independent
     , PercBlk
@@ -173,7 +174,7 @@ neighs |>
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
     , spave           # beta diversity
-    , Perc2.97        # % of trees above threshold 
+    , pct_9m2        # % of trees above threshold 
     ) |> 
   pivot_longer(-CSA2020) |> 
   ggplot(aes(value)) +
@@ -203,7 +204,7 @@ neighs |>
 #     , PercPoor        # % trees in poor condition
 #     , PercDead        # % trees dead or stump
 #     , spave           # beta diversity
-#     , Perc2.97        # % of trees above threshold 
+#     , pct_9m2        # % of trees above threshold 
 #     
 #     # independent
 #     , PercBlk
@@ -304,7 +305,7 @@ neighs |>
 mods_bi <- 
   neighs |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |>
-  pivot_longer(cols = rare_rich : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = rare_rich : pct_9m2, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value) |> # just moving geom col to end, reorder
   group_by(ind, dep) |> 
   nest() |> 
@@ -466,7 +467,7 @@ mods_bi_slag <-
     , PercPoor_lag        = st_lag(PercPoor        , nbs, wts)
     , PercDead_lag        = st_lag(PercDead        , nbs, wts)
     , spave_lag           = st_lag(spave           , nbs, wts)
-    , Perc2.97_lag        = st_lag(Perc2.97        , nbs, wts)
+    , pct_9m2_lag        = st_lag(pct_9m2        , nbs, wts)
   ) |> 
   st_drop_geometry() |> 
   select(CSA2020          # id
@@ -482,7 +483,7 @@ mods_bi_slag <-
           , PercPoor        
           , PercDead        
           , spave           
-          , Perc2.97     
+          , pct_9m2     
 
           # lagged dep
           # , rich_tottree_lag
@@ -496,7 +497,7 @@ mods_bi_slag <-
           , PercPoor_lag       
           , PercDead_lag       
           , spave_lag          
-          , Perc2.97_lag       
+          , pct_9m2_lag       
          
           # independent
           , PercBlk
@@ -510,8 +511,8 @@ mods_bi_slag <-
           , vacant20
          ) |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |> 
-  pivot_longer(cols = rare_rich_lag : Perc2.97_lag, names_to = 'lag', values_to = 'lag_value') |> 
-  pivot_longer(cols = rare_rich : Perc2.97, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = rare_rich_lag : pct_9m2_lag, names_to = 'lag', values_to = 'lag_value') |> 
+  pivot_longer(cols = rare_rich : pct_9m2, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value, lag, lag_value) |> # just reorder
   # TK HERE
   filter(
@@ -526,7 +527,7 @@ mods_bi_slag <-
     (dep == 'PercPoor'        & lag == 'PercPoor_lag')        |
     (dep == 'PercDead'        & lag == 'PercDead_lag')        |
     (dep == 'spave'           & lag == 'spave_lag')           |
-    (dep == 'Perc2.97'        & lag == 'Perc2.97_lag')
+    (dep == 'pct_9m2'         & lag == 'pct_9m2_lag')
     ) |> 
   group_by(ind, dep) |> 
   nest() |> 
@@ -572,14 +573,17 @@ mods_bi_slag |> janitor::tabyl(dep, ind)
 
 mods_bi_slag$data[[1]]
 
+(n_adjust <- nrow(mods_bi_slag)) #77
 
-# # extract p-values for autocorrelation
-# mods_bi |> 
-#   select(ends_with('mi')) |> 
-#   mutate(mi_test = map(ols_resid_mi, broom::tidy)) |> 
-#   unnest(mi_test) |> 
-#   mutate(sig = ifelse(p.value > 0.05, 'not sig', 'sig')) |> 
-#   janitor::tabyl(sig)
+# extract p-values for autocorrelation
+mods_bi_slag |>
+  select(dep, ind, sp_lag_sig) |>
+  unnest(sp_lag_sig) |>
+  filter(term == 'ind_value') |> 
+  mutate(
+    p_adjust_bh = p.adjust(p.value, method = 'BH', n = n_adjust)
+    , sig = ifelse(p_adjust_bh, 'not sig', 'sig')) |>
+  janitor::tabyl(sig)
 
 
 # mods$ols_all_sites_smry
@@ -588,7 +592,7 @@ mods_bi_slag$data[[1]]
 # mods$ols_L_rich_tot_smry
 # mods$ols_PercGood_smry
 
-n_adjust <- 77
+
 
 sp_lag_sigs_tbl <-
   mods_bi_slag |> 
@@ -597,8 +601,8 @@ sp_lag_sigs_tbl <-
   # for BH adjustment
   filter(term == 'ind_value') |> 
   mutate(
-    p_adjust_bh = p.adjust(p.value, method = 'BH', n = 77)
-    , `Sign & Significance` = factor(
+    p_adjust_bh = p.adjust(p.value, method = 'BH', n = n_adjust) # 77
+    , `Spatial Lag Regression\nSign & Significance` = factor(
       case_when(
         # # Bonferoini adjustment is the divide by 99
         #   p.value < (0.05 / 99) & estimate > 0 ~ 'Positive (p < 0.05)'
@@ -612,7 +616,9 @@ sp_lag_sigs_tbl <-
         )
       , levels = c('Positive (p < 0.05)', 'Negative (p < 0.05)', 'p >= 0.05'))
     ) |> 
-  select(dep, ind, `Sign & Significance`)
+  select(dep, ind, `Spatial Lag Regression\nSign & Significance`)
+
+sp_lag_sigs_tbl |> janitor::tabyl(`Spatial Lag Regression\nSign & Significance`)
 
 dep_vars_vec <- Dependent |> names()
 (dep_vars_vec <- dep_vars_vec[-1])
@@ -623,7 +629,7 @@ spat_vs_corrs <-
   select(
       totsites
     , percent_filled
-    , Perc2.97
+    , pct_9m2
     , rare_rich
     , Evar
     , spave
@@ -652,8 +658,8 @@ spat_vs_corrs <-
          ) |> 
   filter(var_set_1 != var_set_2) |> 
    mutate(
-       p_adjust_bh = p.adjust(p, method = 'BH', n = 77)
-     ,`Sign & Significance_CORRS` = factor(
+       p_adjust_bh = p.adjust(p, method = 'BH', n = n_adjust)
+     ,`Correlation\nSign & Significance` = factor(
       case_when(
           p_adjust_bh < 0.05 & r > 0 ~ 'Positive (p < 0.05)'
         , p_adjust_bh < 0.05 & r < 0 ~ 'Negative (p < 0.05)'
@@ -669,8 +675,8 @@ spat_vs_corrs <-
 
 # compare spatial regression to correlations
 spat_vs_corrs |> 
-  janitor::tabyl(  `Sign & Significance`       # ROWS 
-                 , `Sign & Significance_CORRS` # COLS
+  janitor::tabyl(  `Spatial Lag Regression\nSign & Significance`       # ROWS 
+                 , `Correlation\nSign & Significance` # COLS
                  ) |> 
   janitor::adorn_percentages(denominator = 'all') |> 
   janitor::adorn_pct_formatting() |> 
@@ -678,15 +684,41 @@ spat_vs_corrs |>
 
 
 spat_vs_corrs |> 
-  janitor::tabyl(  `Sign & Significance`       # ROWS 
-                 , `Sign & Significance_CORRS` # COLS
+  janitor::tabyl(   `Correlation\nSign & Significance`                  # ROWS
+                  , `Spatial Lag Regression\nSign & Significance`       # COLS
                  ) |> 
   janitor::adorn_totals('col')
   
 spat_vs_corrs |> 
-  group_by(  `Sign & Significance`
-           , `Sign & Significance_CORRS`) |> 
-  count() |> arrange(desc(n))
+  group_by(  `Correlation\nSign & Significance`
+           , `Spatial Lag Regression\nSign & Significance`
+           ) |> 
+  count() |> 
+  arrange(desc(n)) #|> 
+  # write_csv(paste0('output_tables/spat_vs_corrs_bh_adjust_counts_', Sys.Date(), '.csv'))
+
+spat_vs_corrs |> 
+  select(
+      p1
+    , p2
+    , `Correlation\nSign & Significance`
+    , `Spatial Lag Regression\nSign & Significance`
+    ) |> 
+  left_join(
+    var_alias_lu |> select(name, alias)
+    , by = c('p1' = 'name')
+    ) |> 
+  left_join(
+    var_alias_lu |> select(name, alias)
+    , by = c('p2' = 'name')
+  ) |> 
+  select(
+      'Street Tree Variables' = alias.x
+    , 'Socio-Environmental Variables' = alias.y
+    , `Correlation\nSign & Significance`
+    , `Spatial Lag Regression\nSign & Significance`
+  ) |> 
+  writexl::write_xlsx(paste0('output_tables/Table_S1_spat_vs_corrs_bh_adjust_counts_', Sys.Date(), '.xlsx'))
 
 mods_bi_slag |>
   select(dep, ind, sp_lag_preds, dep_alias, ind_alias) |> 
@@ -696,8 +728,8 @@ mods_bi_slag |>
   left_join(sp_lag_sigs_tbl, by = c('dep', 'ind')) |> 
   ggplot(aes(  x
              , predicted
-             , color = `Sign & Significance`
-             , fill = `Sign & Significance`)
+             , color = `Spatial Lag Regression\nSign & Significance`
+             , fill = `Spatial Lag Regression\nSign & Significance`)
          ) + 
   geom_line() + 
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.5) + 
@@ -721,13 +753,13 @@ mods_bi_slag |>
        , subtitle = 'after controling for spatial autocorrelation (spatial lag regression)'
        , x = 'Indepent Variable'
        , y = "Predicted Dependent Variable's Value"
-       , captoin = 'p values adjusted with a Bonferroni correction'
+       , captoin = 'p values adjusted with a Benjamini & Hochberg correction'
        ) + 
   NULL
 
-ggsave( filename = paste0('figures/Figure_S5_spatial_regression_', Sys.Date(), '.png')
-       , width = 6.5
-       , height = 7.5)
+# ggsave( filename = paste0('figures/Figure_S5_spatial_regression_', Sys.Date(), '.png')
+#        , width = 6.5
+#        , height = 7.5)
 
 ```
 

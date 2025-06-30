@@ -30,7 +30,8 @@ list.files('../../BaltimoreStreetTreeProject_Large_Data/', recursive = TRUE)
 ```{r}
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <-
@@ -66,10 +67,10 @@ A <-
 
 #6 Target Pit Size 
 ```{r}
-# fixme Perc2.97
+# fixme pct_9m2
 B <-
   ggplot(data = bmore_bnia) + 
-  geom_sf(aes(fill = Perc2.97)) + 
+  geom_sf(aes(fill = pct_9m2)) + 
   scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_void(10)+
   guides(fill = guide_legend(title = "Target pit\nsize (%)"))
 

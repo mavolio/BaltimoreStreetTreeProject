@@ -40,7 +40,7 @@ var_names <- as_labeller(
        `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
 
 var_names_2 <- as_labeller(
-     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`Perc2.97` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rare_rich` = "Richness", `PercDead` ="Dead Stock"))
+     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`pct_9m2` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rare_rich` = "Richness", `PercDead` ="Dead Stock"))
 
 # https://docs.google.com/document/d/1E7EOOMfruCCCPvQYKnoOsspO_ls1wjsZvy91BuC8Rqk/edit?tab=t.0
 ```
@@ -49,7 +49,8 @@ var_names_2 <- as_labeller(
 ```{r include=FALSE}
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -91,7 +92,7 @@ Dependent |>
   select(
       'Potential sites' = totsites
     , 'Stocking (%)' = percent_filled
-    , 'Sites Above Target Pit Size (%)' = Perc2.97
+    , 'Sites Above Target Pit Size (%)' = pct_9m2
     # , 'Relative Species Richness' = rich_tottree
     , 'Rarefied Richness' = rare_rich
     , 'Evenness' = Evar
@@ -200,7 +201,7 @@ cors <-
   select(
       totsites
     , percent_filled
-    , Perc2.97
+    , pct_9m2
     , rare_rich
     , Evar
     , spave
@@ -452,16 +453,16 @@ view(good_r2)
 
 #15 Target Pit Size
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-perc2.97_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "Perc2.97" | Variable2 == "Perc2.97")
+pct_9m2_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "pct_9m2" | Variable2 == "pct_9m2")
 
-view(perc2.97_r)
+view(pct_9m2_r)
 
 # p<0.001
-perc2.97_r2 <- p_filtered_0.001 %>% 
-  filter(Variable1 == "Perc2.97" | Variable2 == "Perc2.97")
+pct_9m2_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "pct_9m2" | Variable2 == "pct_9m2")
 
-view(perc2.97_r2)
+view(pct_9m2_r2)
 
 ```
 

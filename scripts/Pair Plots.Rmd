@@ -14,7 +14,8 @@ library(GGally)
 Dependent_pair <- 
   # read_csv('input_data/Dependent_variable_2025-03-14.csv') |> 
   # read_csv('input_data/Dependent_variable_2025-03-27.csv') |>
-  read_csv('input_data/Dependent_variable_2025-04-01.csv') |> 
+  # read_csv('input_data/Dependent_variable_2025-04-01.csv') |> 
+  read_csv('input_data/Dependent_variable_2025-06-30.csv') |> 
   drop_na()
 
 Independent_pair <- 
@@ -85,7 +86,7 @@ dep_pair <-
   select(
     'Potential\nsites' = totsites
   , 'Stocking\n(%)' = percent_filled
-  , 'Sites\nabove\ntarget pit\nsize (%)' = Perc2.97
+  , 'Sites\nabove\ntarget pit\nsize (%)' = pct_9m2
   # , 'Relative\nSpecies\nRichness' = rich_tottree
   , 'Rarefied\nrichness' = rare_rich
   , 'Evenness' = Evar
