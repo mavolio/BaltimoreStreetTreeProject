@@ -1,0 +1,8 @@
+"Correlation
+Sign & Significance","Spatial Lag Regression
+Sign & Significance",n
+p >= 0.05,p >= 0.05,46
+Negative (p < 0.05),p >= 0.05,22
+Positive (p < 0.05),p >= 0.05,7
+Positive (p < 0.05),Positive (p < 0.05),1
+Negative (p < 0.05),Negative (p < 0.05),1
