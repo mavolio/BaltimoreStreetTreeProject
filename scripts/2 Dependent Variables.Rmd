@@ -375,7 +375,7 @@ cor.test(pit_size$pit_area, pit_size$DBH) |> broom::tidy()
 
 large_pit <- 
   pit_size %>% 
-  mutate(size_threshhold = ifelse(pit_area >= 9, "greater", "less" )) %>% #2.97
+  mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% # 2.97 or 9?
   group_by(CSA2020, size_threshhold) %>% 
   summarize(n = length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
@@ -388,7 +388,7 @@ large_pit |> ggplot(aes(pct_9m2)) + geom_histogram() #geom_density()
 citywide<-large_pit #get stop after line 354 
   
 pit_size %>% 
-  mutate(size_threshhold = ifelse(pit_area >= 9, "greater", "less" )) %>% # 2.97
+  mutate(size_threshhold = ifelse(pit_area >= 2.97, "greater", "less" )) %>% # 2.97 or 9?
   group_by(size_threshhold) %>% 
   summarize(n=length(pit_area))
 

@@ -39,7 +39,8 @@ This file will conduct correlational analyses on combined data of demographics a
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-27.csv')
 # Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-07-18.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
@@ -717,8 +718,8 @@ spat_vs_corrs |>
     , 'Socio-Environmental Variables' = alias.y
     , `Correlation\nSign & Significance`
     , `Spatial Lag Regression\nSign & Significance`
-  ) |> 
-  writexl::write_xlsx(paste0('output_tables/Table_S1_spat_vs_corrs_bh_adjust_counts_', Sys.Date(), '.xlsx'))
+  ) #|> 
+  #writexl::write_xlsx(paste0('output_tables/Table_S1_spat_vs_corrs_bh_adjust_counts_', Sys.Date(), '.xlsx'))
 
 mods_bi_slag |>
   select(dep, ind, sp_lag_preds, dep_alias, ind_alias) |> 

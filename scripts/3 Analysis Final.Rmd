@@ -50,7 +50,8 @@ var_names_2 <- as_labeller(
 
 # Dependent <- read_csv('input_data/Dependent_variable_2025-03-14.csv')
 # Dependent <- read_csv('input_data/Dependent_variable_2025-04-01.csv')
-Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
+# Dependent <- read_csv('input_data/Dependent_variable_2025-06-30.csv')
+Dependent <- read_csv('input_data/Dependent_variable_2025-07-18.csv')
 Independent<- read_csv('input_data/Independent_variable_2025-03-14.csv')
 
 Combined <- 
