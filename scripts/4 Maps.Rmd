@@ -69,10 +69,10 @@ A <-
 
 #6 Target Pit Size 
 ```{r}
-# fixme pct_9m2
+# pct_2.97
 B <-
   ggplot(data = bmore_bnia) + 
-  geom_sf(aes(fill = pct_9m2)) + 
+  geom_sf(aes(fill = pct_2.97)) + 
   scale_fill_distiller(palette = "Reds", trans = "reverse") + theme_void(10)+
   guides(fill = guide_legend(title = "Target pit\nsize (%)"))
 

@@ -86,7 +86,7 @@ dep_pair <-
   select(
     'Potential\nsites' = totsites
   , 'Stocking\n(%)' = percent_filled
-  , 'Sites\nabove\ntarget pit\nsize (%)' = pct_9m2
+  , 'Sites\nabove\ntarget pit\nsize (%)' = pct_2.97
   # , 'Relative\nSpecies\nRichness' = rich_tottree
   , 'Rarefied\nrichness' = rare_rich
   , 'Evenness' = Evar

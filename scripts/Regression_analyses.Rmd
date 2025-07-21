@@ -82,7 +82,7 @@ neighs <-
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
     , spave           # beta diversity
-    , pct_9m2         # % of trees above threshold 
+    , pct_2.97        # % of trees above threshold 
     
     # independent
     , PercBlk
@@ -175,7 +175,7 @@ neighs |>
     , PercPoor        # % trees in poor condition
     , PercDead        # % trees dead or stump
     , spave           # beta diversity
-    , pct_9m2        # % of trees above threshold 
+    , pct_2.97        # % of trees above threshold 
     ) |> 
   pivot_longer(-CSA2020) |> 
   ggplot(aes(value)) +
@@ -205,7 +205,7 @@ neighs |>
 #     , PercPoor        # % trees in poor condition
 #     , PercDead        # % trees dead or stump
 #     , spave           # beta diversity
-#     , pct_9m2        # % of trees above threshold 
+#     , pct_2.97        # % of trees above threshold 
 #     
 #     # independent
 #     , PercBlk
@@ -306,7 +306,7 @@ neighs |>
 mods_bi <- 
   neighs |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |>
-  pivot_longer(cols = rare_rich : pct_9m2, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = rare_rich : pct_2.97, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value) |> # just moving geom col to end, reorder
   group_by(ind, dep) |> 
   nest() |> 
@@ -468,7 +468,7 @@ mods_bi_slag <-
     , PercPoor_lag        = st_lag(PercPoor        , nbs, wts)
     , PercDead_lag        = st_lag(PercDead        , nbs, wts)
     , spave_lag           = st_lag(spave           , nbs, wts)
-    , pct_9m2_lag        = st_lag(pct_9m2        , nbs, wts)
+    , pct_2.97_lag        = st_lag(pct_2.97        , nbs, wts)
   ) |> 
   st_drop_geometry() |> 
   select(CSA2020          # id
@@ -484,7 +484,7 @@ mods_bi_slag <-
           , PercPoor        
           , PercDead        
           , spave           
-          , pct_9m2     
+          , pct_2.97     
 
           # lagged dep
           # , rich_tottree_lag
@@ -498,7 +498,7 @@ mods_bi_slag <-
           , PercPoor_lag       
           , PercDead_lag       
           , spave_lag          
-          , pct_9m2_lag       
+          , pct_2.97_lag       
          
           # independent
           , PercBlk
@@ -512,8 +512,8 @@ mods_bi_slag <-
           , vacant20
          ) |> 
   pivot_longer(cols = PercBlk : vacant20, names_to = 'ind', values_to = 'ind_value') |> 
-  pivot_longer(cols = rare_rich_lag : pct_9m2_lag, names_to = 'lag', values_to = 'lag_value') |> 
-  pivot_longer(cols = rare_rich : pct_9m2, names_to = 'dep', values_to = 'dep_value') |> 
+  pivot_longer(cols = rare_rich_lag : pct_2.97_lag, names_to = 'lag', values_to = 'lag_value') |> 
+  pivot_longer(cols = rare_rich : pct_2.97, names_to = 'dep', values_to = 'dep_value') |> 
   select(CSA2020, dep, dep_value, ind, ind_value, lag, lag_value) |> # just reorder
   # TK HERE
   filter(
@@ -528,7 +528,7 @@ mods_bi_slag <-
     (dep == 'PercPoor'        & lag == 'PercPoor_lag')        |
     (dep == 'PercDead'        & lag == 'PercDead_lag')        |
     (dep == 'spave'           & lag == 'spave_lag')           |
-    (dep == 'pct_9m2'         & lag == 'pct_9m2_lag')
+    (dep == 'pct_2.97'         & lag == 'pct_2.97_lag')
     ) |> 
   group_by(ind, dep) |> 
   nest() |> 
@@ -630,7 +630,7 @@ spat_vs_corrs <-
   select(
       totsites
     , percent_filled
-    , pct_9m2
+    , pct_2.97
     , rare_rich
     , Evar
     , spave

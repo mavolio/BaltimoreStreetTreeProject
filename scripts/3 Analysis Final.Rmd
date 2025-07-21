@@ -40,7 +40,7 @@ var_names <- as_labeller(
        `bahigher20` = "Bachelor's or higher", `avg_temp` = "Average Temperature"))
 
 var_names_2 <- as_labeller(
-     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`pct_9m2` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rare_rich` = "Richness", `PercDead` ="Dead Stock"))
+     c(`AvgDBH_small` = "Average Small DBH", `AvgDBH_med` = "Average Medium DBH", `AvgDBH_large` = "Average Large DBH",  `Evar` = "Evenness",`pct_2.97` = "Ideal Pits", `PercGood` = "% Good", `PercPoor` = "% Poor", `percent_filled` = "% Filled", `rare_rich` = "Richness", `PercDead` ="Dead Stock"))
 
 # https://docs.google.com/document/d/1E7EOOMfruCCCPvQYKnoOsspO_ls1wjsZvy91BuC8Rqk/edit?tab=t.0
 ```
@@ -93,7 +93,7 @@ Dependent |>
   select(
       'Potential sites' = totsites
     , 'Stocking (%)' = percent_filled
-    , 'Sites Above Target Pit Size (%)' = pct_9m2
+    , 'Sites Above Target Pit Size (%)' = pct_2.97
     # , 'Relative Species Richness' = rich_tottree
     , 'Rarefied Richness' = rare_rich
     , 'Evenness' = Evar
@@ -202,7 +202,7 @@ cors <-
   select(
       totsites
     , percent_filled
-    , pct_9m2
+    , pct_2.97
     , rare_rich
     , Evar
     , spave
@@ -454,16 +454,16 @@ view(good_r2)
 
 #15 Target Pit Size
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-pct_9m2_r <- p_filtered_0.05 %>% 
-  filter(Variable1 == "pct_9m2" | Variable2 == "pct_9m2")
+pct_2.97_r <- p_filtered_0.05 %>% 
+  filter(Variable1 == "pct_2.97" | Variable2 == "pct_2.97")
 
-view(pct_9m2_r)
+view(pct_2.97_r)
 
 # p<0.001
-pct_9m2_r2 <- p_filtered_0.001 %>% 
-  filter(Variable1 == "pct_9m2" | Variable2 == "pct_9m2")
+pct_2.97_r2 <- p_filtered_0.001 %>% 
+  filter(Variable1 == "pct_2.97" | Variable2 == "pct_2.97")
 
-view(pct_9m2_r2)
+view(pct_2.97_r2)
 
 ```
 

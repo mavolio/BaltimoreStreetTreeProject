@@ -380,10 +380,10 @@ large_pit <-
   summarize(n = length(size_threshhold)) %>% 
   pivot_wider(names_from = size_threshhold, values_from = n, values_fill = 0) %>% 
   left_join(perc_filled, by = "CSA2020") %>% 
-  mutate(pct_9m2 = (greater / T1)*100) %>% 
-  select(CSA2020, pct_9m2)
+  mutate(pct_2.97 = (greater / T1)*100) %>% 
+  select(CSA2020, pct_2.97)
 
-large_pit |> ggplot(aes(pct_9m2)) + geom_histogram() #geom_density()
+large_pit |> ggplot(aes(pct_2.97)) + geom_histogram() #geom_density()
 
 citywide<-large_pit #get stop after line 354 
   
