@@ -188,12 +188,15 @@ nbmean<-subsetCSA %>%
   left_join(Independent) %>% 
   filter(!is.na(CSA2020)) %>% 
   drop_na() %>% 
-  mutate(inc=ifelse(40000<mhhi20&mhhi20<80000,'middle',ifelse(mhhi20<=40000, 'low','high')),
+  mutate(inc=ifelse(mhhi20<49000, 'low','high'),
+    #inc=ifelse(40000<mhhi20&mhhi20<80000,'middle',ifelse(mhhi20<=40000, 'low','high')),
          vac=ifelse(vacant20<10, 'low', 'high'),
          temp=ifelse(avg_temp>35, '>35', '=<35'),
          race=ifelse(PercBlk>60, 'PredomBlk', ifelse(PercWhite>60, 'PreDomWhite', "drop")),
          ed=ifelse(bahigher20>60, 'HighPEd', 'LessPEd')) %>% 
   pivot_wider(names_from = Species, values_from = n, values_fill = 0) 
+
+summary(Independent)
 
 #multivariate analyses of community composition
 mds<-metaMDS(nbmean[17:258])
@@ -223,7 +226,7 @@ A <- ggplot(data=subset(scores, race !="drop"), aes(x=MDS1, y=MDS2, color=race))
 B <- ggplot(data=scores, aes(x=MDS1, y=MDS2, color=inc))+
   geom_point(size=2)+
   stat_ellipse(size=1, aes(color=inc))+
-  scale_color_manual(values = c("cyan3", "blue3", "coral1"), labels = c("High", "Low", "Middle"))+
+  scale_color_manual(values = c("cyan3", "blue3"), labels = c("High", "Low", "Middle"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   xlab("NMDS Axis 1")+
   ylab("NMDS Axis 2")+
@@ -270,7 +273,7 @@ Fig <- plot_grid(A, B, C, D, E, labels = c('A', 'B', 'C', 'D', 'E'), nrow = 3,
                  ) +
   theme(plot.margin = margin(t = 10, r = 5, b = 5, l = 5, unit = "mm"))
 
-ggsave("FigNMDS.jpg",width=300, height=250, unit="mm", plot=Fig, dpi=300 )
+ggsave("FigNMDS_revised.jpg",width=300, height=250, unit="mm", plot=Fig, dpi=300 )
 
 #doing stats on the multivariate analyses
 #looking at dispersion, use same matrix every time
@@ -284,7 +287,7 @@ permutest(betadisper(dist,nbmean$temp,type="centroid"))#diff in dispersion
 adonis2(nbmean[17:258]~nbmean$vac)
 permutest(betadisper(dist,nbmean$vac,type="centroid"))
 
-0#race
+#race
 race2 <- nbmean %>% 
   filter(race!= "drop")
 dist.r<-vegdist(race2[17:258])
