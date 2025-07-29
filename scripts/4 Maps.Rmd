@@ -133,7 +133,8 @@ Maps <- plot_grid(A, B, C, D, E, F
 Maps
 
 ggsave(plot = Maps
-       , filename = paste0('figures/Figure_1_maps_street_tree_', Sys.Date(), '.png')
+       , filename = paste0('figures/Figure_1_maps_street_tree_dbh_', Sys.Date(), '.png')
+       # , filename = paste0('figures/Figure_1_maps_street_tree_', Sys.Date(), '.png')
        , width=180
        , height=200
        , unit="mm"
