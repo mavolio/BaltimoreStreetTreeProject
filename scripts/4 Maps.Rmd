@@ -96,11 +96,12 @@ C <-
 
 ```{r}
 # fixme AvgDBH_smallmed
-D <- 
+D <-
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_smallmed)) + 
-  scale_fill_distiller(palette = "RdPu", trans = "reverse") + theme_void(10)+
+  scale_fill_distiller(palette = "RdPu", trans = "reverse", breaks = seq(10, 40, 5)) + theme_void(10)+
   guides(fill = guide_legend(title = "Mean DBH\n(small, cm)"))
+
 ```
 
 #8 size 
@@ -109,7 +110,7 @@ D <-
 E <- 
   ggplot(data = bmore_bnia) + 
   geom_sf(aes(fill = AvgDBH_large)) + 
-  scale_fill_distiller(palette = "Oranges", trans = "reverse") + theme_void(10) +
+  scale_fill_distiller(palette = "Oranges", trans = "reverse", breaks = seq(10, 40, 5)) + theme_void(10) +
   guides(fill = guide_legend(title = "Mean DBH\n(large, cm)"))
 ```
 
