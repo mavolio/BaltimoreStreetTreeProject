@@ -138,7 +138,6 @@ ggsave(plot = Maps
        , height=200
        , unit="mm"
        , dpi=300 )
-
 ```
 
 # 12 Table 1 minus road length map series.
